@@ -196,7 +196,6 @@
       background: rgba(56, 189, 248, 0.15);
     }
 
-    /* 結算區塊樣式 */
     .section-title {
       font-size: 0.95rem;
       font-weight: 700;
@@ -311,23 +310,18 @@
     <div class="card">
       <h2 style="color: var(--accent); text-align: center; margin-bottom: 12px;">📊 投票結果與本回合結算</h2>
       
-      <!-- 1. 誰投給誰名單 -->
       <div class="section-title">🗳 玩家投票明細</div>
       <div id="vote-details" class="info-box"></div>
 
-      <!-- 2. 間諜名單揭曉 -->
       <div class="section-title">🕵️ 間諜身分揭曉</div>
       <div id="spy-details" class="info-box"></div>
 
-      <!-- 3. 題目公開 -->
       <div class="section-title">🎯 本回合題目與類別</div>
       <div id="topic-details" class="info-box"></div>
 
-      <!-- 4. 本回合得分明細 -->
       <div class="section-title">⭐ 本回合得分變更</div>
       <div id="round-scores-detail" class="info-box"></div>
       
-      <!-- 5. 間諜逆轉猜題機會（若失敗抓出） -->
       <div id="reverse-guess-box" style="display: none; background: #0f172a; padding: 12px; border-radius: 8px; margin: 12px 0; border: 1px dashed var(--accent);">
         <p style="font-size: 0.9rem; font-weight: bold; margin-bottom: 6px; color: #fbbf24;">🕵️ 間諜逆轉猜題機會：</p>
         <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
@@ -339,7 +333,6 @@
         </div>
       </div>
 
-      <!-- 6. 總積分榜 -->
       <div class="section-title" style="margin-top: 14px;">🏆 累積分數總榜</div>
       <div id="scoreboard" class="player-list"></div>
 
@@ -351,120 +344,237 @@
 </div>
 
 <script>
+  // 10 大宏觀分類，每類別 21 題，共 210 題
   const WORD_BANK = [
-    // 飲食與點心
-    ["<ruby>珍<rt>ㄓㄣ</rt>珠<rt>ㄓㄨ</rt>奶<rt>ㄋㄞˇ</rt>茶<rt>ㄔㄚˊ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>芒<rt>ㄇㄤˊ</rt>果<rt>ㄍㄨㄛˇ</rt>冰<rt>ㄅㄧㄥ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>黑<rt>ㄏㄟ</rt>咖<rt>ㄎㄚ</rt>啡<rt>ㄈㄟ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>臭<rt>ㄔㄡˋ</rt>豆<rt>ㄉㄡˋ</rt>腐<rt>ㄈㄨˇ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>滷<rt>ㄌㄨˇ</rt>肉<rt>ㄖㄡˋ</rt>飯<rt>ㄈㄢˋ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>牛<rt>ㄋㄧㄡˊ</rt>肉<rt>ㄖㄡˋ</rt>麵<rt>ㄇㄧㄢˋ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>蚵<rt>ㄜˊ</rt>仔<rt>ㄗˇ</rt>煎<rt>ㄐㄧㄢ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>小<rt>ㄒㄧㄠˇ</rt>籠<rt>ㄌㄨㄥˊ</rt>包<rt>ㄅㄠ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>鳳<rt>ㄈㄥˋ</rt>梨<rt>ㄌㄧˊ</rt>酥<rt>ㄙㄨ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>披<rt>ㄆㄧ</rt>薩<rt>ㄙㄚˋ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>漢<rt>ㄏㄢˋ</rt>堡<rt>ㄅㄠˇ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>壽<rt>ㄕㄡˋ</rt>司<rt>ㄙ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>拉<rt>ㄌㄚ</rt>麵<rt>ㄇㄧㄢˋ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>火<rt>ㄏㄨㄛˇ</rt>鍋<rt>ㄍㄨㄛ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>甜<rt>ㄊㄧㄢˊ</rt>甜<rt>ㄊㄧㄢˊ</rt>圈<rt>ㄑㄩㄢ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>冰<rt>ㄅㄧㄥ</rt>淇<rt>ㄑㄧˊ</rt>淋<rt>ㄌㄧㄣˊ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>爆<rt>ㄅㄠˋ</rt>米<rt>ㄇㄧˇ</rt>花<rt>ㄏㄨㄚ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>巧<rt>ㄑㄧㄠˇ</rt>克<rt>ㄎㄜˋ</rt>力<rt>ㄌㄧˋ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>布<rt>ㄅㄨˋ</rt>丁<rt>ㄉㄧㄥ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>水<rt>ㄕㄨㄟˇ</rt>餃<rt>ㄐㄧㄠˇ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
-    ["<ruby>地<rt>ㄉㄧˋ</rt>瓜<rt>ㄍㄨㄚ</rt>球<rt>ㄑㄧㄡˊ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
+    // 1. 食物 (21 題)
+    ["<ruby>珍<rt>ㄓㄣ</rt>珠<rt>ㄓㄨ</rt>奶<rt>ㄋㄞˇ</rt>茶<rt>ㄔㄚˊ</rt></ruby>", "食物"],
+    ["<ruby>臭<rt>ㄔㄡˋ</rt>豆<rt>ㄉㄡˋ</rt>腐<rt>ㄈㄨˇ</rt></ruby>", "食物"],
+    ["<ruby>滷<rt>ㄌㄨˇ</rt>肉<rt>ㄖㄡˋ</rt>飯<rt>ㄈㄢˋ</rt></ruby>", "食物"],
+    ["<ruby>牛<rt>ㄋㄧㄡˊ</rt>肉<rt>ㄖㄡˋ</rt>麵<rt>ㄇㄧㄢˋ</rt></ruby>", "食物"],
+    ["<ruby>蚵<rt>ㄜˊ</rt>仔<rt>ㄗˇ</rt>煎<rt>ㄐㄧㄢ</rt></ruby>", "食物"],
+    ["<ruby>小<rt>ㄒㄧㄠˇ</rt>籠<rt>ㄌㄨㄥˊ</rt>包<rt>ㄅㄠ</rt></ruby>", "食物"],
+    ["<ruby>鳳<rt>ㄈㄥˋ</rt>梨<rt>ㄌㄧˊ</rt>酥<rt>ㄙㄨ</rt></ruby>", "食物"],
+    ["<ruby>披<rt>ㄆㄧ</rt>薩<rt>ㄙㄚˋ</rt></ruby>", "食物"],
+    ["<ruby>漢<rt>ㄏㄢˋ</rt>堡<rt>ㄅㄠˇ</rt></ruby>", "食物"],
+    ["<ruby>薯<rt>ㄕㄨˇ</rt>條<rt>ㄊㄧㄠˊ</rt></ruby>", "食物"],
+    ["<ruby>壽<rt>ㄕㄡˋ</rt>司<rt>ㄙ</rt></ruby>", "食物"],
+    ["<ruby>拉<rt>ㄌㄚ</rt>麵<rt>ㄇㄧㄢˋ</rt></ruby>", "食物"],
+    ["<ruby>火<rt>ㄏㄨㄛˇ</rt>鍋<rt>ㄍㄨㄛ</rt></ruby>", "食物"],
+    ["<ruby>甜<rt>ㄊㄧㄢˊ</rt>甜<rt>ㄊㄧㄢˊ</rt>圈<rt>ㄑㄩㄢ</rt></ruby>", "食物"],
+    ["<ruby>冰<rt>ㄅㄧㄥ</rt>淇<rt>ㄑㄧˊ</rt>淋<rt>ㄌㄧㄣˊ</rt></ruby>", "食物"],
+    ["<ruby>爆<rt>ㄅㄠˋ</rt>米<rt>ㄇㄧˇ</rt>花<rt>ㄏㄨㄚ</rt></ruby>", "食物"],
+    ["<ruby>巧<rt>ㄑㄧㄠˇ</rt>克<rt>ㄎㄜˋ</rt>力<rt>ㄌㄧˋ</rt></ruby>", "食物"],
+    ["<ruby>布<rt>ㄅㄨˋ</rt>丁<rt>ㄉㄧㄥ</rt></ruby>", "食物"],
+    ["<ruby>水<rt>ㄕㄨㄟˇ</rt>餃<rt>ㄐㄧㄠˇ</rt></ruby>", "食物"],
+    ["<ruby>地<rt>ㄉㄧˋ</rt>瓜<rt>ㄍㄨㄚ</rt>球<rt>ㄑㄧㄡˊ</rt></ruby>", "食物"],
+    ["<ruby>熱<rt>ㄖㄜˋ</rt>狗<rt>ㄍㄡˇ</rt></ruby>", "食物"],
 
-    // 水果與蔬菜
-    ["<ruby>香<rt>ㄒㄧㄤ</rt>蕉<rt>ㄐㄧㄠ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>與<rt>ㄩˇ</rt>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt></ruby>"],
-    ["<ruby>西<rt>ㄒㄧ</rt>瓜<rt>ㄍㄨㄚ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>與<rt>ㄩˇ</rt>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt></ruby>"],
-    ["<ruby>草<rt>ㄘㄠˇ</rt>莓<rt>ㄇㄟˊ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>與<rt>ㄩˇ</rt>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt></ruby>"],
-    ["<ruby>葡<rt>ㄆㄨˊ</rt>萄<rt>ㄊㄠˊ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>與<rt>ㄩˇ</rt>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt></ruby>"],
-    ["<ruby>蘋<rt>ㄆㄧㄥˊ</rt>果<rt>ㄍㄨㄛˇ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>與<rt>ㄩˇ</rt>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt></ruby>"],
-    ["<ruby>鳳<rt>ㄈㄥˋ</rt>梨<rt>ㄌㄧˊ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>與<rt>ㄩˇ</rt>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt></ruby>"],
-    ["<ruby>橘<rt>ㄐㄩˊ</rt>子<rt>˙ㄗ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>與<rt>ㄩˇ</rt>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt></ruby>"],
-    ["<ruby>檸<rt>ㄋㄧㄥˊ</rt>檬<rt>ㄇㄥˊ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>與<rt>ㄩˇ</rt>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt></ruby>"],
-    ["<ruby>胡<rt>ㄏㄨˊ</rt>蘿<rt>ㄌㄨㄛˊ</rt>蔔<rt>˙ㄅㄛ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>與<rt>ㄩˇ</rt>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt></ruby>"],
-    ["<ruby>玉<rt>ㄩˋ</rt>米<rt>ㄇㄧˇ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>與<rt>ㄩˇ</rt>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt></ruby>"],
-    ["<ruby>花<rt>ㄏㄨㄚ</rt>椰<rt>ㄧㄝˊ</rt>菜<rt>ㄘㄞˋ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>與<rt>ㄩˇ</rt>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt></ruby>"],
-    ["<ruby>洋<rt>ㄧㄤˊ</rt>蔥<rt>ㄘㄨㄥ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>與<rt>ㄩˇ</rt>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt></ruby>"],
-    ["<ruby>番<rt>ㄈㄢ</rt>茄<rt>ㄑㄧㄝˊ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>與<rt>ㄩˇ</rt>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt></ruby>"],
-    ["<ruby>辣<rt>ㄌㄚˋ</rt>椒<rt>ㄐㄧㄠ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>與<rt>ㄩˇ</rt>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt></ruby>"],
-    ["<ruby>小<rt>ㄒㄧㄠˇ</rt>黃<rt>ㄏㄨㄤˊ</rt>瓜<rt>ㄍㄨㄚ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>與<rt>ㄩˇ</rt>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt></ruby>"],
-    ["<ruby>木<rt>ㄇㄨˋ</rt>耳<rt>ㄦˇ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>與<rt>ㄩˇ</rt>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt></ruby>"],
-    ["<ruby>香<rt>ㄒㄧㄤ</rt>菇<rt>ㄍㄨ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>與<rt>ㄩˇ</rt>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt></ruby>"],
-    ["<ruby>南<rt>ㄋㄢˊ</rt>瓜<rt>ㄍㄨㄚ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>與<rt>ㄩˇ</rt>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt></ruby>"],
+    // 2. 蔬菜水果 (21 題)
+    ["<ruby>香<rt>ㄒㄧㄤ</rt>蕉<rt>ㄐㄧㄠ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>西<rt>ㄒㄧ</rt>瓜<rt>ㄍㄨㄚ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>草<rt>ㄘㄠˇ</rt>莓<rt>ㄇㄟˊ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>葡<rt>ㄆㄨˊ</rt>萄<rt>ㄊㄠˊ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>蘋<rt>ㄆㄧㄥˊ</rt>果<rt>ㄍㄨㄛˇ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>鳳<rt>ㄈㄥˋ</rt>梨<rt>ㄌㄧˊ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>橘<rt>ㄐㄩˊ</rt>子<rt>˙ㄗ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>檸<rt>ㄋㄧㄥˊ</rt>檬<rt>ㄇㄥˊ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>櫻<rt>ㄧㄥ</rt>桃<rt>ㄊㄠˊ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>木<rt>ㄇㄨˋ</rt>瓜<rt>ㄍㄨㄚ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>胡<rt>ㄏㄨˊ</rt>蘿<rt>ㄌㄨㄛˊ</rt>蔔<rt>˙ㄅㄛ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>玉<rt>ㄩˋ</rt>米<rt>ㄇㄧˇ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>花<rt>ㄏㄨㄚ</rt>椰<rt>ㄧㄝˊ</rt>菜<rt>ㄘㄞˋ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>洋<rt>ㄧㄤˊ</rt>蔥<rt>ㄘㄨㄥ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>番<rt>ㄈㄢ</rt>茄<rt>ㄑㄧㄝˊ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>辣<rt>ㄌㄚˋ</rt>椒<rt>ㄐㄧㄠ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>小<rt>ㄒㄧㄠˇ</rt>黃<rt>ㄏㄨㄤˊ</rt>瓜<rt>ㄍㄨㄚ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>木<rt>ㄇㄨˋ</rt>耳<rt>ㄦˇ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>香<rt>ㄒㄧㄤ</rt>菇<rt>ㄍㄨ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>南<rt>ㄋㄢˊ</rt>瓜<rt>ㄍㄨㄚ</rt></ruby>", "蔬菜水果"],
+    ["<ruby>茄<rt>ㄑㄧㄝˊ</rt>子<rt>˙ㄗ</rt></ruby>", "蔬菜水果"],
 
-    // 日常用品與服飾
-    ["<ruby>牙<rt>ㄧㄚˊ</rt>刷<rt>ㄕㄨㄚ</rt></ruby>", "<ruby>日<rt>ㄖˋ</rt>常<rt>ㄔㄤˊ</rt>用<rt>ㄩㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt>與<rt>ㄩˇ</rt>服<rt>ㄈㄨˊ</rt>飾<rt>ㄕˋ</rt></ruby>"],
-    ["<ruby>雨<rt>ㄩˇ</rt>傘<rt>ㄙㄢˇ</rt></ruby>", "<ruby>日<rt>ㄖˋ</rt>常<rt>ㄔㄤˊ</rt>用<rt>ㄩㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt>與<rt>ㄩˇ</rt>服<rt>ㄈㄨˊ</rt>飾<rt>ㄕˋ</rt></ruby>"],
-    ["<ruby>雨<rt>ㄩˇ</rt>衣<rt>ㄧ</rt></ruby>", "<ruby>日<rt>ㄖˋ</rt>常<rt>ㄔㄤˊ</rt>用<rt>ㄩㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt>與<rt>ㄩˇ</rt>服<rt>ㄈㄨˊ</rt>飾<rt>ㄕˋ</rt></ruby>"],
-    ["<ruby>毛<rt>ㄇㄠˊ</rt>巾<rt>ㄐㄧㄣ</rt></ruby>", "<ruby>日<rt>ㄖˋ</rt>常<rt>ㄔㄤˊ</rt>用<rt>ㄩㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt>與<rt>ㄩˇ</rt>服<rt>ㄈㄨˊ</rt>飾<rt>ㄕˋ</rt></ruby>"],
-    ["<ruby>鏡<rt>ㄐㄧㄥˋ</rt>子<rt>˙ㄗ</rt></ruby>", "<ruby>日<rt>ㄖˋ</rt>常<rt>ㄔㄤˊ</rt>用<rt>ㄩㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt>與<rt>ㄩˇ</rt>服<rt>ㄈㄨˊ</rt>飾<rt>ㄕˋ</rt></ruby>"],
-    ["<ruby>剪<rt>ㄐㄧㄢˇ</rt>刀<rt>ㄉㄠ</rt></ruby>", "<ruby>日<rt>ㄖˋ</rt>常<rt>ㄔㄤˊ</rt>用<rt>ㄩㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt>與<rt>ㄩˇ</rt>服<rt>ㄈㄨˊ</rt>飾<rt>ㄕˋ</rt></ruby>"],
-    ["<ruby>美<rt>ㄇㄟˇ</rt>工<rt>ㄍㄨㄥ</rt>刀<rt>ㄉㄠ</rt></ruby>", "<ruby>日<rt>ㄖˋ</rt>常<rt>ㄔㄤˊ</rt>用<rt>ㄩㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt>與<rt>ㄩˇ</rt>服<rt>ㄈㄨˊ</rt>飾<rt>ㄕˋ</rt></ruby>"],
-    ["<ruby>手<rt>ㄕㄡˇ</rt>錶<rt>ㄅㄧㄠˇ</rt></ruby>", "<ruby>日<rt>ㄖˋ</rt>常<rt>ㄔㄤˊ</rt>用<rt>ㄩㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt>與<rt>ㄩˇ</rt>服<rt>ㄈㄨˊ</rt>飾<rt>ㄕˋ</rt></ruby>"],
-    ["<ruby>眼<rt>ㄧㄢˇ</rt>鏡<rt>ㄐㄧㄥˋ</rt></ruby>", "<ruby>日<rt>ㄖˋ</rt>常<rt>ㄔㄤˊ</rt>用<rt>ㄩㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt>與<rt>ㄩˇ</rt>服<rt>ㄈㄨˊ</rt>飾<rt>ㄕˋ</rt></ruby>"],
-    ["<ruby>太<rt>ㄊㄞˋ</rt>陽<rt>ㄧㄤˊ</rt>眼<rt>ㄧㄢˇ</rt>鏡<rt>ㄐㄧㄥˋ</rt></ruby>", "<ruby>日<rt>ㄖˋ</rt>常<rt>ㄔㄤˊ</rt>用<rt>ㄩㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt>與<rt>ㄩˇ</rt>服<rt>ㄈㄨˊ</rt>飾<rt>ㄕˋ</rt></ruby>"],
-    ["<ruby>帽<rt>ㄇㄠˋ</rt>子<rt>˙ㄗ</rt></ruby>", "<ruby>日<rt>ㄖˋ</rt>常<rt>ㄔㄤˊ</rt>用<rt>ㄩㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt>與<rt>ㄩˇ</rt>服<rt>ㄈㄨˊ</rt>飾<rt>ㄕˋ</rt></ruby>"],
-    ["<ruby>球<rt>ㄑㄧㄡˊ</rt>鞋<rt>ㄒㄧㄝˊ</rt></ruby>", "<ruby>日<rt>ㄖˋ</rt>常<rt>ㄔㄤˊ</rt>用<rt>ㄩㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt>與<rt>ㄩˇ</rt>服<rt>ㄈㄨˊ</rt>飾<rt>ㄕˋ</rt></ruby>"],
-    ["<ruby>高<rt>ㄍㄠ</rt>跟<rt>ㄍㄣ</rt>鞋<rt>ㄒㄧㄝˊ</rt></ruby>", "<ruby>日<rt>ㄖˋ</rt>常<rt>ㄔㄤˊ</rt>用<rt>ㄩㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt>與<rt>ㄩˇ</rt>服<rt>ㄈㄨˊ</rt>飾<rt>ㄕˋ</rt></ruby>"],
-    ["<ruby>背<rt>ㄅㄟ</rt>包<rt>ㄅㄠ</rt></ruby>", "<ruby>日<rt>ㄖˋ</rt>常<rt>ㄔㄤˊ</rt>用<rt>ㄩㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt>與<rt>ㄩˇ</rt>服<rt>ㄈㄨˊ</rt>飾<rt>ㄕˋ</rt></ruby>"],
-    ["<ruby>行<rt>ㄒㄧㄥˊ</rt>李<rt>ㄌㄧˇ</rt>箱<rt>ㄒㄧㄤ</rt></ruby>", "<ruby>日<rt>ㄖˋ</rt>常<rt>ㄔㄤˊ</rt>用<rt>ㄩㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt>與<rt>ㄩˇ</rt>服<rt>ㄈㄨˊ</rt>飾<rt>ㄕˋ</rt></ruby>"],
-    ["<ruby>水<rt>ㄕㄨㄟˇ</rt>壺<rt>ㄏㄨˊ</rt></ruby>", "<ruby>日<rt>ㄖˋ</rt>常<rt>ㄔㄤˊ</rt>用<rt>ㄩㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt>與<rt>ㄩˇ</rt>服<rt>ㄈㄨˊ</rt>飾<rt>ㄕˋ</rt></ruby>"],
-    ["<ruby>馬<rt>ㄇㄚˇ</rt>克<rt>ㄎㄜˋ</rt>杯<rt>ㄅㄟ</rt></ruby>", "<ruby>日<rt>ㄖˋ</rt>常<rt>ㄔㄤˊ</rt>用<rt>ㄩㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt>與<rt>ㄩˇ</rt>服<rt>ㄈㄨˊ</rt>飾<rt>ㄕˋ</rt></ruby>"],
-    ["<ruby>口<rt>ㄎㄡˇ</rt>罩<rt>ㄓㄠˋ</rt></ruby>", "<ruby>日<rt>ㄖˋ</rt>常<rt>ㄔㄤˊ</rt>用<rt>ㄩㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt>與<rt>ㄩˇ</rt>服<rt>ㄈㄨˊ</rt>飾<rt>ㄕˋ</rt></ruby>"],
+    // 3. 家電 (21 題)
+    ["<ruby>吹<rt>ㄔㄨㄟ</rt>風<rt>ㄈㄥ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
+    ["<ruby>電<rt>ㄉㄧㄢˋ</rt>視<rt>ㄕˋ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
+    ["<ruby>冷<rt>ㄌㄥˇ</rt>氣<rt>ㄑㄧˋ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
+    ["<ruby>電<rt>ㄉㄧㄢˋ</rt>風<rt>ㄈㄥ</rt>扇<rt>ㄕㄢˋ</rt></ruby>", "家電"],
+    ["<ruby>洗<rt>ㄒㄧˇ</rt>衣<rt>ㄧ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
+    ["<ruby>電<rt>ㄉㄧㄢˋ</rt>冰<rt>ㄅㄧㄥ</rt>箱<rt>ㄒㄧㄤ</rt></ruby>", "家電"],
+    ["<ruby>微<rt>ㄨㄟˊ</rt>波<rt>ㄅㄛ</rt>爐<rt>ㄌㄨˊ</rt></ruby>", "家電"],
+    ["<ruby>吸<rt>ㄒㄧ</rt>塵<rt>ㄔㄣˊ</rt>器<rt>ㄑㄧˋ</rt></ruby>", "家電"],
+    ["<ruby>電<rt>ㄉㄧㄢˋ</rt>鍋<rt>ㄍㄨㄛ</rt></ruby>", "家電"],
+    ["<ruby>烤<rt>ㄎㄠˇ</rt>箱<rt>ㄒㄧㄤ</rt></ruby>", "家電"],
+    ["<ruby>除<rt>ㄔㄨˊ</rt>濕<rt>ㄕ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
+    ["<ruby>烘<rt>ㄏㄨㄥ</rt>衣<rt>ㄧ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
+    ["<ruby>掃<rt>ㄙㄠˇ</rt>地<rt>ㄉㄧˋ</rt>機<rt>ㄐㄧ</rt>器<rt>ㄑㄧˋ</rt>人<rt>ㄖㄣˊ</rt></ruby>", "家電"],
+    ["<ruby>果<rt>ㄍㄨㄛˇ</rt>汁<rt>ㄓ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
+    ["<ruby>熱<rt>ㄖㄜˋ</rt>水<rt>ㄕㄨㄟˇ</rt>壺<rt>ㄏㄨˊ</rt></ruby>", "家電"],
+    ["<ruby>咖<rt>ㄎㄚ</rt>啡<rt>ㄈㄟ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
+    ["<ruby>氣<rt>ㄑㄧˋ</rt>炸<rt>ㄓㄚˋ</rt>鍋<rt>ㄍㄨㄛ</rt></ruby>", "家電"],
+    ["<ruby>烤<rt>ㄎㄠˇ</rt>麵<rt>ㄇㄧㄢˋ</rt>包<rt>ㄅㄠ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
+    ["<ruby>捕<rt>ㄅㄨˇ</rt>蚊<rt>ㄨㄣˊ</rt>燈<rt>ㄉㄥ</rt></ruby>", "家電"],
+    ["<ruby>暖<rt>ㄋㄨㄢˇ</rt>爐<rt>ㄌㄨˊ</rt></ruby>", "家電"],
+    ["<ruby>飲<rt>ㄧㄣˇ</rt>水<rt>ㄕㄨㄟˇ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
 
-    // 家電與3C數位
-    ["<ruby>吹<rt>ㄔㄨㄟ</rt>風<rt>ㄈㄥ</rt>機<rt>ㄐㄧ</rt></ruby>", "<ruby>家<rt>ㄐㄧㄚ</rt>電<rt>ㄉㄧㄢˋ</rt>與<rt>ㄩˇ</rt>數<rt>ㄕㄨˋ</rt>位<rt>ㄨㄟˋ</rt></ruby>"],
-    ["<ruby>手<rt>ㄕㄡˇ</rt>機<rt>ㄐㄧ</rt></ruby>", "<ruby>家<rt>ㄐㄧㄚ</rt>電<rt>ㄉㄧㄢˋ</rt>與<rt>ㄩˇ</rt>數<rt>ㄕㄨˋ</rt>位<rt>ㄨㄟˋ</rt></ruby>"],
-    ["<ruby>筆<rt>ㄅㄧˇ</rt>電<rt>ㄉㄧㄢˋ</rt></ruby>", "<ruby>家<rt>ㄐㄧㄚ</rt>電<rt>ㄉㄧㄢˋ</rt>與<rt>ㄩˇ</rt>數<rt>ㄕㄨˋ</rt>位<rt>ㄨㄟˋ</rt></ruby>"],
-    ["<ruby>耳<rt>ㄦˇ</rt>機<rt>ㄐㄧ</rt></ruby>", "<ruby>家<rt>ㄐㄧㄚ</rt>電<rt>ㄉㄧㄢˋ</rt>與<rt>ㄩˇ</rt>數<rt>ㄕㄨˋ</rt>位<rt>ㄨㄟˋ</rt></ruby>"],
-    ["<ruby>電<rt>ㄉㄧㄢˋ</rt>視<rt>ㄕˋ</rt>機<rt>ㄐㄧ</rt></ruby>", "<ruby>家<rt>ㄐㄧㄚ</rt>電<rt>ㄉㄧㄢˋ</rt>與<rt>ㄩˇ</rt>數<rt>ㄕㄨˋ</rt>位<rt>ㄨㄟˋ</rt></ruby>"],
-    ["<ruby>冷<rt>ㄌㄥˇ</rt>氣<rt>ㄑㄧˋ</rt>機<rt>ㄐㄧ</rt></ruby>", "<ruby>家<rt>ㄐㄧㄚ</rt>電<rt>ㄉㄧㄢˋ</rt>與<rt>ㄩˇ</rt>數<rt>ㄕㄨˋ</rt>位<rt>ㄨㄟˋ</rt></ruby>"],
-    ["<ruby>電<rt>ㄉㄧㄢˋ</rt>風<rt>ㄈㄥ</rt>扇<rt>ㄕㄢˋ</rt></ruby>", "<ruby>家<rt>ㄐㄧㄚ</rt>電<rt>ㄉㄧㄢˋ</rt>與<rt>ㄩˇ</rt>數<rt>ㄕㄨˋ</rt>位<rt>ㄨㄟˋ</rt></ruby>"],
-    ["<ruby>洗<rt>ㄒㄧˇ</rt>衣<rt>ㄧ</rt>機<rt>ㄐㄧ</rt></ruby>", "<ruby>家<rt>ㄐㄧㄚ</rt>電<rt>ㄉㄧㄢˋ</rt>與<rt>ㄩˇ</rt>數<rt>ㄕㄨˋ</rt>位<rt>ㄨㄟˋ</rt></ruby>"],
-    ["<ruby>電<rt>ㄉㄧㄢˋ</rt>冰<rt>ㄅㄧㄥ</rt>箱<rt>ㄒㄧㄤ</rt></ruby>", "<ruby>家<rt>ㄐㄧㄚ</rt>電<rt>ㄉㄧㄢˋ</rt>與<rt>ㄩˇ</rt>數<rt>ㄕㄨˋ</rt>位<rt>ㄨㄟˋ</rt></ruby>"],
-    ["<ruby>微<rt>ㄨㄟˊ</rt>波<rt>ㄅㄛ</rt>爐<rt>ㄌㄨˊ</rt></ruby>", "<ruby>家<rt>ㄐㄧㄚ</rt>電<rt>ㄉㄧㄢˋ</rt>與<rt>ㄩˇ</rt>數<rt>ㄕㄨˋ</rt>位<rt>ㄨㄟˋ</rt></ruby>"],
-    ["<ruby>吸<rt>ㄒㄧ</rt>塵<rt>ㄔㄣˊ</rt>器<rt>ㄑㄧˋ</rt></ruby>", "<ruby>家<rt>ㄐㄧㄚ</rt>電<rt>ㄉㄧㄢˋ</rt>與<rt>ㄩˇ</rt>數<rt>ㄕㄨˋ</rt>位<rt>ㄨㄟˋ</rt></ruby>"],
-    ["<ruby>滑<rt>ㄏㄨㄚˊ</rt>鼠<rt>ㄕㄨˇ</rt></ruby>", "<ruby>家<rt>ㄐㄧㄚ</rt>電<rt>ㄉㄧㄢˋ</rt>與<rt>ㄩˇ</rt>數<rt>ㄕㄨˋ</rt>位<rt>ㄨㄟˋ</rt></ruby>"],
-    ["<ruby>鍵<rt>ㄐㄧㄢˋ</rt>盤<rt>ㄆㄢˊ</rt></ruby>", "<ruby>家<rt>ㄐㄧㄚ</rt>電<rt>ㄉㄧㄢˋ</rt>與<rt>ㄩˇ</rt>數<rt>ㄕㄨˋ</rt>位<rt>ㄨㄟˋ</rt></ruby>"],
+    // 4. 動物 (21 題)
+    ["<ruby>狗<rt>ㄍㄡˇ</rt></ruby>", "動物"],
+    ["<ruby>貓<rt>ㄇㄠ</rt></ruby>", "動物"],
+    ["<ruby>兔<rt>ㄊㄨˋ</rt>子<rt>˙ㄗ</rt></ruby>", "動物"],
+    ["<ruby>大<rt>ㄉㄚˋ</rt>象<rt>ㄒㄧㄤˋ</rt></ruby>", "動物"],
+    ["<ruby>長<rt>ㄔㄤˊ</rt>頸<rt>ㄐㄧㄥˇ</rt>鹿<rt>ㄌㄨˋ</rt></ruby>", "動物"],
+    ["<ruby>獅<rt>ㄕ</rt>子<rt>˙ㄗ</rt></ruby>", "動物"],
+    ["<ruby>老<rt>ㄌㄠˇ</rt>虎<rt>ㄏㄨˇ</rt></ruby>", "動物"],
+    ["<ruby>斑<rt>ㄅㄢ</rt>馬<rt>ㄇㄚˇ</rt></ruby>", "動物"],
+    ["<ruby>熊<rt>ㄒㄩㄥˊ</rt>貓<rt>ㄇㄠ</rt></ruby>", "動物"],
+    ["<ruby>海<rt>ㄏㄞˇ</rt>豚<rt>ㄊㄨㄣˊ</rt></ruby>", "動物"],
+    ["<ruby>鯊<rt>ㄕㄚ</rt>魚<rt>ㄩˊ</rt></ruby>", "動物"],
+    ["<ruby>企<rt>ㄑㄧˋ</rt>鵝<rt>ㄜˊ</rt></ruby>", "動物"],
+    ["<ruby>烏<rt>ㄨ</rt>龜<rt>ㄍㄨㄟ</rt></ruby>", "動物"],
+    ["<ruby>老<rt>ㄌㄠˇ</rt>鷹<rt>ㄧㄥ</rt></ruby>", "動物"],
+    ["<ruby>猴<rt>ㄏㄡˊ</rt>子<rt>˙ㄗ</rt></ruby>", "動物"],
+    ["<ruby>袋<rt>ㄉㄞˋ</rt>鼠<rt>ㄕㄨˇ</rt></ruby>", "動物"],
+    ["<ruby>無<rt>ㄨˊ</rt>尾<rt>ㄨㄟˇ</rt>熊<rt>ㄒㄩㄥˊ</rt></ruby>", "動物"],
+    ["<ruby>河<rt>ㄏㄜˊ</rt>馬<rt>ㄇㄚˇ</rt></ruby>", "動物"],
+    ["<ruby>犀<rt>ㄒㄧ</rt>牛<rt>ㄋㄧㄡˊ</rt></ruby>", "動物"],
+    ["<ruby>鱷<rt>ㄜˋ</rt>魚<rt>ㄩˊ</rt></ruby>", "動物"],
+    ["<ruby>駱<rt>ㄌㄨㄛˋ</rt>駝<rt>ㄊㄨㄛˊ</rt></ruby>", "動物"],
 
-    // 動物與昆蟲
-    ["<ruby>狗<rt>ㄍㄡˇ</rt></ruby>", "<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>與<rt>ㄩˇ</rt>昆<rt>ㄎㄨㄣ</rt>蟲<rt>ㄔㄨㄥˊ</rt></ruby>"],
-    ["<ruby>貓<rt>ㄇㄠ</rt></ruby>", "<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>與<rt>ㄩˇ</rt>昆<rt>ㄎㄨㄣ</rt>蟲<rt>ㄔㄨㄥˊ</rt></ruby>"],
-    ["<ruby>兔<rt>ㄊㄨˋ</rt>子<rt>˙ㄗ</rt></ruby>", "<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>與<rt>ㄩˇ</rt>昆<rt>ㄎㄨㄣ</rt>蟲<rt>ㄔㄨㄥˊ</rt></ruby>"],
-    ["<ruby>大<rt>ㄉㄚˋ</rt>象<rt>ㄒㄧㄤˋ</rt></ruby>", "<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>與<rt>ㄩˇ</rt>昆<rt>ㄎㄨㄣ</rt>蟲<rt>ㄔㄨㄥˊ</rt></ruby>"],
-    ["<ruby>長<rt>ㄔㄤˊ</rt>頸<rt>ㄐㄧㄥˇ</rt>鹿<rt>ㄌㄨˋ</rt></ruby>", "<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>與<rt>ㄩˇ</rt>昆<rt>ㄎㄨㄣ</rt>蟲<rt>ㄔㄨㄥˊ</rt></ruby>"],
-    ["<ruby>獅<rt>ㄕ</rt>子<rt>˙ㄗ</rt></ruby>", "<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>與<rt>ㄩˇ</rt>昆<rt>ㄎㄨㄣ</rt>蟲<rt>ㄔㄨㄥˊ</rt></ruby>"],
-    ["<ruby>老<rt>ㄌㄠˇ</rt>虎<rt>ㄏㄨˇ</rt></ruby>", "<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>與<rt>ㄩˇ</rt>昆<rt>ㄎㄨㄣ</rt>蟲<rt>ㄔㄨㄥˊ</rt></ruby>"],
-    ["<ruby>斑<rt>ㄅㄢ</rt>馬<rt>ㄇㄚˇ</rt></ruby>", "<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>與<rt>ㄩˇ</rt>昆<rt>ㄎㄨㄣ</rt>蟲<rt>ㄔㄨㄥˊ</rt></ruby>"],
-    ["<ruby>熊<rt>ㄒㄩㄥˊ</rt>貓<rt>ㄇㄠ</rt></ruby>", "<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>與<rt>ㄩˇ</rt>昆<rt>ㄎㄨㄣ</rt>蟲<rt>ㄔㄨㄥˊ</rt></ruby>"],
-    ["<ruby>海<rt>ㄏㄞˇ</rt>豚<rt>ㄊㄨㄣˊ</rt></ruby>", "<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>與<rt>ㄩˇ</rt>昆<rt>ㄎㄨㄣ</rt>蟲<rt>ㄔㄨㄥˊ</rt></ruby>"],
-    ["<ruby>鯊<rt>ㄕㄚ</rt>魚<rt>ㄩˊ</rt></ruby>", "<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>與<rt>ㄩˇ</rt>昆<rt>ㄎㄨㄣ</rt>蟲<rt>ㄔㄨㄥˊ</rt></ruby>"],
-    ["<ruby>企<rt>ㄑㄧˋ</rt>鵝<rt>ㄜˊ</rt></ruby>", "<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>與<rt>ㄩˇ</rt>昆<rt>ㄎㄨㄣ</rt>蟲<rt>ㄔㄨㄥˊ</rt></ruby>"],
-    ["<ruby>烏<rt>ㄨ</rt>龜<rt>ㄍㄨㄟ</rt></ruby>", "<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>與<rt>ㄩˇ</rt>昆<rt>ㄎㄨㄣ</rt>蟲<rt>ㄔㄨㄥˊ</rt></ruby>"],
-    ["<ruby>老<rt>ㄌㄠˇ</rt>鷹<rt>ㄧㄥ</rt></ruby>", "<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>與<rt>ㄩˇ</rt>昆<rt>ㄎㄨㄣ</rt>蟲<rt>ㄔㄨㄥˊ</rt></ruby>"],
-    ["<ruby>蝴<rt>ㄏㄨˊ</rt>蝶<rt>ㄉㄧㄝˊ</rt></ruby>", "<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>與<rt>ㄩˇ</rt>昆<rt>ㄎㄨㄣ</rt>蟲<rt>ㄔㄨㄥˊ</rt></ruby>"],
-    ["<ruby>蜜<rt>ㄇㄧˋ</rt>蜂<rt>ㄈㄥ</rt></ruby>", "<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>與<rt>ㄩˇ</rt>昆<rt>ㄎㄨㄣ</rt>蟲<rt>ㄔㄨㄥˊ</rt></ruby>"],
+    // 5. 交通工具 (21 題)
+    ["<ruby>腳<rt>ㄐㄧㄠˇ</rt>踏<rt>ㄊㄚˋ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
+    ["<ruby>機<rt>ㄐㄧ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
+    ["<ruby>計<rt>ㄐㄧˋ</rt>程<rt>ㄔㄥˊ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
+    ["<ruby>公<rt>ㄍㄨㄥ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
+    ["<ruby>高<rt>ㄍㄠ</rt>鐵<rt>ㄊㄧㄝˇ</rt></ruby>", "交通工具"],
+    ["<ruby>捷<rt>ㄐㄧㄝˊ</rt>運<rt>ㄩㄣˋ</rt></ruby>", "交通工具"],
+    ["<ruby>火<rt>ㄏㄨㄛˇ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
+    ["<ruby>直<rt>ㄓˊ</rt>升<rt>ㄕㄥ</rt>機<rt>ㄐㄧ</rt></ruby>", "交通工具"],
+    ["<ruby>飛<rt>ㄈㄟ</rt>機<rt>ㄐㄧ</rt></ruby>", "交通工具"],
+    ["<ruby>熱<rt>ㄖㄜˋ</rt>氣<rt>ㄑㄧˋ</rt>球<rt>ㄑㄧㄡˊ</rt></ruby>", "交通工具"],
+    ["<ruby>輪<rt>ㄌㄨㄣˊ</rt>船<rt>ㄔㄨㄢˊ</rt></ruby>", "交通工具"],
+    ["<ruby>潛<rt>ㄑㄧㄢˊ</rt>水<rt>ㄕㄨㄟˇ</rt>艇<rt>ㄊㄧㄥˇ</rt></ruby>", "交通工具"],
+    ["<ruby>火<rt>ㄏㄨㄛˇ</rt>箭<rt>ㄐㄧㄢˋ</rt></ruby>", "交通工具"],
+    ["<ruby>救<rt>ㄐㄧㄡˋ</rt>護<rt>ㄏㄨˋ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
+    ["<ruby>消<rt>ㄒㄧㄠ</rt>防<rt>ㄈㄤˊ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
+    ["<ruby>警<rt>ㄐㄧㄥˇ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
+    ["<ruby>垃<rt>ㄌㄜˋ</rt>圾<rt>ㄙㄜˋ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
+    ["<ruby>帆<rt>ㄈㄢˊ</rt>船<rt>ㄔㄨㄢˊ</rt></ruby>", "交通工具"],
+    ["<ruby>挖<rt>ㄨㄚ</rt>土<rt>ㄊㄨˇ</rt>機<rt>ㄐㄧ</rt></ruby>", "交通工具"],
+    ["<ruby>滑<rt>ㄏㄨㄚˊ</rt>板<rt>ㄅㄢˇ</rt></ruby>", "交通工具"],
+    ["<ruby>纜<rt>ㄌㄢˇ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
 
-    // 交通工具與場所
-    ["<ruby>腳<rt>ㄐㄧㄠˇ</rt>踏<rt>ㄊㄚˋ</rt>車<rt>ㄔㄜ</rt></ruby>", "<ruby>交<rt>ㄐㄧㄠ</rt>通<rt>ㄊㄨㄥ</rt>與<rt>ㄩˇ</rt>場<rt>ㄔㄤˇ</rt>所<rt>ㄙㄨㄛˇ</rt></ruby>"],
-    ["<ruby>機<rt>ㄐㄧ</rt>車<rt>ㄔㄜ</rt></ruby>", "<ruby>交<rt>ㄐㄧㄠ</rt>通<rt>ㄊㄨㄥ</rt>與<rt>ㄩˇ</rt>場<rt>ㄔㄤˇ</rt>所<rt>ㄙㄨㄛˇ</rt></ruby>"],
-    ["<ruby>計<rt>ㄐㄧˋ</rt>程<rt>ㄔㄥˊ</rt>車<rt>ㄔㄜ</rt></ruby>", "<ruby>交<rt>ㄐㄧㄠ</rt>通<rt>ㄊㄨㄥ</rt>與<rt>ㄩˇ</rt>場<rt>ㄔㄤˇ</rt>所<rt>ㄙㄨㄛˇ</rt></ruby>"],
-    ["<ruby>公<rt>ㄍㄨㄥ</rt>車<rt>ㄔㄜ</rt></ruby>", "<ruby>交<rt>ㄐㄧㄠ</rt>通<rt>ㄊㄨㄥ</rt>與<rt>ㄩˇ</rt>場<rt>ㄔㄤˇ</rt>所<rt>ㄙㄨㄛˇ</rt></ruby>"],
-    ["<ruby>高<rt>ㄍㄠ</rt>鐵<rt>ㄊㄧㄝˇ</rt></ruby>", "<ruby>交<rt>ㄐㄧㄠ</rt>通<rt>ㄊㄨㄥ</rt>與<rt>ㄩˇ</rt>場<rt>ㄔㄤˇ</rt>所<rt>ㄙㄨㄛˇ</rt></ruby>"],
-    ["<ruby>捷<rt>ㄐㄧㄝˊ</rt>運<rt>ㄩㄣˋ</rt></ruby>", "<ruby>交<rt>ㄐㄧㄠ</rt>通<rt>ㄊㄨㄥ</rt>與<rt>ㄩˇ</rt>場<rt>ㄔㄤˇ</rt>所<rt>ㄙㄨㄛˇ</rt></ruby>"],
-    ["<ruby>直<rt>ㄓˊ</rt>升<rt>ㄕㄥ</rt>機<rt>ㄐㄧ</rt></ruby>", "<ruby>交<rt>ㄐㄧㄠ</rt>通<rt>ㄊㄨㄥ</rt>與<rt>ㄩˇ</rt>場<rt>ㄔㄤˇ</rt>所<rt>ㄙㄨㄛˇ</rt></ruby>"],
-    ["<ruby>飛<rt>ㄈㄟ</rt>機<rt>ㄐㄧ</rt></ruby>", "<ruby>交<rt>ㄐㄧㄠ</rt>通<rt>ㄊㄨㄥ</rt>與<rt>ㄩˇ</rt>場<rt>ㄔㄤˇ</rt>所<rt>ㄙㄨㄛˇ</rt></ruby>"],
-    ["<ruby>熱<rt>ㄖㄜˋ</rt>氣<rt>ㄑㄧˋ</rt>球<rt>ㄑㄧㄡˊ</rt></ruby>", "<ruby>交<rt>ㄐㄧㄠ</rt>通<rt>ㄊㄨㄥ</rt>與<rt>ㄩˇ</rt>場<rt>ㄔㄤˇ</rt>所<rt>ㄙㄨㄛˇ</rt></ruby>"],
-    ["<ruby>輪<rt>ㄌㄨㄣˊ</rt>船<rt>ㄔㄨㄢˊ</rt></ruby>", "<ruby>交<rt>ㄐㄧㄠ</rt>通<rt>ㄊㄨㄥ</rt>與<rt>ㄩˇ</rt>場<rt>ㄔㄤˇ</rt>所<rt>ㄙㄨㄛˇ</rt></ruby>"],
-    ["<ruby>學<rt>ㄒㄩㄝˊ</rt>校<rt>ㄒㄧㄠˋ</rt></ruby>", "<ruby>交<rt>ㄐㄧㄠ</rt>通<rt>ㄊㄨㄥ</rt>與<rt>ㄩˇ</rt>場<rt>ㄔㄤˇ</rt>所<rt>ㄙㄨㄛˇ</rt></ruby>"],
-    ["<ruby>醫<rt>ㄧ</rt>院<rt>ㄩㄢˋ</rt></ruby>", "<ruby>交<rt>ㄐㄧㄠ</rt>通<rt>ㄊㄨㄥ</rt>與<rt>ㄩˇ</rt>場<rt>ㄔㄤˇ</rt>所<rt>ㄙㄨㄛˇ</rt></ruby>"],
-    ["<ruby>電<rt>ㄉㄧㄢˋ</rt>影<rt>ㄧㄥˇ</rt>院<rt>ㄩㄢˋ</rt></ruby>", "<ruby>交<rt>ㄐㄧㄠ</rt>通<rt>ㄊㄨㄥ</rt>與<rt>ㄩˇ</rt>場<rt>ㄔㄤˇ</rt>所<rt>ㄙㄨㄛˇ</rt></ruby>"],
-    ["<ruby>圖<rt>ㄊㄨˊ</rt>書<rt>ㄕㄨ</rt>館<rt>ㄍㄨㄢˇ</rt></ruby>", "<ruby>交<rt>ㄐㄧㄠ</rt>通<rt>ㄊㄨㄥ</rt>與<rt>ㄩˇ</rt>場<rt>ㄔㄤˇ</rt>所<rt>ㄙㄨㄛˇ</rt></ruby>"],
-    ["<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>園<rt>ㄩㄢˊ</rt></ruby>", "<ruby>交<rt>ㄐㄧㄠ</rt>通<rt>ㄊㄨㄥ</rt>與<rt>ㄩˇ</rt>場<rt>ㄔㄤˇ</rt>所<rt>ㄙㄨㄛˇ</rt></ruby>"],
-    ["<ruby>遊<rt>ㄧㄡˊ</rt>樂<rt>ㄌㄜˋ</rt>園<rt>ㄩㄢˊ</rt></ruby>", "<ruby>交<rt>ㄐㄧㄠ</rt>通<rt>ㄊㄨㄥ</rt>與<rt>ㄩˇ</rt>場<rt>ㄔㄤˇ</rt>所<rt>ㄙㄨㄛˇ</rt></ruby>"]
+    // 6. 場所 (21 題)
+    ["<ruby>學<rt>ㄒㄩㄝˊ</rt>校<rt>ㄒㄧㄠˋ</rt></ruby>", "場所"],
+    ["<ruby>醫<rt>ㄧ</rt>院<rt>ㄩㄢˋ</rt></ruby>", "場所"],
+    ["<ruby>警<rt>ㄐㄧㄥˇ</rt>察<rt>ㄔㄚˊ</rt>局<rt>ㄐㄩˊ</rt></ruby>", "場所"],
+    ["<ruby>消<rt>ㄒㄧㄠ</rt>防<rt>ㄈㄤˊ</rt>局<rt>ㄐㄩˊ</rt></ruby>", "場所"],
+    ["<ruby>電<rt>ㄉㄧㄢˋ</rt>影<rt>ㄧㄥˇ</rt>院<rt>ㄩㄢˋ</rt></ruby>", "場所"],
+    ["<ruby>圖<rt>ㄊㄨˊ</rt>書<rt>ㄕㄨ</rt>館<rt>ㄍㄨㄢˇ</rt></ruby>", "場所"],
+    ["<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>園<rt>ㄩㄢˊ</rt></ruby>", "場所"],
+    ["<ruby>遊<rt>ㄧㄡˊ</rt>樂<rt>ㄌㄜˋ</rt>園<rt>ㄩㄢˊ</rt></ruby>", "場所"],
+    ["<ruby>機<rt>ㄐㄧ</rt>場<rt>ㄔㄤˇ</rt></ruby>", "場所"],
+    ["<ruby>火<rt>ㄏㄨㄛˇ</rt>車<rt>ㄔㄜ</rt>站<rt>ㄓㄢˋ</rt></ruby>", "場所"],
+    ["<ruby>超<rt>ㄔㄠ</rt>商<rt>ㄕㄤ</rt></ruby>", "場所"],
+    ["<ruby>博<rt>ㄅㄛˊ</rt>物<rt>ㄨˋ</rt>館<rt>ㄍㄨㄢˇ</rt></ruby>", "場所"],
+    ["<ruby>游<rt>ㄧㄡˊ</rt>泳<rt>ㄩㄥˇ</rt>池<rt>ㄔˊ</rt></ruby>", "場所"],
+    ["<ruby>加<rt>ㄐㄧㄚ</rt>油<rt>ㄧㄡˊ</rt>站<rt>ㄓㄢˋ</rt></ruby>", "場所"],
+    ["<ruby>體<rt>ㄊㄧˇ</rt>育<rt>ㄩˋ</rt>館<rt>ㄍㄨㄢˇ</rt></ruby>", "場所"],
+    ["<ruby>公<rt>ㄍㄨㄥ</rt>園<rt>ㄩㄢˊ</rt></ruby>", "場所"],
+    ["<ruby>城<rt>ㄔㄥˊ</rt>堡<rt>ㄅㄠˇ</rt></ruby>", "場所"],
+    ["<ruby>燈<rt>ㄉㄥ</rt>塔<rt>ㄊㄚˇ</rt></ruby>", "場所"],
+    ["<ruby>廟<rt>ㄇㄧㄠˋ</rt>宇<rt>ㄩˇ</rt></ruby>", "場所"],
+    ["<ruby>教<rt>ㄐㄧㄠˋ</rt>堂<rt>ㄊㄤˊ</rt></ruby>", "場所"],
+    ["<ruby>夜<rt>ㄧㄝˋ</rt>市<rt>ㄕˋ</rt></ruby>", "場所"],
+
+    // 7. 家具 (21 題)
+    ["<ruby>沙<rt>ㄕㄚ</rt>發<rt>ㄈㄚ</rt></ruby>", "家具"],
+    ["<ruby>床<rt>ㄔㄨㄤˊ</rt>墊<rt>ㄉㄧㄢˋ</rt></ruby>", "家具"],
+    ["<ruby>餐<rt>ㄘㄢ</rt>桌<rt>ㄓㄨㄛ</rt></ruby>", "家具"],
+    ["<ruby>椅<rt>ㄧˇ</rt>子<rt>˙ㄗ</rt></ruby>", "家具"],
+    ["<ruby>衣<rt>ㄧ</rt>櫃<rt>ㄍㄨㄟˋ</rt></ruby>", "家具"],
+    ["<ruby>書<rt>ㄕㄨ</rt>架<rt>ㄐㄧㄚˋ</rt></ruby>", "家具"],
+    ["<ruby>書<rt>ㄕㄨ</rt>桌<rt>ㄓㄨㄛ</rt></ruby>", "家具"],
+    ["<ruby>鞋<rt>ㄒㄧㄝˊ</rt>櫃<rt>ㄍㄨㄟˋ</rt></ruby>", "家具"],
+    ["<ruby>茶<rt>ㄔㄚˊ</rt>几<rt>ㄐㄧ</rt></ruby>", "家具"],
+    ["<ruby>梳<rt>ㄕㄨ</rt>妝<rt>ㄓㄨㄤ</rt>台<rt>ㄊㄞˊ</rt></ruby>", "家具"],
+    ["<ruby>床<rt>ㄔㄨㄤˊ</rt>頭<rt>ㄊㄡˊ</rt>櫃<rt>ㄍㄨㄟˋ</rt></ruby>", "家具"],
+    ["<ruby>電<rt>ㄉㄧㄢˋ</rt>視<rt>ㄕˋ</rt>櫃<rt>ㄍㄨㄟˋ</rt></ruby>", "家具"],
+    ["<ruby>吊<rt>ㄉㄧㄠˋ</rt>椅<rt>ㄧˇ</rt></ruby>", "家具"],
+    ["<ruby>搖<rt>ㄧㄠˊ</rt>椅<rt>ㄧˇ</rt></ruby>", "家具"],
+    ["<ruby>吧<rt>ㄅㄚ</rt>台<rt>ㄊㄞˊ</rt>椅<rt>ㄧˇ</rt></ruby>", "家具"],
+    ["<ruby>衣<rt>ㄧ</rt>帽<rt>ㄇㄠˋ</rt>架<rt>ㄐㄧㄚˋ</rt></ruby>", "家具"],
+    ["<ruby>長<rt>ㄔㄤˊ</rt>凳<rt>ㄉㄥˋ</rt></ruby>", "家具"],
+    ["<ruby>摺<rt>ㄓㄜˊ</rt>疊<rt>ㄉㄧㄝˊ</rt>桌<rt>ㄓㄨㄛ</rt></ruby>", "家具"],
+    ["<ruby>雙<rt>ㄕㄨㄤ</rt>層<rt>ㄘㄥˊ</rt>床<rt>ㄔㄨㄤˊ</rt></ruby>", "家具"],
+    ["<ruby>酒<rt>ㄐㄧㄡˇ</rt>櫃<rt>ㄍㄨㄟˋ</rt></ruby>", "家具"],
+    ["<ruby>屏<rt>ㄆㄧㄥˊ</rt>風<rt>ㄈㄥ</rt></ruby>", "家具"],
+
+    // 8. 職業 (21 題)
+    ["<ruby>醫<rt>ㄧ</rt>生<rt>ㄕㄥ</rt></ruby>", "職業"],
+    ["<ruby>護<rt>ㄏㄨˋ</rt>士<rt>ㄕˋ</rt></ruby>", "職業"],
+    ["<ruby>警<rt>ㄐㄧㄥˇ</rt>察<rt>ㄔㄚˊ</rt></ruby>", "職業"],
+    ["<ruby>消<rt>ㄒㄧㄠ</rt>防<rt>ㄈㄤˊ</rt>員<rt>ㄩㄢˊ</rt></ruby>", "職業"],
+    ["<ruby>老<rt>ㄌㄠˇ</rt>師<rt>ㄕ</rt></ruby>", "職業"],
+    ["<ruby>廚<rt>ㄔㄨˊ</rt>師<rt>ㄕ</rt></ruby>", "職業"],
+    ["<ruby>機<rt>ㄐㄧ</rt>師<rt>ㄕ</rt></ruby>", "職業"],
+    ["<ruby>空<rt>ㄎㄨㄥ</rt>服<rt>ㄈㄨˊ</rt>員<rt>ㄩㄢˊ</rt></ruby>", "職業"],
+    ["<ruby>郵<rt>ㄧㄡˊ</rt>差<rt>ㄔㄞ</rt></ruby>", "職業"],
+    ["<ruby>農<rt>ㄋㄨㄥˊ</rt>夫<rt>ㄈㄨ</rt></ruby>", "職業"],
+    ["<ruby>漁<rt>ㄩˊ</rt>夫<rt>ㄈㄨ</rt></ruby>", "職業"],
+    ["<ruby>畫<rt>ㄏㄨㄚˋ</rt>家<rt>ㄐㄧㄚ</rt></ruby>", "職業"],
+    ["<ruby>魔<rt>ㄇㄛˊ</rt>術<rt>ㄕㄨˋ</rt>師<rt>ㄕ</rt></ruby>", "職業"],
+    ["<ruby>太<rt>ㄊㄞˋ</rt>空<rt>ㄎㄨㄥ</rt>人<rt>ㄖㄣˊ</rt></ruby>", "職業"],
+    ["<ruby>律<rt>ㄌㄩˋ</rt>師<rt>ㄕ</rt></ruby>", "職業"],
+    ["<ruby>建<rt>ㄐㄧㄢˋ</rt>築<rt>ㄓㄨˊ</rt>師<rt>ㄕ</rt></ruby>", "職業"],
+    ["<ruby>理<rt>ㄌㄧˇ</rt>髮<rt>ㄈㄚˇ</rt>師<rt>ㄕ</rt></ruby>", "職業"],
+    ["<ruby>歌<rt>ㄍㄜ</rt>手<rt>ㄕㄡˇ</rt></ruby>", "職業"],
+    ["<ruby>運<rt>ㄩㄣˋ</rt>動<rt>ㄉㄨㄥˋ</rt>員<rt>ㄩㄢˊ</rt></ruby>", "職業"],
+    ["<ruby>保<rt>ㄅㄠˇ</rt>全<rt>ㄑㄩㄢˊ</rt></ruby>", "職業"],
+    ["<ruby>法<rt>ㄈㄚˇ</rt>官<rt>ㄍㄨㄢ</rt></ruby>", "職業"],
+
+    // 9. 文具 (21 題)
+    ["<ruby>鉛<rt>ㄑㄧㄢ</rt>筆<rt>ㄅㄧˇ</rt></ruby>", "文具"],
+    ["<ruby>橡<rt>ㄒㄧㄤˋ</rt>皮<rt>ㄆㄧˊ</rt>擦<rt>ㄘㄚ</rt></ruby>", "文具"],
+    ["<ruby>尺<rt>ㄔˇ</rt></ruby>", "文具"],
+    ["<ruby>剪<rt>ㄐㄧㄢˇ</rt>刀<rt>ㄉㄠ</rt></ruby>", "文具"],
+    ["<ruby>美<rt>ㄇㄟˇ</rt>工<rt>ㄍㄨㄥ</rt>刀<rt>ㄉㄠ</rt></ruby>", "文具"],
+    ["<ruby>膠<rt>ㄐㄧㄠ</rt>水<rt>ㄕㄨㄟˇ</rt></ruby>", "文具"],
+    ["<ruby>訂<rt>ㄉㄧㄥˋ</rt>書<rt>ㄕㄨ</rt>機<rt>ㄐㄧ</rt></ruby>", "文具"],
+    ["<ruby>迴<rt>ㄏㄨㄟˊ</rt>紋<rt>ㄨㄣˊ</rt>針<rt>ㄓㄣ</rt></ruby>", "文具"],
+    ["<ruby>筆<rt>ㄅㄧˇ</rt>記<rt>ㄐㄧˋ</rt>本<rt>ㄅㄣˇ</rt></ruby>", "文具"],
+    ["<ruby>彩色<rt>ㄘㄞˇ ㄙㄜˋ</rt>筆<rt>ㄅㄧˇ</rt></ruby>", "文具"],
+    ["<ruby>蠟<rt>ㄌㄚˋ</rt>筆<rt>ㄅㄧˇ</rt></ruby>", "文具"],
+    ["<ruby>螢<rt>ㄧㄥˊ</rt>光<rt>ㄍㄨㄤ</rt>筆<rt>ㄅㄧˇ</rt></ruby>", "文具"],
+    ["<ruby>圓<rt>ㄩㄢˊ</rt>規<rt>ㄍㄨㄟ</rt></ruby>", "文具"],
+    ["<ruby>量<rt>ㄌㄧㄤˊ</rt>角<rt>ㄐㄧㄠˇ</rt>器<rt>ㄑㄧˋ</rt></ruby>", "文具"],
+    ["<ruby>立<rt>ㄌㄧˋ</rt>可<rt>ㄎㄜˇ</rt>帶<rt>ㄉㄞˋ</rt></ruby>", "文具"],
+    ["<ruby>削<rt>ㄒㄧㄠ</rt>鉛<rt>ㄑㄧㄢ</rt>筆<rt>ㄅㄧˇ</rt>機<rt>ㄐㄧ</rt></ruby>", "文具"],
+    ["<ruby>膠<rt>ㄐㄧㄠ</rt>帶<rt>ㄉㄞˋ</rt></ruby>", "文具"],
+    ["<ruby>資<rt>ㄗ</rt>料<rt>ㄌㄧㄠˋ</rt>夾<rt>ㄐㄧㄚˊ</rt></ruby>", "文具"],
+    ["<ruby>打<rt>ㄉㄚˇ</rt>孔<rt>ㄎㄨㄥˇ</rt>機<rt>ㄐㄧ</rt></ruby>", "文具"],
+    ["<ruby>便<rt>ㄅㄧㄢˋ</rt>條<rt>ㄊㄧㄠˊ</rt>紙<rt>ㄓˇ</rt></ruby>", "文具"],
+    ["<ruby>鉛<rt>ㄑㄧㄢ</rt>筆<rt>ㄅㄧˇ</rt>盒<rt>ㄏㄜˊ</rt></ruby>", "文具"],
+
+    // 10. 卡通人物 (21 題)
+    ["<ruby>哆<rt>ㄉㄨㄛ</rt>啦<rt>ㄌㄚ</rt>A<rt></rt>夢<rt>ㄇㄥˋ</rt></ruby>", "卡通人物"],
+    ["<ruby>皮<rt>ㄆㄧˊ</rt>卡<rt>ㄎㄚˇ</rt>丘<rt>ㄑㄧㄡ</rt></ruby>", "卡通人物"],
+    ["<ruby>巧<rt>ㄑㄧㄠˇ</rt>虎<rt>ㄏㄨˇ</rt></ruby>", "卡通人物"],
+    ["<ruby>麵<rt>ㄇㄧㄢˋ</rt>包<rt>ㄅㄠ</rt>超<rt>ㄔㄠ</rt>人<rt>ㄖㄣˊ</rt></ruby>", "卡通人物"],
+    ["<ruby>櫻<rt>ㄧㄥ</rt>桃<rt>ㄊㄠˊ</rt>小<rt>ㄒㄧㄠˇ</rt>丸<rt>ㄨㄢˊ</rt>子<rt>˙ㄗ</rt></ruby>", "卡通人物"],
+    ["<ruby>蠟<rt>ㄌㄚˋ</rt>筆<rt>ㄅㄧˇ</rt>小<rt>ㄒㄧㄠˇ</rt>新<rt>ㄒㄧㄣ</rt></ruby>", "卡通人物"],
+    ["<ruby>名<rt>ㄇㄧㄥˊ</rt>偵<rt>ㄓㄣ</rt>探<rt>ㄊㄢˋ</rt>柯<rt>ㄎㄜ</rt>南<rt>ㄋㄢˊ</rt></ruby>", "卡通人物"],
+    ["<ruby>米<rt>ㄇㄧˇ</rt>老<rt>ㄌㄠˇ</rt>鼠<rt>ㄕㄨˇ</rt></ruby>", "卡通人物"],
+    ["<ruby>唐<rt>ㄊㄤˊ</rt>老<rt>ㄌㄠˇ</rt>鴨<rt>ㄧㄚ</rt></ruby>", "卡通人物"],
+    ["<ruby>小<rt>ㄒㄧㄠˇ</rt>熊<rt>ㄒㄩㄥˊ</rt>維<rt>ㄨㄟˊ</rt>尼<rt>ㄋㄧˊ</rt></ruby>", "卡通人物"],
+    ["<ruby>海<rt>ㄏㄞˇ</rt>綿<rt>ㄇㄧㄢˊ</rt>寶<rt>ㄅㄠˇ</rt>寶<rt>ㄅㄠˇ</rt></ruby>", "卡通人物"],
+    ["<ruby>派<rt>ㄆㄞˋ</rt>大<rt>ㄉㄚˋ</rt>星<rt>ㄒㄧㄥ</rt></ruby>", "卡通人物"],
+    ["<ruby>史<rt>ㄕˇ</rt>努<rt>ㄋㄨˇ</rt>比<rt>ㄅㄧˇ</rt></ruby>", "卡通人物"],
+    ["<ruby>佩<rt>ㄆㄟˋ</rt>佩<rt>ㄆㄟˋ</rt>豬<rt>ㄓㄨ</rt></ruby>", "卡通人物"],
+    ["<ruby>冰<rt>ㄅㄧㄥ</rt>雪<rt>ㄒㄩㄝˇ</rt>奇<rt>ㄑㄧˊ</rt>緣<rt>ㄩㄢˊ</rt>艾<rt>ㄞˋ</rt>莎<rt>ㄙㄚ</rt></ruby>", "卡通人物"],
+    ["<ruby>巴<rt>ㄅㄚ</rt>斯<rt>ㄙ</rt>光<rt>ㄍㄨㄤ</rt>年<rt>ㄋㄧㄢˊ</rt></ruby>", "卡通人物"],
+    ["<ruby>胡<rt>ㄏㄨˊ</rt>迪<rt>ㄉㄧˊ</rt>警<rt>ㄐㄧㄥˇ</rt>長<rt>ㄓㄤˇ</rt></ruby>", "卡通人物"],
+    ["<ruby>音<rt>ㄧㄣ</rt>速<rt>ㄙㄨˋ</rt>小<rt>ㄒㄧㄠˇ</rt>子<rt>˙ㄗ</rt></ruby>", "卡通人物"],
+    ["<ruby>加<rt>ㄐㄧㄚ</rt>菲<rt>ㄈㄟ</rt>貓<rt>ㄇㄠ</rt></ruby>", "卡通人物"],
+    ["<ruby>大<rt>ㄉㄚˋ</rt>英雄<rt>ㄧㄥ ㄒㄩㄥˊ</rt>天<rt>ㄊㄧㄢ</rt>團<rt>ㄊㄨㄢˊ</rt>杯<rt>ㄅㄟ</rt>麵<rt>ㄇㄧㄢˋ</rt></ruby>", "卡通人物"],
+    ["<ruby>小小<rt>ㄒㄧㄠˇ ㄒㄧㄠˇ</rt>兵<rt>ㄅㄧㄥ</rt></ruby>", "卡通人物"]
   ];
 
   const rawData = sessionStorage.getItem('spyGameConfig');
@@ -489,7 +599,7 @@
     currentVoterIndex: 0,
     votes: {},
     spyCaught: false,
-    earnedScores: {} // 記錄本回合每位玩家獲得分數
+    earnedScores: {}
   };
 
   function showScreen(screenId) {
@@ -647,7 +757,6 @@
     const voterIdx = roundState.currentVoterIndex;
     const isLastVoter = (voterIdx === config.players.length - 1);
     
-    // 動態切換按鈕文字
     elBtnSubmitVote.textContent = isLastVoter ? '確認投票並觀看投票結果' : '確認投票並傳給下一位';
 
     const currentVoter = config.players[voterIdx];
@@ -656,7 +765,7 @@
 
     elVoteOptions.innerHTML = '';
     config.players.forEach((p, idx) => {
-      if (idx === voterIdx) return; // 不能投自己
+      if (idx === voterIdx) return;
 
       const opt = document.createElement('div');
       opt.className = 'vote-item';
@@ -692,7 +801,6 @@
 
   // ================= 階段 4：計分與循序揭曉 =================
   function tallyAndShowResult() {
-    // 統計得票數
     const voteCounts = {};
     config.players.forEach((_, i) => { voteCounts[i] = 0; });
     Object.values(roundState.votes).forEach(targetIdx => {
@@ -711,12 +819,10 @@
       }
     });
 
-    // 判斷間諜是否被揪出 (最高票群包含間諜)
     const primarySpy = roundState.spyIndices[0];
     const isSpyCaught = mostVotedPlayers.includes(primarySpy);
     roundState.spyCaught = isSpyCaught;
 
-    // 計算平民得分：投給間諜的人得 1 分
     let correctVoters = [];
     Object.entries(roundState.votes).forEach(([voterIdxStr, targetIdx]) => {
       const v = parseInt(voterIdxStr, 10);
@@ -727,7 +833,6 @@
       }
     });
 
-    // 計算間諜得分：若間諜成功隱匿（未被最高票投出），間諜得 3 分
     if (!isSpyCaught) {
       roundState.spyIndices.forEach(sIdx => {
         roundState.earnedScores[sIdx] += 3;
@@ -735,7 +840,7 @@
       });
     }
 
-    // --- 1. 填寫每位玩家投給誰 ---
+    // 1. 玩家投票明細
     let voteDetailsHtml = '<ul style="list-style: none; padding-left: 0; margin-bottom: 8px;">';
     config.players.forEach((p, idx) => {
       const targetIdx = roundState.votes[idx];
@@ -754,7 +859,7 @@
     </p>`;
     document.getElementById('vote-details').innerHTML = voteDetailsHtml;
 
-    // --- 2. 填寫間諜身分揭曉 ---
+    // 2. 間諜身分揭曉
     const spyNameStr = roundState.spyIndices.map(i => config.players[i].name).join('、');
     let spyDetailsHtml = `<p>本局間諜為：<span style="color: var(--danger); font-size: 1.1rem; font-weight: bold;">${spyNameStr}</span></p>`;
     if (isSpyCaught) {
@@ -770,16 +875,16 @@
     }
     document.getElementById('spy-details').innerHTML = spyDetailsHtml;
 
-    // --- 3. 填寫題目與類別 ---
+    // 3. 題目與類別
     document.getElementById('topic-details').innerHTML = `
       <p>題目：<span style="color: #fbbf24; font-weight: bold; font-size: 1.1rem;">${roundState.commonWord}</span></p>
       <p style="margin-top: 4px;">類別：<span>${roundState.categoryName}</span></p>
     `;
 
-    // --- 4. 填寫本回合得分 ---
+    // 4. 本回合得分
     renderRoundScoresDetail();
 
-    // --- 6. 填寫累積分數總榜 ---
+    // 6. 累積分數榜
     renderScoreboard();
 
     showScreen('step-result');
@@ -833,7 +938,6 @@
     });
   }
 
-  // 間諜逆轉猜題成功 (+2 分)
   document.getElementById('btn-spy-guess-success').addEventListener('click', () => {
     roundState.spyIndices.forEach(sIdx => {
       roundState.earnedScores[sIdx] += 2;
@@ -850,7 +954,6 @@
     document.getElementById('reverse-guess-box').style.display = 'none';
   });
 
-  // 下一回合
   document.getElementById('btn-next-round').addEventListener('click', () => {
     currentRound++;
     startNewRound();
