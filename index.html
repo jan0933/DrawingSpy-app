@@ -110,7 +110,19 @@
     .player-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      background: #0f172a;
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .player-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+      min-width: 55px;
     }
 
     .color-dot {
@@ -118,6 +130,12 @@
       height: 14px;
       border-radius: 50%;
       flex-shrink: 0;
+    }
+
+    .player-row input[type="text"] {
+      background: transparent;
+      border: none;
+      padding: 8px 6px;
     }
 
     .btn {
@@ -181,7 +199,7 @@
       </div>
     </div>
 
-    <label>玩家暱稱（依作畫順序）</label>
+    <label>玩家暱稱設定</label>
     <div id="player-inputs" class="player-list"></div>
 
     <button id="btn-start" class="btn">開始遊戲</button>
@@ -216,17 +234,18 @@
 
   function renderPlayerInputs() {
     const count = parseInt(elCount.value, 10);
-    const existingNames = Array.from(elPlayerInputs.querySelectorAll('input')).map(input => input.value);
+    const existingNicknames = Array.from(elPlayerInputs.querySelectorAll('input')).map(input => input.value);
     
     elPlayerInputs.innerHTML = '';
     for (let i = 0; i < count; i++) {
       const color = COLOR_PALETTE[i % COLOR_PALETTE.length];
-      const defaultName = existingNames[i] || `玩家 ${i + 1}`;
+      const defaultNick = existingNicknames[i] || '';
       const row = document.createElement('div');
       row.className = 'player-row';
       row.innerHTML = `
         <div class="color-dot" style="background-color: ${color}"></div>
-        <input type="text" data-index="${i}" placeholder="玩家 ${i + 1}" value="${defaultName}" />
+        <span class="player-label">玩家 ${i + 1}</span>
+        <input type="text" data-index="${i}" placeholder="可輸入暱稱" value="${defaultNick}" />
       `;
       elPlayerInputs.appendChild(row);
     }
@@ -238,21 +257,24 @@
     renderPlayerInputs();
   });
 
-  // 初次載入預設為 4 人
   updateSpyOptions(parseInt(elCount.value, 10));
   renderPlayerInputs();
 
   document.getElementById('btn-start').addEventListener('click', () => {
     const inputs = elPlayerInputs.querySelectorAll('input');
-    const players = Array.from(inputs).map((input, idx) => ({
-      name: input.value.trim() || `玩家 ${idx + 1}`,
-      color: COLOR_PALETTE[idx % COLOR_PALETTE.length]
-    }));
+    const players = Array.from(inputs).map((input, idx) => {
+      const rawNick = input.value.trim();
+      const displayName = rawNick ? `玩家 ${idx + 1}（${rawNick}）` : `玩家 ${idx + 1}`;
+      return {
+        name: displayName,
+        color: COLOR_PALETTE[idx % COLOR_PALETTE.length]
+      };
+    });
 
     const sessionData = {
       players: players,
       spyCount: parseInt(elSpyCount.value, 10),
-      mode: 'draw', // 固定預設為紙筆畫畫模式
+      mode: 'draw',
       spyType: elSpyType.value
     };
 
