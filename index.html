@@ -147,23 +147,15 @@
 <div class="container">
   <header>
     <h1>誰是間諜助手</h1>
-    <p class="subtitle">設定人數與遊戲規則</p>
+    <p class="subtitle">紙筆畫畫模式・設定人數與規則</p>
   </header>
 
   <div class="card">
     <div style="margin-bottom: 12px;">
-      <label>遊戲玩法</label>
-      <select id="game-mode">
-        <option value="draw">紙筆繪畫模式（輪流添一筆）</option>
-        <option value="classic">經典發言模式（語言敘述）</option>
-      </select>
-    </div>
-
-    <div style="margin-bottom: 12px;">
-      <label>間諜類型</label>
+      <label>間諜模式</label>
       <select id="spy-type">
-        <option value="hint">標準間諜（持有相關提示詞）</option>
-        <option value="blank">白板模式（完全空白無提示）</option>
+        <option value="hint">標準間諜（僅顯示題目大類別）</option>
+        <option value="blank">白板模式（完全無提示）</option>
       </select>
     </div>
 
@@ -172,8 +164,8 @@
         <label>遊玩人數</label>
         <select id="player-count">
           <option value="3">3 人</option>
-          <option value="4">4 人</option>
-          <option value="5" selected>5 人</option>
+          <option value="4" selected>4 人</option>
+          <option value="5">5 人</option>
           <option value="6">6 人</option>
           <option value="7">7 人</option>
           <option value="8">8 人</option>
@@ -189,7 +181,7 @@
       </div>
     </div>
 
-    <label>玩家暱稱（依作畫/發言順序）</label>
+    <label>玩家暱稱（依作畫順序）</label>
     <div id="player-inputs" class="player-list"></div>
 
     <button id="btn-start" class="btn">開始遊戲</button>
@@ -205,7 +197,6 @@
   const elCount = document.getElementById('player-count');
   const elSpyCount = document.getElementById('spy-count');
   const elPlayerInputs = document.getElementById('player-inputs');
-  const elMode = document.getElementById('game-mode');
   const elSpyType = document.getElementById('spy-type');
 
   function updateSpyOptions(playerCount) {
@@ -247,6 +238,7 @@
     renderPlayerInputs();
   });
 
+  // 初次載入預設為 4 人
   updateSpyOptions(parseInt(elCount.value, 10));
   renderPlayerInputs();
 
@@ -260,7 +252,7 @@
     const sessionData = {
       players: players,
       spyCount: parseInt(elSpyCount.value, 10),
-      mode: elMode.value,
+      mode: 'draw', // 固定預設為紙筆畫畫模式
       spyType: elSpyType.value
     };
 
