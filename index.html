@@ -3,14 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>誰是間諜 / 臥底 遊戲助手</title>
+  <title>誰是間諜助手 - 設定遊戲</title>
   <style>
     :root {
       --bg: #121826;
       --card-bg: #1e293b;
       --accent: #38bdf8;
-      --accent-hover: #0284c7;
-      --danger: #f43f5e;
       --text: #f8fafc;
       --text-muted: #94a3b8;
       --border: #334155;
@@ -33,7 +31,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
       padding: 16px;
     }
 
@@ -85,7 +82,7 @@
       margin-bottom: 12px;
     }
 
-    input[type="number"], input[type="text"], select {
+    select, input[type="text"] {
       width: 100%;
       padding: 12px 14px;
       border-radius: 8px;
@@ -96,38 +93,8 @@
       outline: none;
     }
 
-    input:focus, select:focus {
+    select:focus, input:focus {
       border-color: var(--accent);
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      padding: 14px;
-      font-size: 1rem;
-      font-weight: 600;
-      border-radius: 10px;
-      border: none;
-      background: var(--accent);
-      color: #0f172a;
-      cursor: pointer;
-      transition: background 0.15s ease;
-    }
-
-    .btn:active {
-      transform: scale(0.98);
-    }
-
-    .btn-secondary {
-      background: #334155;
-      color: var(--text);
-    }
-
-    .btn-danger {
-      background: var(--danger);
-      color: #fff;
     }
 
     .player-list {
@@ -153,72 +120,25 @@
       flex-shrink: 0;
     }
 
-    /* Screen Transition */
-    .screen {
-      display: none;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .screen.active {
-      display: flex;
-    }
-
-    /* Pass-the-phone Screen */
-    .reveal-box {
-      min-height: 220px;
-      display: flex;
-      flex-direction: column;
+    .btn {
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      text-align: center;
-      border: 2px dashed var(--accent);
-      border-radius: 12px;
-      padding: 20px;
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 10px;
+      border: none;
+      background: var(--accent);
+      color: #0f172a;
       cursor: pointer;
-      background: rgba(56, 189, 248, 0.03);
+      margin-top: 10px;
+      transition: transform 0.1s ease;
     }
 
-    .reveal-box.unlocked {
-      border-style: solid;
-      background: rgba(56, 189, 248, 0.1);
-    }
-
-    .tag-word {
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: #fbbf24;
-      margin: 12px 0 6px 0;
-    }
-
-    .tag-identity {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-    }
-
-    /* Gameplay Screen */
-    .drawing-order-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 14px;
-      border-radius: 8px;
-      background: #0f172a;
-      border: 1px solid var(--border);
-    }
-
-    .drawing-order-item.active {
-      border-color: var(--accent);
-      background: rgba(56, 189, 248, 0.12);
-    }
-
-    .timer-display {
-      font-size: 2.2rem;
-      font-weight: 700;
-      text-align: center;
-      font-variant-numeric: tabular-nums;
-      color: var(--accent);
-      margin: 10px 0;
+    .btn:active {
+      transform: scale(0.98);
     }
   </style>
 </head>
@@ -227,386 +147,122 @@
 <div class="container">
   <header>
     <h1>誰是間諜助手</h1>
-    <p class="subtitle">支援紙筆繪畫模式 & 經典發言版</p>
+    <p class="subtitle">設定人數與玩家暱稱</p>
   </header>
 
-  <!-- SCREEN 1: SETUP -->
-  <section id="screen-setup" class="screen active">
-    <div class="card">
-      <label>遊戲玩法</label>
-      <select id="game-mode" class="input-row">
-        <option value="draw">紙筆繪畫模式（輪流添一筆）</option>
-        <option value="classic">經典發言模式（語言敘述）</option>
-      </select>
+  <div class="card">
+    <label>遊戲玩法</label>
+    <select id="game-mode" class="input-row">
+      <option value="draw">紙筆繪畫模式（輪流添一筆）</option>
+      <option value="classic">經典發言模式（語言敘述）</option>
+    </select>
 
-      <div class="input-row">
-        <div style="flex: 1;">
-          <label>玩家人數 (3–12 人)</label>
-          <input type="number" id="player-count" min="3" max="12" value="5" />
-        </div>
-        <div style="flex: 1;">
-          <label>間諜數量</label>
-          <input type="number" id="spy-count" min="1" max="3" value="1" />
-        </div>
+    <div class="input-row">
+      <div style="flex: 1;">
+        <label>遊玩人數</label>
+        <select id="player-count">
+          <option value="3">3 人</option>
+          <option value="4">4 人</option>
+          <option value="5" selected>5 人</option>
+          <option value="6">6 人</option>
+          <option value="7">7 人</option>
+          <option value="8">8 人</option>
+          <option value="9">9 人</option>
+          <option value="10">10 人</option>
+          <option value="11">11 人</option>
+          <option value="12">12 人</option>
+        </select>
       </div>
 
-      <label>玩家暱稱（依作畫順序排列）</label>
-      <div id="player-inputs" class="player-list"></div>
-
-      <button id="btn-start-game" class="btn" style="margin-top: 10px;">開始遊戲・分發身分</button>
-    </div>
-  </section>
-
-  <!-- SCREEN 2: PASS & REVEAL -->
-  <section id="screen-reveal" class="screen">
-    <div class="card" style="text-align: center;">
-      <p style="color: var(--text-muted); font-size: 0.9rem;">請將手機交給</p>
-      <h2 id="current-player-name" style="font-size: 1.6rem; color: var(--accent); margin: 6px 0 16px 0;">玩家 1</h2>
-
-      <div id="reveal-box" class="reveal-box">
-        <div id="reveal-hint">
-          <p style="font-size: 1.1rem; font-weight: 600;">點擊此處查看詞彙</p>
-          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">（其他人請先閉眼避開）</p>
-        </div>
-        <div id="reveal-content" style="display: none;">
-          <div class="tag-identity" id="role-text">平民</div>
-          <div class="tag-word" id="word-text">珍奶</div>
-          <p id="rule-tip" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;"></p>
-        </div>
-      </div>
-
-      <button id="btn-next-player" class="btn btn-secondary" style="margin-top: 18px;" disabled>
-        我看完了，交給下一位
-      </button>
-    </div>
-  </section>
-
-  <!-- SCREEN 3: GAMEPLAY DASHBOARD -->
-  <section id="screen-game" class="screen">
-    <div class="card">
-      <h3 style="font-size: 1.1rem; margin-bottom: 8px;">🎨 輪流作畫順序（共 2 輪）</h3>
-      <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
-        每位玩家落筆至抬起算「一筆」。嚴禁寫字與出聲交談！
-      </p>
-
-      <div id="turn-tracker" class="player-list"></div>
-
-      <div style="display: flex; gap: 8px; margin-top: 12px;">
-        <button id="btn-prev-turn" class="btn btn-secondary" style="flex: 1;">上一步</button>
-        <button id="btn-next-turn" class="btn" style="flex: 1;">下一步</button>
+      <div style="flex: 1;">
+        <label>間諜數量</label>
+        <select id="spy-count">
+          <option value="1" selected>1 人</option>
+          <option value="2">2 人</option>
+          <option value="3">3 人</option>
+        </select>
       </div>
     </div>
 
-    <!-- Timer & Discussion Card -->
-    <div class="card">
-      <h3 style="font-size: 1.1rem; margin-bottom: 4px;">⏱ 討論與投票倒數</h3>
-      <div id="timer-display" class="timer-display">02:00</div>
-      <div style="display: flex; gap: 8px;">
-        <button id="btn-timer-toggle" class="btn btn-secondary" style="flex: 1;">開始計時</button>
-        <button id="btn-timer-reset" class="btn btn-secondary" style="flex: 1;">重置</button>
-      </div>
-      <button id="btn-end-game" class="btn btn-danger" style="margin-top: 16px;">揭曉身分與答案</button>
-    </div>
-  </section>
+    <label>玩家暱稱（依作畫順序）</label>
+    <div id="player-inputs" class="player-list"></div>
 
-  <!-- SCREEN 4: RESULT -->
-  <section id="screen-result" class="screen">
-    <div class="card">
-      <h2 style="color: var(--accent); text-align: center; margin-bottom: 14px;">本局身分揭曉</h2>
-      <div id="result-summary" style="margin-bottom: 16px; font-size: 0.95rem; line-height: 1.6;"></div>
-      <div id="result-list" class="player-list"></div>
-      <button id="btn-restart" class="btn" style="margin-top: 16px;">再來一局</button>
-    </div>
-  </section>
+    <button id="btn-start" class="btn">開始遊戲</button>
+  </div>
 </div>
 
 <script>
-  // 筆記專屬色（供紙筆模式參考）
   const COLOR_PALETTE = [
     '#f43f5e', '#3b82f6', '#10b981', '#f59e0b',
     '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16',
     '#d97706', '#6366f1', '#14b8a6', '#e11d48'
   ];
 
-  // 內建題庫：[平民精確詞, 間諜提示詞（或同類詞）]
-  const WORD_BANK = [
-    ["珍珠奶茶", "手搖冷飲"],
-    ["智慧型手機", "電子產品"],
-    ["長頸鹿", "草食動物"],
-    ["微波爐", "廚房家電"],
-    ["直升機", "飛行載具"],
-    ["高鐵", "公共交通工具"],
-    ["眼鏡", "隨身配件"],
-    ["雨傘", "防雨工具"],
-    ["吉他", "弦樂器"],
-    ["安全帽", "頭部護具"],
-    ["跑步機", "健身器材"],
-    ["熱氣球", "空中休閒載具"]
-  ];
-
-  // 遊戲狀態
-  let state = {
-    mode: 'draw',
-    players: [],
-    spyIndices: [],
-    commonWord: '',
-    spyWord: '',
-    currentRevealIndex: 0,
-    currentTurnIndex: 0,
-    timerSeconds: 120,
-    timerInterval: null
-  };
-
-  // DOM 綁定
   const elCount = document.getElementById('player-count');
   const elSpyCount = document.getElementById('spy-count');
   const elPlayerInputs = document.getElementById('player-inputs');
   const elMode = document.getElementById('game-mode');
 
+  function updateSpyOptions(playerCount) {
+    const maxSpy = Math.max(1, Math.floor(playerCount / 3));
+    const currentVal = parseInt(elSpyCount.value, 10);
+    elSpyCount.innerHTML = '';
+    for (let i = 1; i <= maxSpy; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${i} 人`;
+      if (i === currentVal || (currentVal > maxSpy && i === maxSpy)) {
+        opt.selected = true;
+      }
+      elSpyCount.appendChild(opt);
+    }
+  }
+
   function renderPlayerInputs() {
     const count = parseInt(elCount.value, 10);
+    // 保留已輸入的暱稱
+    const existingNames = Array.from(elPlayerInputs.querySelectorAll('input')).map(input => input.value);
+    
     elPlayerInputs.innerHTML = '';
     for (let i = 0; i < count; i++) {
       const color = COLOR_PALETTE[i % COLOR_PALETTE.length];
+      const defaultName = existingNames[i] || `玩家 ${i + 1}`;
       const row = document.createElement('div');
       row.className = 'player-row';
       row.innerHTML = `
         <div class="color-dot" style="background-color: ${color}"></div>
-        <input type="text" data-index="${i}" placeholder="玩家 ${i + 1}" value="玩家 ${i + 1}" />
+        <input type="text" data-index="${i}" placeholder="玩家 ${i + 1}" value="${defaultName}" />
       `;
       elPlayerInputs.appendChild(row);
     }
   }
 
-  elCount.addEventListener('input', () => {
-    let val = parseInt(elCount.value, 10);
-    if (val < 3) val = 3;
-    if (val > 12) val = 12;
-    elCount.value = val;
-    // 間諜上限
-    elSpyCount.max = Math.max(1, Math.floor(val / 3));
-    if (parseInt(elSpyCount.value, 10) > elSpyCount.max) {
-      elSpyCount.value = elSpyCount.max;
-    }
+  elCount.addEventListener('change', () => {
+    const count = parseInt(elCount.value, 10);
+    updateSpyOptions(count);
     renderPlayerInputs();
   });
 
+  // 初次載入
+  updateSpyOptions(parseInt(elCount.value, 10));
   renderPlayerInputs();
 
-  // 畫面切換輔助
-  function showScreen(screenId) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(screenId).classList.add('active');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  // 開始遊戲
-  document.getElementById('btn-start-game').addEventListener('click', () => {
+  // 點擊開始遊戲，儲存資料並跳轉
+  document.getElementById('btn-start').addEventListener('click', () => {
     const inputs = elPlayerInputs.querySelectorAll('input');
-    state.players = Array.from(inputs).map((input, idx) => ({
+    const players = Array.from(inputs).map((input, idx) => ({
       name: input.value.trim() || `玩家 ${idx + 1}`,
       color: COLOR_PALETTE[idx % COLOR_PALETTE.length]
     }));
-    state.mode = elMode.value;
 
-    const numPlayers = state.players.length;
-    const numSpies = parseInt(elSpyCount.value, 10);
+    const sessionData = {
+      players: players,
+      spyCount: parseInt(elSpyCount.value, 10),
+      mode: elMode.value
+    };
 
-    // 隨機抽間諜
-    const indices = Array.from({ length: numPlayers }, (_, i) => i);
-    indices.sort(() => Math.random() - 0.5);
-    state.spyIndices = indices.slice(0, numSpies);
-
-    // 隨機挑選題目
-    const selectedPair = WORD_BANK[Math.floor(Math.random() * WORD_BANK.length)];
-    state.commonWord = selectedPair[0];
-    state.spyWord = selectedPair[1];
-
-    state.currentRevealIndex = 0;
-    setupRevealStep();
-    showScreen('screen-reveal');
-  });
-
-  // 逐人查看身分
-  const elRevealBox = document.getElementById('reveal-box');
-  const elRevealHint = document.getElementById('reveal-hint');
-  const elRevealContent = document.getElementById('reveal-content');
-  const elBtnNext = document.getElementById('btn-next-player');
-  const elPlayerName = document.getElementById('current-player-name');
-  const elRoleText = document.getElementById('role-text');
-  const elWordText = document.getElementById('word-text');
-  const elRuleTip = document.getElementById('rule-tip');
-
-  function setupRevealStep() {
-    const p = state.players[state.currentRevealIndex];
-    elPlayerName.textContent = p.name;
-    elPlayerName.style.color = p.color;
-
-    // 重置隱藏卡片
-    elRevealBox.classList.remove('unlocked');
-    elRevealHint.style.display = 'block';
-    elRevealContent.style.display = 'none';
-    elBtnNext.disabled = true;
-  }
-
-  elRevealBox.addEventListener('click', () => {
-    if (elRevealBox.classList.contains('unlocked')) return;
-
-    const isSpy = state.spyIndices.includes(state.currentRevealIndex);
-    elRoleText.textContent = isSpy ? '【你是間諜】' : '【你是平民】';
-    elRoleText.style.color = isSpy ? 'var(--danger)' : 'var(--accent)';
-    elWordText.textContent = isSpy ? state.spyWord : state.commonWord;
-
-    if (state.mode === 'draw') {
-      elRuleTip.textContent = isSpy
-        ? '⚠️ 你只知道概括提示，觀察他人筆畫並假裝自己知情！'
-        : '💡 請隱密表現該詞彙的特徵，別畫太明顯讓間諜猜出！';
-    } else {
-      elRuleTip.textContent = isSpy ? '⚠️ 用模糊語句描述，別露出破綻。' : '💡 描述詞彙特徵，尋找隊友。';
-    }
-
-    elRevealHint.style.display = 'none';
-    elRevealContent.style.display = 'block';
-    elRevealBox.classList.add('unlocked');
-    elBtnNext.disabled = false;
-  });
-
-  elBtnNext.addEventListener('click', () => {
-    state.currentRevealIndex++;
-    if (state.currentRevealIndex < state.players.length) {
-      setupRevealStep();
-    } else {
-      initGameDashboard();
-      showScreen('screen-game');
-    }
-  });
-
-  // 遊戲進行畫面（作畫輪次與計時）
-  const elTurnTracker = document.getElementById('turn-tracker');
-  let turnList = [];
-
-  function initGameDashboard() {
-    state.currentTurnIndex = 0;
-    // 兩輪順序
-    turnList = [];
-    for (let round = 1; round <= 2; round++) {
-      state.players.forEach((p, idx) => {
-        turnList.push({ ...p, round, originalIndex: idx });
-      });
-    }
-    renderTurnList();
-    resetTimer();
-  }
-
-  function renderTurnList() {
-    elTurnTracker.innerHTML = '';
-    turnList.forEach((t, idx) => {
-      const item = document.createElement('div');
-      item.className = 'drawing-order-item' + (idx === state.currentTurnIndex ? ' active' : '');
-      item.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <div class="color-dot" style="background-color: ${t.color}"></div>
-          <span>${t.name}</span>
-        </div>
-        <span style="font-size: 0.8rem; color: var(--text-muted);">第 ${t.round} 輪第 ${t.originalIndex + 1} 筆</span>
-      `;
-      elTurnTracker.appendChild(item);
-    });
-  }
-
-  document.getElementById('btn-next-turn').addEventListener('click', () => {
-    if (state.currentTurnIndex < turnList.length - 1) {
-      state.currentTurnIndex++;
-      renderTurnList();
-    }
-  });
-
-  document.getElementById('btn-prev-turn').addEventListener('click', () => {
-    if (state.currentTurnIndex > 0) {
-      state.currentTurnIndex--;
-      renderTurnList();
-    }
-  });
-
-  // 計時器
-  const elTimerDisplay = document.getElementById('timer-display');
-  const elBtnTimerToggle = document.getElementById('btn-timer-toggle');
-
-  function updateTimerDisplay() {
-    const m = Math.floor(state.timerSeconds / 60).toString().padStart(2, '0');
-    const s = (state.timerSeconds % 60).toString().padStart(2, '0');
-    elTimerDisplay.textContent = `${m}:${s}`;
-  }
-
-  function resetTimer() {
-    clearInterval(state.timerInterval);
-    state.timerInterval = null;
-    state.timerSeconds = 120;
-    elBtnTimerToggle.textContent = '開始計時';
-    updateTimerDisplay();
-  }
-
-  elBtnTimerToggle.addEventListener('click', () => {
-    if (state.timerInterval) {
-      clearInterval(state.timerInterval);
-      state.timerInterval = null;
-      elBtnTimerToggle.textContent = '繼續計時';
-    } else {
-      state.timerInterval = setInterval(() => {
-        if (state.timerSeconds > 0) {
-          state.timerSeconds--;
-          updateTimerDisplay();
-        } else {
-          clearInterval(state.timerInterval);
-          state.timerInterval = null;
-          elBtnTimerToggle.textContent = '計時結束';
-          alert('討論時間結束！請全體倒數三秒投票抓出間諜！');
-        }
-      }, 1000);
-      elBtnTimerToggle.textContent = '暫停';
-    }
-  });
-
-  document.getElementById('btn-timer-reset').addEventListener('click', resetTimer);
-
-  // 結算畫面
-  document.getElementById('btn-end-game').addEventListener('click', () => {
-    if (confirm('確定要揭曉身分嗎？所有謎底將在此時公開。')) {
-      clearInterval(state.timerInterval);
-      const elResultSummary = document.getElementById('result-summary');
-      const elResultList = document.getElementById('result-list');
-
-      elResultSummary.innerHTML = `
-        <p>🎯 <b>平民題目：</b><span style="color: var(--accent); font-weight: bold;">${state.commonWord}</span></p>
-        <p>🕵️ <b>間諜提示：</b><span style="color: var(--danger); font-weight: bold;">${state.spyWord}</span></p>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 8px;">
-          若間諜被抓出，間諜可嘗試精確猜出平民詞彙「<b>${state.commonWord}</b>」來逆轉獲勝！
-        </p>
-      `;
-
-      elResultList.innerHTML = '';
-      state.players.forEach((p, idx) => {
-        const isSpy = state.spyIndices.includes(idx);
-        const row = document.createElement('div');
-        row.className = 'drawing-order-item';
-        row.innerHTML = `
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <div class="color-dot" style="background-color: ${p.color}"></div>
-            <span>${p.name}</span>
-          </div>
-          <span style="font-weight: 700; color: ${isSpy ? 'var(--danger)' : 'var(--accent)'};">
-            ${isSpy ? '間諜' : '平民'}
-          </span>
-        `;
-        elResultList.appendChild(row);
-      });
-
-      showScreen('screen-result');
-    }
-  });
-
-  document.getElementById('btn-restart').addEventListener('click', () => {
-    showScreen('screen-setup');
+    sessionStorage.setItem('spyGameConfig', JSON.stringify(sessionData));
+    window.location.href = 'game.html';
   });
 </script>
 
