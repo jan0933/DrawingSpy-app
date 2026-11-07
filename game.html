@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>誰是間諜助手 - 遊戲進行中</title>
+  <style>
+    :root {
+      --bg: #121826;
+      --card-bg: #1e293b;
+      --accent: #38bdf8;
+      --danger: #f43f5e;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-family);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 10px;
+      border: none;
+      background: var(--accent);
+      color: #0f172a;
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background: #334155;
+      color: var(--text);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    .reveal-box {
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border: 2px dashed var(--accent);
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      background: rgba(56, 189, 248, 0.03);
+    }
+
+    .reveal-box.unlocked {
+      border-style: solid;
+      background: rgba(56, 189, 248, 0.1);
+    }
+
+    .tag-word {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #fbbf24;
+      margin: 12px 0 6px 0;
+    }
+
+    .tag-identity {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .player-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 260px;
+      overflow-y: auto;
+      margin: 10px 0;
+    }
+
+    .drawing-order-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: #0f172a;
+      border: 1px solid var(--border);
+    }
+
+    .drawing-order-item.active {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.12);
+    }
+
+    .color-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .timer-display {
+      font-size: 2.2rem;
+      font-weight: 700;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent);
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 階段 1：傳遞手機查看題目 -->
+  <section id="step-reveal" class="screen active">
+    <div class="card" style="text-align: center;">
+      <p style="color: var(--text-muted); font-size: 0.9rem;">請將手機交給</p>
+      <h2 id="current-player-name" style="font-size: 1.6rem; color: var(--accent); margin: 6px 0 16px 0;">玩家 1</h2>
+
+      <div id="reveal-box" class="reveal-box">
+        <div id="reveal-hint">
+          <p style="font-size: 1.1rem; font-weight: 600;">點擊此處查看題目</p>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">（其他人請先避開視野）</p>
+        </div>
+        <div id="reveal-content" style="display: none;">
+          <div class="tag-identity" id="role-text">平民</div>
+          <div class="tag-word" id="word-text">題目</div>
+          <p id="rule-tip" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;"></p>
+        </div>
+      </div>
+
+      <button id="btn-next-player" class="btn btn-secondary" style="margin-top: 18px;" disabled>
+        我看完了，交給下一位
+      </button>
+    </div>
+  </section>
+
+  <!-- 階段 2：遊戲中面板 -->
+  <section id="step-game" class="screen">
+    <div class="card">
+      <h3 id="panel-title" style="font-size: 1.1rem; margin-bottom: 6px;">🎨 輪流作畫順序（共 2 輪）</h3>
+      <p id="panel-desc" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+        每位玩家落筆至抬起算「一筆」。嚴禁出聲交談與寫字！
+      </p>
+
+      <div id="turn-tracker" class="player-list"></div>
+
+      <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <button id="btn-prev-turn" class="btn btn-secondary" style="flex: 1;">上一步</button>
+        <button id="btn-next-turn" class="btn" style="flex: 1;">下一步</button>
+      </div>
+    </div>
+
+    <!-- 討論計時器 -->
+    <div class="card">
+      <h3 style="font-size: 1.1rem; margin-bottom: 4px;">⏱ 討論與投票計時</h3>
+      <div id="timer-display" class="timer-display">02:00</div>
+      <div style="display: flex; gap: 8px;">
+        <button id="btn-timer-toggle" class="btn btn-secondary" style="flex: 1;">開始計時</button>
+        <button id="btn-timer-reset" class="btn btn-secondary" style="flex: 1;">重置</button>
+      </div>
+      <button id="btn-end-game" class="btn btn-danger" style="margin-top: 16px;">揭曉答案與身分</button>
+    </div>
+  </section>
+
+  <!-- 階段 3：揭曉答案 -->
+  <section id="step-result" class="screen">
+    <div class="card">
+      <h2 style="color: var(--accent); text-align: center; margin-bottom: 14px;">本局身分揭曉</h2>
+      <div id="result-summary" style="margin-bottom: 16px; font-size: 0.95rem; line-height: 1.6;"></div>
+      <div id="result-list" class="player-list"></div>
+      <button id="btn-back-home" class="btn" style="margin-top: 16px;">返回首頁重設</button>
+    </div>
+  </section>
+</div>
+
+<script>
+  // 題庫
+  const WORD_BANK = [
+    ["珍珠奶茶", "手搖冷飲"],
+    ["智慧型手機", "電子產品"],
+    ["長頸鹿", "草食動物"],
+    ["微波爐", "廚房家電"],
+    ["直升機", "飛行載具"],
+    ["高鐵", "公共交通工具"],
+    ["眼鏡", "隨身配件"],
+    ["雨傘", "防雨工具"],
+    ["吉他", "弦樂器"],
+    ["安全帽", "頭部護具"],
+    ["跑步機", "健身器材"],
+    ["熱氣球", "空中休閒載具"]
+  ];
+
+  const rawData = sessionStorage.getItem('spyGameConfig');
+  if (!rawData) {
+    alert('尚未設定遊戲，將跳轉回首頁！');
+    window.location.href = 'index.html';
+  }
+
+  const config = JSON.parse(rawData);
+  const players = config.players;
+  const spyCount = config.spyCount;
+  const mode = config.mode;
+  const spyType = config.spyType || 'hint'; // hint 或 blank
+
+  // 抽題
+  const pair = WORD_BANK[Math.floor(Math.random() * WORD_BANK.length)];
+  const commonWord = pair[0];
+  const spyWord = spyType === 'blank' ? '【白板】' : pair[1];
+
+  // 抽間諜
+  const indices = Array.from({ length: players.length }, (_, i) => i);
+  indices.sort(() => Math.random() - 0.5);
+  const spyIndices = indices.slice(0, spyCount);
+
+  let revealIdx = 0;
+  let turnIdx = 0;
+  let turnList = [];
+  let timerSeconds = 120;
+  let timerInterval = null;
+
+  // DOM 綁定
+  const elRevealBox = document.getElementById('reveal-box');
+  const elRevealHint = document.getElementById('reveal-hint');
+  const elRevealContent = document.getElementById('reveal-content');
+  const elBtnNext = document.getElementById('btn-next-player');
+  const elPlayerName = document.getElementById('current-player-name');
+  const elRoleText = document.getElementById('role-text');
+  const elWordText = document.getElementById('word-text');
+  const elRuleTip = document.getElementById('rule-tip');
+
+  function renderReveal() {
+    const p = players[revealIdx];
+    elPlayerName.textContent = p.name;
+    elPlayerName.style.color = p.color;
+
+    elRevealBox.classList.remove('unlocked');
+    elRevealHint.style.display = 'block';
+    elRevealContent.style.display = 'none';
+    elBtnNext.disabled = true;
+  }
+
+  elRevealBox.addEventListener('click', () => {
+    if (elRevealBox.classList.contains('unlocked')) return;
+
+    const isSpy = spyIndices.includes(revealIdx);
+    elRoleText.textContent = isSpy ? (spyType === 'blank' ? '【你是白板間諜】' : '【你是間諜】') : '【你是平民】';
+    elRoleText.style.color = isSpy ? 'var(--danger)' : 'var(--accent)';
+    elWordText.textContent = isSpy ? spyWord : commonWord;
+
+    if (isSpy) {
+      if (spyType === 'blank') {
+        elRuleTip.textContent = '⚠️ 你完全沒有題目！請觀察他人畫風或發言，謹慎偽裝！';
+      } else {
+        elRuleTip.textContent = '⚠️ 你拿到的是概括提示，觀察他人並假裝自己知情！';
+      }
+    } else {
+      elRuleTip.textContent = mode === 'draw'
+        ? '💡 請隱密表現題目特徵，別畫太明顯讓間諜猜出！'
+        : '💡 描述題目特徵，並找出暗藏其中的間諜！';
+    }
+
+    elRevealHint.style.display = 'none';
+    elRevealContent.style.display = 'block';
+    elRevealBox.classList.add('unlocked');
+    elBtnNext.disabled = false;
+  });
+
+  elBtnNext.addEventListener('click', () => {
+    revealIdx++;
+    if (revealIdx < players.length) {
+      renderReveal();
+    } else {
+      setupGameBoard();
+    }
+  });
+
+  renderReveal();
+
+  function setupGameBoard() {
+    document.getElementById('step-reveal').classList.remove('active');
+    document.getElementById('step-game').classList.add('active');
+
+    if (mode === 'classic') {
+      document.getElementById('panel-title').textContent = '🗣 輪流發言順序';
+      document.getElementById('panel-desc').textContent = '請依序描述自己的題目，嚴禁直接說出題目字眼。';
+      turnList = players.map((p, i) => ({ ...p, round: 1, originalIndex: i }));
+    } else {
+      turnList = [];
+      for (let r = 1; r <= 2; r++) {
+        players.forEach((p, i) => {
+          turnList.push({ ...p, round: r, originalIndex: i });
+        });
+      }
+    }
+    renderTurnList();
+  }
+
+  const elTurnTracker = document.getElementById('turn-tracker');
+  function renderTurnList() {
+    elTurnTracker.innerHTML = '';
+    turnList.forEach((t, idx) => {
+      const item = document.createElement('div');
+      item.className = 'drawing-order-item' + (idx === turnIdx ? ' active' : '');
+      item.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="color-dot" style="background-color: ${t.color}"></div>
+          <span>${t.name}</span>
+        </div>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">
+          ${mode === 'draw' ? `第 ${t.round} 輪第 ${t.originalIndex + 1} 筆` : `第 ${idx + 1} 位發言`}
+        </span>
+      `;
+      elTurnTracker.appendChild(item);
+    });
+  }
+
+  document.getElementById('btn-next-turn').addEventListener('click', () => {
+    if (turnIdx < turnList.length - 1) {
+      turnIdx++;
+      renderTurnList();
+    }
+  });
+
+  document.getElementById('btn-prev-turn').addEventListener('click', () => {
+    if (turnIdx > 0) {
+      turnIdx--;
+      renderTurnList();
+    }
+  });
+
+  // 計時器
+  const elTimerDisplay = document.getElementById('timer-display');
+  const elBtnTimerToggle = document.getElementById('btn-timer-toggle');
+
+  function updateTimer() {
+    const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+    const s = (timerSeconds % 60).toString().padStart(2, '0');
+    elTimerDisplay.textContent = `${m}:${s}`;
+  }
+
+  document.getElementById('btn-timer-reset').addEventListener('click', () => {
+    clearInterval(timerInterval);
+    timerInterval = null;
+    timerSeconds = 120;
+    elBtnTimerToggle.textContent = '開始計時';
+    updateTimer();
+  });
+
+  elBtnTimerToggle.addEventListener('click', () => {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      elBtnTimerToggle.textContent = '繼續計時';
+    } else {
+      timerInterval = setInterval(() => {
+        if (timerSeconds > 0) {
+          timerSeconds--;
+          updateTimer();
+        } else {
+          clearInterval(timerInterval);
+          timerInterval = null;
+          elBtnTimerToggle.textContent = '時間到';
+          alert('討論結束！請倒數三秒投票抓出間諜！');
+        }
+      }, 1000);
+      elBtnTimerToggle.textContent = '暫停';
+    }
+  });
+
+  // 揭曉結果
+  document.getElementById('btn-end-game').addEventListener('click', () => {
+    if (confirm('確定要結束並揭曉身分嗎？')) {
+      clearInterval(timerInterval);
+      document.getElementById('step-game').classList.remove('active');
+      document.getElementById('step-result').classList.add('active');
+
+      const spyDisplay = spyType === 'blank' ? '無題目（白板模式）' : spyWord;
+
+      document.getElementById('result-summary').innerHTML = `
+        <p>🎯 <b>平民題目：</b><span style="color: var(--accent); font-weight: bold;">${commonWord}</span></p>
+        <p>🕵️ <b>間諜提示：</b><span style="color: var(--danger); font-weight: bold;">${spyDisplay}</span></p>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 8px;">
+          若間諜被投票抓出，間諜可嘗試精確猜出平民題目「<b>${commonWord}</b>」來逆轉勝！
+        </p>
+      `;
+
+      const elResultList = document.getElementById('result-list');
+      elResultList.innerHTML = '';
+      players.forEach((p, idx) => {
+        const isSpy = spyIndices.includes(idx);
+        const roleLabel = isSpy ? (spyType === 'blank' ? '白板間諜' : '間諜') : '平民';
+        const row = document.createElement('div');
+        row.className = 'drawing-order-item';
+        row.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="color-dot" style="background-color: ${p.color}"></div>
+            <span>${p.name}</span>
+          </div>
+          <span style="font-weight: 700; color: ${isSpy ? 'var(--danger)' : 'var(--accent)'};">
+            ${roleLabel}
+          </span>
+        `;
+        elResultList.appendChild(row);
+      });
+    }
+  });
+
+  document.getElementById('btn-back-home').addEventListener('click', () => {
+    window.location.href = 'index.html';
+  });
+</script>
+
+</body>
+</html>
