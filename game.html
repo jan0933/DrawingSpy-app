@@ -9,7 +9,9 @@
       --bg: #121826;
       --card-bg: #1e293b;
       --accent: #38bdf8;
+      --accent-hover: #0284c7;
       --danger: #f43f5e;
+      --success: #10b981;
       --text: #f8fafc;
       --text-muted: #94a3b8;
       --border: #334155;
@@ -76,6 +78,11 @@
       color: var(--text);
     }
 
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+    }
+
     .btn-danger {
       background: var(--danger);
       color: #fff;
@@ -91,8 +98,21 @@
       display: flex;
     }
 
+    .round-badge {
+      display: inline-block;
+      align-self: center;
+      background: #0f172a;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
     .reveal-box {
-      min-height: 220px;
+      min-height: 200px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -114,7 +134,7 @@
       font-size: 1.8rem;
       font-weight: 800;
       color: #fbbf24;
-      margin: 12px 0 6px 0;
+      margin: 10px 0 6px 0;
     }
 
     .tag-identity {
@@ -144,7 +164,7 @@
 
     .drawing-order-item.active {
       border-color: var(--accent);
-      background: rgba(56, 189, 248, 0.12);
+      background: rgba(56, 189, 248, 0.15);
     }
 
     .color-dot {
@@ -154,28 +174,57 @@
       flex-shrink: 0;
     }
 
-    .timer-display {
-      font-size: 2.2rem;
-      font-weight: 700;
-      text-align: center;
-      font-variant-numeric: tabular-nums;
-      color: var(--accent);
-      margin: 8px 0;
+    /* 投票選項樣式 */
+    .vote-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+
+    .vote-item.selected {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.15);
+    }
+
+    /* 積分榜樣式 */
+    .score-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: #0f172a;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .score-badge {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #fbbf24;
     }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <!-- 階段 1：傳遞手機查看題目 -->
+
+  <!-- ================= 階段 1：查看身分 ================= -->
   <section id="step-reveal" class="screen active">
     <div class="card" style="text-align: center;">
+      <span class="round-badge" id="badge-round-reveal">第 1 回合</span>
       <p style="color: var(--text-muted); font-size: 0.9rem;">請將手機交給</p>
       <h2 id="current-player-name" style="font-size: 1.6rem; color: var(--accent); margin: 6px 0 16px 0;">玩家 1</h2>
 
       <div id="reveal-box" class="reveal-box">
         <div id="reveal-hint">
-          <p style="font-size: 1.1rem; font-weight: 600;">點擊此處查看身分</p>
+          <p style="font-size: 1.1rem; font-weight: 600;">點擊此處查看題目</p>
           <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">（其他人請先避開視野）</p>
         </div>
         <div id="reveal-content" style="display: none;">
@@ -185,17 +234,18 @@
         </div>
       </div>
 
-      <button id="btn-next-player" class="btn btn-secondary" style="margin-top: 18px;" disabled>
+      <button id="btn-next-reveal" class="btn btn-secondary" style="margin-top: 18px;" disabled>
         我看完了，交給下一位
       </button>
     </div>
   </section>
 
-  <!-- 階段 2：遊戲中面板 -->
+  <!-- ================= 階段 2：輪流作畫面板 ================= -->
   <section id="step-game" class="screen">
     <div class="card">
-      <h3 id="panel-title" style="font-size: 1.1rem; margin-bottom: 6px;">🎨 輪流作畫順序（共 2 輪）</h3>
-      <p id="panel-desc" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+      <span class="round-badge" id="badge-round-game">第 1 回合</span>
+      <h3 style="font-size: 1.1rem; margin-bottom: 4px;">🎨 輪流作畫順序（共 2 輪）</h3>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
         每位玩家落筆至抬起算「一筆」。嚴禁出聲交談與寫字！
       </p>
 
@@ -205,299 +255,466 @@
         <button id="btn-prev-turn" class="btn btn-secondary" style="flex: 1;">上一步</button>
         <button id="btn-next-turn" class="btn" style="flex: 1;">下一步</button>
       </div>
-    </div>
 
-    <!-- 討論計時器 -->
-    <div class="card">
-      <h3 style="font-size: 1.1rem; margin-bottom: 4px;">⏱ 討論與投票計時</h3>
-      <div id="timer-display" class="timer-display">02:00</div>
-      <div style="display: flex; gap: 8px;">
-        <button id="btn-timer-toggle" class="btn btn-secondary" style="flex: 1;">開始計時</button>
-        <button id="btn-timer-reset" class="btn btn-secondary" style="flex: 1;">重置</button>
-      </div>
-      <button id="btn-end-game" class="btn btn-danger" style="margin-top: 16px;">揭曉答案與身分</button>
+      <button id="btn-finish-drawing" class="btn btn-success" style="margin-top: 16px;">
+        作畫結束，前往投票階段
+      </button>
     </div>
   </section>
 
-  <!-- 階段 3：揭曉答案 -->
+  <!-- ================= 階段 3：輪流猜間諜（投票） ================= -->
+  <section id="step-voting" class="screen">
+    <div class="card">
+      <span class="round-badge" id="badge-round-voting">第 1 回合</span>
+      <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center;">輪流密室投票</p>
+      <h2 id="voting-voter-name" style="font-size: 1.5rem; text-align: center; color: var(--accent); margin: 6px 0 14px 0;">玩家 1</h2>
+      
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">
+        請點選你認為是間諜的玩家：
+      </p>
+
+      <div id="vote-options"></div>
+
+      <button id="btn-submit-vote" class="btn" style="margin-top: 12px;" disabled>
+        確認投票並傳給下一位
+      </button>
+    </div>
+  </section>
+
+  <!-- ================= 階段 4：本回合身分揭曉與計分 ================= -->
   <section id="step-result" class="screen">
     <div class="card">
-      <h2 style="color: var(--accent); text-align: center; margin-bottom: 14px;">本局身分揭曉</h2>
+      <h2 style="color: var(--accent); text-align: center; margin-bottom: 12px;">本回合結算</h2>
+      
       <div id="result-summary" style="margin-bottom: 16px; font-size: 0.95rem; line-height: 1.6;"></div>
-      <div id="result-list" class="player-list"></div>
-      <button id="btn-back-home" class="btn" style="margin-top: 16px;">返回首頁重設</button>
+      
+      <!-- 逆轉猜題控制區 -->
+      <div id="reverse-guess-box" style="display: none; background: #0f172a; padding: 12px; border-radius: 8px; margin-bottom: 16px; border: 1px dashed var(--accent);">
+        <p style="font-size: 0.9rem; font-weight: bold; margin-bottom: 8px;">🕵️ 間諜逆轉猜題機會：</p>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
+          間諜若能當場口頭精確說出平民題目，請點擊「猜中」逆轉得 2 分！
+        </p>
+        <div style="display: flex; gap: 8px;">
+          <button id="btn-spy-guess-fail" class="btn btn-secondary" style="flex: 1; padding: 10px;">未猜中</button>
+          <button id="btn-spy-guess-success" class="btn btn-success" style="flex: 1; padding: 10px;">猜中了 (+2分)</button>
+        </div>
+      </div>
+
+      <h3 style="font-size: 1rem; margin-bottom: 8px;">🏆 累積分數總榜</h3>
+      <div id="scoreboard" class="player-list"></div>
+
+      <button id="btn-next-round" class="btn btn-success" style="margin-top: 14px;">開始下一回合</button>
+      <button id="btn-back-home" class="btn btn-secondary" style="margin-top: 8px;">結束遊戲回首頁</button>
     </div>
   </section>
+
 </div>
 
 <script>
-  // [平民題目, 大類別名稱]
+  // 題庫：[具體平民題目, 大類別名稱]
   const WORD_BANK = [
-    // 飲食點心
     ["珍珠奶茶", "飲品類"], ["黑咖啡", "飲品類"], ["西瓜汁", "飲品類"], ["啤酒", "飲品類"],
     ["臭豆腐", "夜市小吃"], ["滷肉飯", "台灣主食"], ["牛肉麵", "麵食料理"], ["蚵仔煎", "夜市小吃"],
     ["小籠包", "中式點心"], ["鳳梨酥", "糕餅點心"], ["披薩", "西式料理"], ["漢堡", "速食餐點"],
     ["義大利麵", "西式料理"], ["壽司", "日式料理"], ["拉麵", "日式料理"], ["生魚片", "海鮮料理"],
     ["火鍋", "鍋物料理"], ["章魚燒", "日式點心"], ["甜甜圈", "烘焙甜點"], ["冰淇淋", "冷凍甜品"],
     ["爆米花", "休閒零食"], ["巧克力", "休閒零食"], ["布丁", "冷藏甜品"], ["水餃", "中式麵食"],
-
-    // 水果蔬菜
     ["香蕉", "水果類"], ["西瓜", "水果類"], ["草莓", "水果類"], ["葡萄", "水果類"],
     ["蘋果", "水果類"], ["鳳梨", "水果類"], ["橘子", "水果類"], ["檸檬", "水果類"],
     ["胡蘿蔔", "蔬菜類"], ["玉米", "農作物類"], ["花椰菜", "蔬菜類"], ["洋蔥", "蔬菜類"],
     ["番茄", "蔬果類"], ["辣椒", "辛香料蔬菜"], ["小黃瓜", "蔬菜類"], ["香菇", "蕈菇類"],
-
-    // 日常用品與穿戴
     ["牙刷", "個人衛生用品"], ["吹風機", "生活家電"], ["雨傘", "雨具類"], ["雨衣", "雨具類"],
     ["毛巾", "衛浴織物"], ["鏡子", "生活配件"], ["剪刀", "辦公工具"], ["美工刀", "文具工具"],
-    ["訂書機", "辦公文具"], ["計算機", "電子儀器"], ["手錶", "隨身配件"], ["眼鏡", "隨身配件"],
-    ["太陽眼鏡", "隨身配件"], ["帽子", "頭部穿戴"], ["球鞋", "鞋履類"], ["高跟鞋", "鞋履類"],
-    ["背包", "包袋類"], ["行李箱", "旅行用品"], ["水壺", "容器類"], ["馬克杯", "餐飲器皿"],
-
-    // 家電與科技
+    ["手錶", "隨身配件"], ["眼鏡", "隨身配件"], ["太陽眼鏡", "隨身配件"], ["帽子", "頭部穿戴"],
+    ["球鞋", "鞋履類"], ["高跟鞋", "鞋履類"], ["背包", "包袋類"], ["行李箱", "旅行用品"],
     ["智慧型手機", "電子產品"], ["筆記型電腦", "電子產品"], ["平板電腦", "電子產品"], ["耳機", "影音設備"],
     ["電視機", "家庭電器"], ["冷氣機", "家庭電器"], ["電風扇", "家庭電器"], ["洗衣機", "家庭電器"],
-    ["電冰箱", "廚房家電"], ["微波爐", "廚房家電"], ["電鍋", "廚房家電"], ["吸塵器", "清掃家電"],
-    ["遙控器", "電子配件"], ["行動電源", "電子配件"], ["滑鼠", "電腦周邊"], ["鍵盤", "電腦周邊"],
-
-    // 動物昆蟲
-    ["狗", "寵物哺乳動物"], ["貓", "寵物哺乳動物"], ["兔子", "小型哺乳動物"], ["大象", "野生動物"],
-    ["長頸鹿", "野生動物"], ["獅子", "野生肉食動物"], ["老虎", "野生肉食動物"], ["斑馬", "草原草食動物"],
-    ["熊貓", "野生動物"], ["袋鼠", "澳洲有袋動物"], ["海豚", "海洋哺乳類"], ["鯨魚", "海洋哺乳類"],
-    ["鯊魚", "海洋魚類"], ["企鵝", "極地鳥類"], ["烏龜", "爬蟲類"], ["鱷魚", "爬蟲類"],
-    ["老鷹", "鳥禽類"], ["貓頭鷹", "鳥禽類"], ["蝴蝶", "昆蟲類"], ["蜜蜂", "昆蟲類"],
-
-    // 交通工具與公共場所
+    ["電冰箱", "廚房家電"], ["微波爐", "廚房家電"], ["吸塵器", "清掃家電"], ["滑鼠", "電腦周邊"],
+    ["狗", "寵物哺乳動物"], ["貓", "寵物哺乳動物"], ["大象", "野生動物"], ["長頸鹿", "野生動物"],
+    ["獅子", "野生肉食動物"], ["老虎", "野生肉食動物"], ["斑馬", "草食動物"], ["熊貓", "野生動物"],
+    ["海豚", "海洋哺乳類"], ["鯊魚", "海洋魚類"], ["企鵝", "極地鳥類"], ["烏龜", "爬蟲類"],
     ["腳踏車", "交通工具"], ["機車", "交通工具"], ["計程車", "公共交通"], ["公車", "公共交通"],
     ["高鐵", "軌道交通"], ["捷運", "軌道交通"], ["直升機", "飛行載具"], ["客航飛機", "飛行載具"],
-    ["熱氣球", "空中休閒設施"], ["輪船", "水上載具"], ["潛水艇", "水下載具"], ["火箭", "航天載具"],
-    ["學校", "教育場所"], ["醫院", "醫療設施"], ["警察局", "公共機構"], ["電影院", "娛樂休閒場所"],
-    ["圖書館", "公共文化場所"], ["動物園", "戶外休閒園區"], ["遊樂園", "休閒娛樂設施"], ["機場", "交通樞紐"]
+    ["熱氣球", "空中休閒設施"], ["輪船", "水上載具"], ["學校", "教育場所"], ["醫院", "醫療設施"],
+    ["電影院", "娛樂場所"], ["圖書館", "公共場所"], ["動物園", "戶外園區"], ["遊樂園", "休閒設施"]
   ];
 
+  // 讀取首頁傳入參數
   const rawData = sessionStorage.getItem('spyGameConfig');
   if (!rawData) {
     alert('尚未設定遊戲，將跳轉回首頁！');
     window.location.href = 'index.html';
   }
-
   const config = JSON.parse(rawData);
-  const players = config.players;
-  const spyCount = config.spyCount;
-  const mode = config.mode;
-  const spyType = config.spyType || 'hint';
 
-  // 隨機抽題
-  const pair = WORD_BANK[Math.floor(Math.random() * WORD_BANK.length)];
-  const commonWord = pair[0];
-  const categoryName = pair[1]; // 純大類別
+  // 全局遊戲對局狀態
+  let currentRound = 1;
+  let usedWordIndices = []; // 已抽過的題庫索引，防重複
+  let scores = {}; // 玩家分數表 { 0: 0, 1: 0, ... }
+  config.players.forEach((_, idx) => { scores[idx] = 0; });
 
-  // 隨機抽間諜
-  const indices = Array.from({ length: players.length }, (_, i) => i);
-  indices.sort(() => Math.random() - 0.5);
-  const spyIndices = indices.slice(0, spyCount);
+  // 當前回合狀態
+  let roundState = {
+    commonWord: '',
+    categoryName: '',
+    spyIndices: [],
+    startPlayerIndex: 0, // 本回合隨機起筆玩家
+    drawingTurnList: [],
+    currentRevealIndex: 0,
+    currentDrawingIndex: 0,
+    currentVoterIndex: 0,
+    votes: {}, // { voterIdx: targetIdx }
+    spyCaught: false
+  };
 
-  let revealIdx = 0;
-  let turnIdx = 0;
-  let turnList = [];
-  let timerSeconds = 120;
-  let timerInterval = null;
+  // 畫面切換輔助
+  function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
+  // --- 初始化新回合 ---
+  function startNewRound() {
+    // 1. 抽取不重複題目
+    if (usedWordIndices.length >= WORD_BANK.length) {
+      usedWordIndices = []; // 題目用盡時重置題庫
+    }
+    let chosenIdx;
+    do {
+      chosenIdx = Math.floor(Math.random() * WORD_BANK.length);
+    } while (usedWordIndices.includes(chosenIdx));
+    usedWordIndices.push(chosenIdx);
+
+    const pair = WORD_BANK[chosenIdx];
+    roundState.commonWord = pair[0];
+    roundState.categoryName = pair[1];
+
+    // 2. 抽間諜
+    const numPlayers = config.players.length;
+    const playerIndices = Array.from({ length: numPlayers }, (_, i) => i);
+    playerIndices.sort(() => Math.random() - 0.5);
+    roundState.spyIndices = playerIndices.slice(0, config.spyCount);
+
+    // 3. 隨機決定起始玩家 (0 ~ numPlayers-1)
+    roundState.startPlayerIndex = Math.floor(Math.random() * numPlayers);
+
+    // 4. 生成作畫順序（共 2 輪，從 startPlayerIndex 開始順時針）
+    roundState.drawingTurnList = [];
+    for (let r = 1; r <= 2; r++) {
+      for (let offset = 0; offset < numPlayers; offset++) {
+        const pIdx = (roundState.startPlayerIndex + offset) % numPlayers;
+        roundState.drawingTurnList.push({
+          playerIndex: pIdx,
+          round: r,
+          ...config.players[pIdx]
+        });
+      }
+    }
+
+    // 5. 重置各子流程指標
+    roundState.currentRevealIndex = 0;
+    roundState.currentDrawingIndex = 0;
+    roundState.currentVoterIndex = 0;
+    roundState.votes = {};
+    roundState.spyCaught = false;
+
+    // 更新各頁面回數標記
+    document.getElementById('badge-round-reveal').textContent = `第 ${currentRound} 回合`;
+    document.getElementById('badge-round-game').textContent = `第 ${currentRound} 回合`;
+    document.getElementById('badge-round-voting').textContent = `第 ${currentRound} 回合`;
+
+    setupRevealStep();
+    showScreen('step-reveal');
+  }
+
+  // ================= 階段 1：身分傳閱 =================
   const elRevealBox = document.getElementById('reveal-box');
   const elRevealHint = document.getElementById('reveal-hint');
   const elRevealContent = document.getElementById('reveal-content');
-  const elBtnNext = document.getElementById('btn-next-player');
+  const elBtnNextReveal = document.getElementById('btn-next-reveal');
   const elPlayerName = document.getElementById('current-player-name');
   const elRoleText = document.getElementById('role-text');
   const elWordText = document.getElementById('word-text');
   const elRuleTip = document.getElementById('rule-tip');
 
-  function renderReveal() {
-    const p = players[revealIdx];
+  function setupRevealStep() {
+    const p = config.players[roundState.currentRevealIndex];
     elPlayerName.textContent = p.name;
     elPlayerName.style.color = p.color;
 
     elRevealBox.classList.remove('unlocked');
     elRevealHint.style.display = 'block';
     elRevealContent.style.display = 'none';
-    elBtnNext.disabled = true;
+    elBtnNextReveal.disabled = true;
   }
 
   elRevealBox.addEventListener('click', () => {
     if (elRevealBox.classList.contains('unlocked')) return;
 
-    const isSpy = spyIndices.includes(revealIdx);
+    const idx = roundState.currentRevealIndex;
+    const isSpy = roundState.spyIndices.includes(idx);
 
     if (isSpy) {
-      if (spyType === 'blank') {
+      if (config.spyType === 'blank') {
         elRoleText.textContent = '【你是白板】';
         elRoleText.style.color = 'var(--danger)';
         elWordText.textContent = '無題目';
-        elRuleTip.textContent = '⚠️ 你完全沒有任何提示！請仔細觀察他人筆畫/發言，伺機偽裝！';
+        elRuleTip.textContent = '⚠️ 你完全無提示！觀察他人筆畫並伺機偽裝！';
       } else {
         elRoleText.textContent = '【你是間諜】';
         elRoleText.style.color = 'var(--danger)';
-        elWordText.textContent = `類別：${categoryName}`;
-        elRuleTip.textContent = '⚠️ 你只知道此大類別，不知道具體題目！請觀察並偽裝自己知情！';
+        elWordText.textContent = `類別：${roundState.categoryName}`;
+        elRuleTip.textContent = '⚠️ 你只知道此大類別，觀察他人並偽裝自己知情！';
       }
     } else {
       elRoleText.textContent = '【你是平民】';
       elRoleText.style.color = 'var(--accent)';
-      elWordText.textContent = commonWord;
-      elRuleTip.textContent = mode === 'draw'
-        ? '💡 請隱密表現題目特徵，別畫得太明顯讓間諜猜出！'
-        : '💡 描述題目特徵，並找出暗藏其中的間諜！';
+      elWordText.textContent = roundState.commonWord;
+      elRuleTip.textContent = '💡 隱密表現特徵，別畫太明顯讓間諜猜出！';
     }
 
     elRevealHint.style.display = 'none';
     elRevealContent.style.display = 'block';
     elRevealBox.classList.add('unlocked');
-    elBtnNext.disabled = false;
+    elBtnNextReveal.disabled = false;
   });
 
-  elBtnNext.addEventListener('click', () => {
-    revealIdx++;
-    if (revealIdx < players.length) {
-      renderReveal();
+  elBtnNextReveal.addEventListener('click', () => {
+    roundState.currentRevealIndex++;
+    if (roundState.currentRevealIndex < config.players.length) {
+      setupRevealStep();
     } else {
-      setupGameBoard();
+      setupDrawingBoard();
+      showScreen('step-game');
     }
   });
 
-  renderReveal();
-
-  function setupGameBoard() {
-    document.getElementById('step-reveal').classList.remove('active');
-    document.getElementById('step-game').classList.add('active');
-
-    if (mode === 'classic') {
-      document.getElementById('panel-title').textContent = '🗣 輪流發言順序';
-      document.getElementById('panel-desc').textContent = '請依序描述自己的題目，嚴禁直接說出題目字眼。';
-      turnList = players.map((p, i) => ({ ...p, round: 1, originalIndex: i }));
-    } else {
-      turnList = [];
-      for (let r = 1; r <= 2; r++) {
-        players.forEach((p, i) => {
-          turnList.push({ ...p, round: r, originalIndex: i });
-        });
-      }
-    }
-    renderTurnList();
+  // ================= 階段 2：輪流作畫 =================
+  const elTurnTracker = document.getElementById('turn-tracker');
+  function setupDrawingBoard() {
+    renderDrawingTurns();
   }
 
-  const elTurnTracker = document.getElementById('turn-tracker');
-  function renderTurnList() {
+  function renderDrawingTurns() {
     elTurnTracker.innerHTML = '';
-    turnList.forEach((t, idx) => {
+    roundState.drawingTurnList.forEach((turn, idx) => {
       const item = document.createElement('div');
-      item.className = 'drawing-order-item' + (idx === turnIdx ? ' active' : '');
+      item.className = 'drawing-order-item' + (idx === roundState.currentDrawingIndex ? ' active' : '');
       item.innerHTML = `
         <div style="display: flex; align-items: center; gap: 8px;">
-          <div class="color-dot" style="background-color: ${t.color}"></div>
-          <span>${t.name}</span>
+          <div class="color-dot" style="background-color: ${turn.color}"></div>
+          <span>${turn.name}</span>
         </div>
-        <span style="font-size: 0.8rem; color: var(--text-muted);">
-          ${mode === 'draw' ? `第 ${t.round} 輪第 ${t.originalIndex + 1} 筆` : `第 ${idx + 1} 位發言`}
-        </span>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">第 ${turn.round} 輪第 ${idx + 1} 筆</span>
       `;
       elTurnTracker.appendChild(item);
     });
   }
 
   document.getElementById('btn-next-turn').addEventListener('click', () => {
-    if (turnIdx < turnList.length - 1) {
-      turnIdx++;
-      renderTurnList();
+    if (roundState.currentDrawingIndex < roundState.drawingTurnList.length - 1) {
+      roundState.currentDrawingIndex++;
+      renderDrawingTurns();
     }
   });
 
   document.getElementById('btn-prev-turn').addEventListener('click', () => {
-    if (turnIdx > 0) {
-      turnIdx--;
-      renderTurnList();
+    if (roundState.currentDrawingIndex > 0) {
+      roundState.currentDrawingIndex--;
+      renderDrawingTurns();
     }
   });
 
-  // 計時器
-  const elTimerDisplay = document.getElementById('timer-display');
-  const elBtnTimerToggle = document.getElementById('btn-timer-toggle');
-
-  function updateTimer() {
-    const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
-    const s = (timerSeconds % 60).toString().padStart(2, '0');
-    elTimerDisplay.textContent = `${m}:${s}`;
-  }
-
-  document.getElementById('btn-timer-reset').addEventListener('click', () => {
-    clearInterval(timerInterval);
-    timerInterval = null;
-    timerSeconds = 120;
-    elBtnTimerToggle.textContent = '開始計時';
-    updateTimer();
+  document.getElementById('btn-finish-drawing').addEventListener('click', () => {
+    roundState.currentVoterIndex = 0;
+    roundState.votes = {};
+    setupVotingStep();
+    showScreen('step-voting');
   });
 
-  elBtnTimerToggle.addEventListener('click', () => {
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-      elBtnTimerToggle.textContent = '繼續計時';
-    } else {
-      timerInterval = setInterval(() => {
-        if (timerSeconds > 0) {
-          timerSeconds--;
-          updateTimer();
-        } else {
-          clearInterval(timerInterval);
-          timerInterval = null;
-          elBtnTimerToggle.textContent = '時間到';
-          alert('討論結束！請倒數三秒投票抓出間諜！');
-        }
-      }, 1000);
-      elBtnTimerToggle.textContent = '暫停';
-    }
-  });
+  // ================= 階段 3：輪流猜間諜（投票） =================
+  const elVotingVoterName = document.getElementById('voting-voter-name');
+  const elVoteOptions = document.getElementById('vote-options');
+  const elBtnSubmitVote = document.getElementById('btn-submit-vote');
+  let selectedTargetIndex = null;
 
-  // 揭曉結果
-  document.getElementById('btn-end-game').addEventListener('click', () => {
-    if (confirm('確定要結束並揭曉身分嗎？')) {
-      clearInterval(timerInterval);
-      document.getElementById('step-game').classList.remove('active');
-      document.getElementById('step-result').classList.add('active');
+  function setupVotingStep() {
+    selectedTargetIndex = null;
+    elBtnSubmitVote.disabled = true;
 
-      const spyDisplay = spyType === 'blank' ? '完全無提示（白板）' : `類別提示：${categoryName}`;
+    const currentVoter = config.players[roundState.currentVoterIndex];
+    elVotingVoterName.textContent = currentVoter.name;
+    elVotingVoterName.style.color = currentVoter.color;
 
-      document.getElementById('result-summary').innerHTML = `
-        <p>🎯 <b>平民題目：</b><span style="color: var(--accent); font-weight: bold;">${commonWord}</span></p>
-        <p>🕵️ <b>間諜提示：</b><span style="color: var(--danger); font-weight: bold;">${spyDisplay}</span></p>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 8px;">
-          若間諜被抓出，間諜可嘗試精確猜出平民題目「<b>${commonWord}</b>」來逆轉勝！
-        </p>
+    elVoteOptions.innerHTML = '';
+    config.players.forEach((p, idx) => {
+      // 不能投給自己
+      if (idx === roundState.currentVoterIndex) return;
+
+      const opt = document.createElement('div');
+      opt.className = 'vote-item';
+      opt.dataset.targetIdx = idx;
+      opt.innerHTML = `
+        <div class="color-dot" style="background-color: ${p.color}"></div>
+        <span style="font-size: 1rem; font-weight: 500;">${p.name}</span>
       `;
 
-      const elResultList = document.getElementById('result-list');
-      elResultList.innerHTML = '';
-      players.forEach((p, idx) => {
-        const isSpy = spyIndices.includes(idx);
-        const roleLabel = isSpy ? (spyType === 'blank' ? '白板' : '間諜') : '平民';
-        const row = document.createElement('div');
-        row.className = 'drawing-order-item';
-        row.innerHTML = `
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <div class="color-dot" style="background-color: ${p.color}"></div>
-            <span>${p.name}</span>
-          </div>
-          <span style="font-weight: 700; color: ${isSpy ? 'var(--danger)' : 'var(--accent)'};">
-            ${roleLabel}
-          </span>
-        `;
-        elResultList.appendChild(row);
+      opt.addEventListener('click', () => {
+        document.querySelectorAll('.vote-item').forEach(el => el.classList.remove('selected'));
+        opt.classList.add('selected');
+        selectedTargetIndex = idx;
+        elBtnSubmitVote.disabled = false;
+      });
+
+      elVoteOptions.appendChild(opt);
+    });
+  }
+
+  elBtnSubmitVote.addEventListener('click', () => {
+    if (selectedTargetIndex === null) return;
+
+    // 紀錄投票結果
+    roundState.votes[roundState.currentVoterIndex] = selectedTargetIndex;
+    roundState.currentVoterIndex++;
+
+    if (roundState.currentVoterIndex < config.players.length) {
+      setupVotingStep();
+    } else {
+      tallyAndShowResult();
+    }
+  });
+
+  // ================= 階段 4：計分與身分結算 =================
+  function tallyAndShowResult() {
+    // 統計得票數
+    const voteCounts = {};
+    config.players.forEach((_, i) => { voteCounts[i] = 0; });
+    Object.values(roundState.votes).forEach(targetIdx => {
+      voteCounts[targetIdx] = (voteCounts[targetIdx] || 0) + 1;
+    });
+
+    // 找出最高票者
+    let maxVotes = -1;
+    let mostVotedPlayers = [];
+    Object.entries(voteCounts).forEach(([pIdx, count]) => {
+      const idx = parseInt(pIdx, 10);
+      if (count > maxVotes) {
+        maxVotes = count;
+        mostVotedPlayers = [idx];
+      } else if (count === maxVotes) {
+        mostVotedPlayers.push(idx);
+      }
+    });
+
+    // 判定間諜是否被揪出 (最高票包含間諜)
+    const primarySpy = roundState.spyIndices[0];
+    const isSpyCaught = mostVotedPlayers.includes(primarySpy);
+    roundState.spyCaught = isSpyCaught;
+
+    // 平民計分：凡是投對間諜的人得 1 分
+    let correctVoterNames = [];
+    Object.entries(roundState.votes).forEach(([voterIdx, targetIdx]) => {
+      const v = parseInt(voterIdx, 10);
+      if (!roundState.spyIndices.includes(v) && roundState.spyIndices.includes(targetIdx)) {
+        scores[v] += 1;
+        correctVoterNames.push(config.players[v].name);
+      }
+    });
+
+    // 間諜隱匿計分：若完全未被抓出，間諜得 3 分
+    if (!isSpyCaught) {
+      roundState.spyIndices.forEach(sIdx => {
+        scores[sIdx] += 3;
       });
     }
+
+    // 顯示結果資訊
+    const elSummary = document.getElementById('result-summary');
+    const spyNameStr = roundState.spyIndices.map(i => config.players[i].name).join('、');
+    const mostVotedNames = mostVotedPlayers.map(i => config.players[i].name).join('、');
+
+    let summaryHtml = `
+      <p>🎯 <b>平民題目：</b><span style="color: var(--accent); font-weight: bold;">${roundState.commonWord}</span></p>
+      <p>🕵️ <b>間諜身分：</b><span style="color: var(--danger); font-weight: bold;">${spyNameStr}</span></p>
+      <p>🗳 <b>最高票玩家：</b>${mostVotedNames}（${maxVotes} 票）</p>
+      <hr style="border: 0; border-top: 1px solid var(--border); margin: 8px 0;" />
+    `;
+
+    if (isSpyCaught) {
+      summaryHtml += `
+        <p style="color: var(--success); font-weight: bold;">🎉 平民成功抓出間諜！</p>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          投對間諜的平民（${correctVoterNames.length > 0 ? correctVoterNames.join('、') : '無'}）各獲得 +1 分。
+        </p>
+      `;
+      // 顯示逆轉猜題區
+      document.getElementById('reverse-guess-box').style.display = 'block';
+    } else {
+      summaryHtml += `
+        <p style="color: var(--danger); font-weight: bold;">😈 間諜成功偽裝逃過！</p>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">間諜（${spyNameStr}）獲得 +3 分！</p>
+      `;
+      document.getElementById('reverse-guess-box').style.display = 'none';
+    }
+
+    elSummary.innerHTML = summaryHtml;
+    renderScoreboard();
+    showScreen('step-result');
+  }
+
+  function renderScoreboard() {
+    const elScoreboard = document.getElementById('scoreboard');
+    elScoreboard.innerHTML = '';
+
+    // 按分數由高到低排序顯示
+    const sorted = [...config.players.map((p, idx) => ({ ...p, originalIdx: idx, score: scores[idx] }))];
+    sorted.sort((a, b) => b.score - a.score);
+
+    sorted.forEach((p, rank) => {
+      const row = document.createElement('div');
+      row.className = 'score-row';
+      row.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 0.85rem; width: 20px; color: var(--text-muted);">${rank + 1}.</span>
+          <div class="color-dot" style="background-color: ${p.color}"></div>
+          <span>${p.name}</span>
+        </div>
+        <span class="score-badge">${p.score} 分</span>
+      `;
+      elScoreboard.appendChild(row);
+    });
+  }
+
+  // 逆轉猜題成功 (+2 分)
+  document.getElementById('btn-spy-guess-success').addEventListener('click', () => {
+    roundState.spyIndices.forEach(sIdx => {
+      scores[sIdx] += 2;
+    });
+    alert('間諜逆轉猜中題目！額外獲得 +2 分！');
+    document.getElementById('reverse-guess-box').style.display = 'none';
+    renderScoreboard();
+  });
+
+  document.getElementById('btn-spy-guess-fail').addEventListener('click', () => {
+    alert('間諜猜題失敗！平民徹底獲勝！');
+    document.getElementById('reverse-guess-box').style.display = 'none';
+  });
+
+  // 下一回合
+  document.getElementById('btn-next-round').addEventListener('click', () => {
+    currentRound++;
+    startNewRound();
   });
 
   document.getElementById('btn-back-home').addEventListener('click', () => {
-    window.location.href = 'index.html';
+    if (confirm('確定要結束遊戲嗎？當前所有累積分數將被重置。')) {
+      window.location.href = 'index.html';
+    }
   });
+
+  // 首次啟動第 1 回合
+  startNewRound();
 </script>
 
 </body>
