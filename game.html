@@ -9,7 +9,6 @@
       --bg: #121826;
       --card-bg: #1e293b;
       --accent: #38bdf8;
-      --accent-hover: #0284c7;
       --danger: #f43f5e;
       --success: #10b981;
       --text: #f8fafc;
@@ -147,24 +146,19 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      max-height: 260px;
+      max-height: 280px;
       overflow-y: auto;
       margin: 10px 0;
     }
 
-    .drawing-order-item {
+    .order-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 14px;
+      padding: 12px 14px;
       border-radius: 8px;
       background: #0f172a;
       border: 1px solid var(--border);
-    }
-
-    .drawing-order-item.active {
-      border-color: var(--accent);
-      background: rgba(56, 189, 248, 0.15);
     }
 
     .color-dot {
@@ -174,7 +168,6 @@
       flex-shrink: 0;
     }
 
-    /* 投票選項樣式 */
     .vote-item {
       display: flex;
       align-items: center;
@@ -192,7 +185,6 @@
       background: rgba(56, 189, 248, 0.15);
     }
 
-    /* 積分榜樣式 */
     .score-row {
       display: flex;
       align-items: center;
@@ -240,24 +232,25 @@
     </div>
   </section>
 
-  <!-- ================= 階段 2：輪流作畫面板 ================= -->
+  <!-- ================= 階段 2：輪流作畫面板 (簡化為一覽) ================= -->
   <section id="step-game" class="screen">
     <div class="card">
       <span class="round-badge" id="badge-round-game">第 1 回合</span>
-      <h3 style="font-size: 1.1rem; margin-bottom: 4px;">🎨 輪流作畫順序（共 2 輪）</h3>
-      <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
-        每位玩家落筆至抬起算「一筆」。嚴禁出聲交談與寫字！
-      </p>
-
-      <div id="turn-tracker" class="player-list"></div>
-
-      <div style="display: flex; gap: 8px; margin-top: 10px;">
-        <button id="btn-prev-turn" class="btn btn-secondary" style="flex: 1;">上一步</button>
-        <button id="btn-next-turn" class="btn" style="flex: 1;">下一步</button>
+      <h3 style="font-size: 1.15rem; margin-bottom: 4px;">🎨 作畫順序與規則</h3>
+      <div style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 4px; margin: 8px 0 14px 0;">
+        <p style="font-size: 0.85rem; line-height: 1.5;">
+          • 全體輪流，<b>共進行 2 輪</b>（每人畫兩次）<br>
+          • 筆尖落紙至抬起算<b>一筆</b>，嚴禁交談與寫字！
+        </p>
       </div>
 
+      <p style="font-size: 0.85rem; font-weight: bold; color: var(--text-muted); margin-bottom: 6px;">
+        本回合出筆順序：
+      </p>
+      <div id="order-list" class="player-list"></div>
+
       <button id="btn-finish-drawing" class="btn btn-success" style="margin-top: 16px;">
-        作畫結束，前往投票階段
+        作畫結束，前往投票
       </button>
     </div>
   </section>
@@ -281,18 +274,18 @@
     </div>
   </section>
 
-  <!-- ================= 階段 4：本回合身分揭曉與計分 ================= -->
+  <!-- ================= 階段 4：本回合結算與累積分數 ================= -->
   <section id="step-result" class="screen">
     <div class="card">
       <h2 style="color: var(--accent); text-align: center; margin-bottom: 12px;">本回合結算</h2>
       
       <div id="result-summary" style="margin-bottom: 16px; font-size: 0.95rem; line-height: 1.6;"></div>
       
-      <!-- 逆轉猜題控制區 -->
+      <!-- 逆轉猜題區 -->
       <div id="reverse-guess-box" style="display: none; background: #0f172a; padding: 12px; border-radius: 8px; margin-bottom: 16px; border: 1px dashed var(--accent);">
-        <p style="font-size: 0.9rem; font-weight: bold; margin-bottom: 8px;">🕵️ 間諜逆轉猜題機會：</p>
+        <p style="font-size: 0.9rem; font-weight: bold; margin-bottom: 6px;">🕵️ 間諜逆轉猜題機會：</p>
         <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
-          間諜若能當場口頭精確說出平民題目，請點擊「猜中」逆轉得 2 分！
+          間諜若能精確說出平民題目，點擊「猜中」逆轉得 2 分！
         </p>
         <div style="display: flex; gap: 8px;">
           <button id="btn-spy-guess-fail" class="btn btn-secondary" style="flex: 1; padding: 10px;">未猜中</button>
@@ -311,35 +304,51 @@
 </div>
 
 <script>
-  // 題庫：[具體平民題目, 大類別名稱]
+  // 宏觀大類別題庫：間諜只會看到最外層的大類別
   const WORD_BANK = [
-    ["珍珠奶茶", "飲品類"], ["黑咖啡", "飲品類"], ["西瓜汁", "飲品類"], ["啤酒", "飲品類"],
-    ["臭豆腐", "夜市小吃"], ["滷肉飯", "台灣主食"], ["牛肉麵", "麵食料理"], ["蚵仔煎", "夜市小吃"],
-    ["小籠包", "中式點心"], ["鳳梨酥", "糕餅點心"], ["披薩", "西式料理"], ["漢堡", "速食餐點"],
-    ["義大利麵", "西式料理"], ["壽司", "日式料理"], ["拉麵", "日式料理"], ["生魚片", "海鮮料理"],
-    ["火鍋", "鍋物料理"], ["章魚燒", "日式點心"], ["甜甜圈", "烘焙甜點"], ["冰淇淋", "冷凍甜品"],
-    ["爆米花", "休閒零食"], ["巧克力", "休閒零食"], ["布丁", "冷藏甜品"], ["水餃", "中式麵食"],
-    ["香蕉", "水果類"], ["西瓜", "水果類"], ["草莓", "水果類"], ["葡萄", "水果類"],
-    ["蘋果", "水果類"], ["鳳梨", "水果類"], ["橘子", "水果類"], ["檸檬", "水果類"],
-    ["胡蘿蔔", "蔬菜類"], ["玉米", "農作物類"], ["花椰菜", "蔬菜類"], ["洋蔥", "蔬菜類"],
-    ["番茄", "蔬果類"], ["辣椒", "辛香料蔬菜"], ["小黃瓜", "蔬菜類"], ["香菇", "蕈菇類"],
-    ["牙刷", "個人衛生用品"], ["吹風機", "生活家電"], ["雨傘", "雨具類"], ["雨衣", "雨具類"],
-    ["毛巾", "衛浴織物"], ["鏡子", "生活配件"], ["剪刀", "辦公工具"], ["美工刀", "文具工具"],
-    ["手錶", "隨身配件"], ["眼鏡", "隨身配件"], ["太陽眼鏡", "隨身配件"], ["帽子", "頭部穿戴"],
-    ["球鞋", "鞋履類"], ["高跟鞋", "鞋履類"], ["背包", "包袋類"], ["行李箱", "旅行用品"],
-    ["智慧型手機", "電子產品"], ["筆記型電腦", "電子產品"], ["平板電腦", "電子產品"], ["耳機", "影音設備"],
-    ["電視機", "家庭電器"], ["冷氣機", "家庭電器"], ["電風扇", "家庭電器"], ["洗衣機", "家庭電器"],
-    ["電冰箱", "廚房家電"], ["微波爐", "廚房家電"], ["吸塵器", "清掃家電"], ["滑鼠", "電腦周邊"],
-    ["狗", "寵物哺乳動物"], ["貓", "寵物哺乳動物"], ["大象", "野生動物"], ["長頸鹿", "野生動物"],
-    ["獅子", "野生肉食動物"], ["老虎", "野生肉食動物"], ["斑馬", "草食動物"], ["熊貓", "野生動物"],
-    ["海豚", "海洋哺乳類"], ["鯊魚", "海洋魚類"], ["企鵝", "極地鳥類"], ["烏龜", "爬蟲類"],
-    ["腳踏車", "交通工具"], ["機車", "交通工具"], ["計程車", "公共交通"], ["公車", "公共交通"],
-    ["高鐵", "軌道交通"], ["捷運", "軌道交通"], ["直升機", "飛行載具"], ["客航飛機", "飛行載具"],
-    ["熱氣球", "空中休閒設施"], ["輪船", "水上載具"], ["學校", "教育場所"], ["醫院", "醫療設施"],
-    ["電影院", "娛樂場所"], ["圖書館", "公共場所"], ["動物園", "戶外園區"], ["遊樂園", "休閒設施"]
+    // 飲食與點心
+    ["珍珠奶茶", "飲食與點心"], ["芒果冰", "飲食與點心"], ["黑咖啡", "飲食與點心"], ["啤酒", "飲食與點心"],
+    ["臭豆腐", "飲食與點心"], ["滷肉飯", "飲食與點心"], ["牛肉麵", "飲食與點心"], ["蚵仔煎", "飲食與點心"],
+    ["小籠包", "飲食與點心"], ["鳳梨酥", "飲食與點心"], ["披薩", "飲食與點心"], ["漢堡", "飲食與點心"],
+    ["義大利麵", "飲食與點心"], ["壽司", "飲食與點心"], ["拉麵", "飲食與點心"], ["火鍋", "飲食與點心"],
+    ["章魚燒", "飲食與點心"], ["甜甜圈", "飲食與點心"], ["冰淇淋", "飲食與點心"], ["爆米花", "飲食與點心"],
+    ["巧克力", "飲食與點心"], ["布丁", "飲食與點心"], ["水餃", "飲食與點心"], ["地瓜球", "飲食與點心"],
+
+    // 水果與蔬菜
+    ["香蕉", "水果與蔬菜"], ["西瓜", "水果與蔬菜"], ["草莓", "水果與蔬菜"], ["葡萄", "水果與蔬菜"],
+    ["蘋果", "水果與蔬菜"], ["鳳梨", "水果與蔬菜"], ["橘子", "水果與蔬菜"], ["檸檬", "水果與蔬菜"],
+    ["胡蘿蔔", "水果與蔬菜"], ["玉米", "水果與蔬菜"], ["花椰菜", "水果與蔬菜"], ["洋蔥", "水果與蔬菜"],
+    ["番茄", "水果與蔬菜"], ["辣椒", "水果與蔬菜"], ["小黃瓜", "水果與蔬菜"], ["木耳", "水果與蔬菜"],
+    ["香菇", "水果與蔬菜"], ["南瓜", "水果與蔬菜"], ["茄子", "水果與蔬菜"], ["竹筍", "水果與蔬菜"],
+
+    // 日常用品與服飾
+    ["牙刷", "日常用品與服飾"], ["雨傘", "日常用品與服飾"], ["雨衣", "日常用品與服飾"], ["毛巾", "日常用品與服飾"],
+    ["鏡子", "日常用品與服飾"], ["剪刀", "日常用品與服飾"], ["美工刀", "日常用品與服飾"], ["手錶", "日常用品與服飾"],
+    ["眼鏡", "日常用品與服飾"], ["太陽眼鏡", "日常用品與服飾"], ["帽子", "日常用品與服飾"], ["球鞋", "日常用品與服飾"],
+    ["高跟鞋", "日常用品與服飾"], ["背包", "日常用品與服飾"], ["行李箱", "日常用品與服飾"], ["水壺", "日常用品與服飾"],
+    ["馬克杯", "日常用品與服飾"], ["牛仔褲", "日常用品與服飾"], ["外套", "日常用品與服飾"], ["口罩", "日常用品與服飾"],
+
+    // 家電與3C數位
+    ["吹風機", "家電與3C數位"], ["智慧型手機", "家電與3C數位"], ["筆記型電腦", "家電與3C數位"], ["平板電腦", "家電與3C數位"],
+    ["耳機", "家電與3C數位"], ["電視機", "家電與3C數位"], ["冷氣機", "家電與3C數位"], ["電風扇", "家電與3C數位"],
+    ["洗衣機", "家電與3C數位"], ["電冰箱", "家電與3C數位"], ["微波爐", "家電與3C數位"], ["吸塵器", "家電與3C數位"],
+    ["遙控器", "家電與3C數位"], ["行動電源", "家電與3C數位"], ["滑鼠", "家電與3C數位"], ["鍵盤", "家電與3C數位"],
+
+    // 動物與昆蟲
+    ["狗", "動物與昆蟲"], ["貓", "動物與昆蟲"], ["兔子", "動物與昆蟲"], ["大象", "動物與昆蟲"],
+    ["長頸鹿", "動物與昆蟲"], ["獅子", "動物與昆蟲"], ["老虎", "動物與昆蟲"], ["斑馬", "動物與昆蟲"],
+    ["熊貓", "動物與昆蟲"], ["袋鼠", "動物與昆蟲"], ["海豚", "動物與昆蟲"], ["鯊魚", "動物與昆蟲"],
+    ["企鵝", "動物與昆蟲"], ["烏龜", "動物與昆蟲"], ["老鷹", "動物與昆蟲"], ["蝴蝶", "動物與昆蟲"],
+    ["蜜蜂", "動物與昆蟲"], ["無尾熊", "動物與昆蟲"], ["章魚", "動物與昆蟲"], ["螃蟹", "動物與昆蟲"],
+
+    // 交通工具與場所
+    ["腳踏車", "交通工具與場所"], ["機車", "交通工具與場所"], ["計程車", "交通工具與場所"], ["公車", "交通工具與場所"],
+    ["高鐵", "交通工具與場所"], ["捷運", "交通工具與場所"], ["直升機", "交通工具與場所"], ["客航飛機", "交通工具與場所"],
+    ["熱氣球", "交通工具與場所"], ["輪船", "交通工具與場所"], ["學校", "交通工具與場所"], ["醫院", "交通工具與場所"],
+    ["警察局", "交通工具與場所"], ["電影院", "交通工具與場所"], ["圖書館", "交通工具與場所"], ["動物園", "交通工具與場所"],
+    ["遊樂園", "交通工具與場所"], ["機場", "交通工具與場所"], ["火車站", "交通工具與場所"], ["摩天輪", "交通工具與場所"]
   ];
 
-  // 讀取首頁傳入參數
   const rawData = sessionStorage.getItem('spyGameConfig');
   if (!rawData) {
     alert('尚未設定遊戲，將跳轉回首頁！');
@@ -347,27 +356,23 @@
   }
   const config = JSON.parse(rawData);
 
-  // 全局遊戲對局狀態
   let currentRound = 1;
-  let usedWordIndices = []; // 已抽過的題庫索引，防重複
-  let scores = {}; // 玩家分數表 { 0: 0, 1: 0, ... }
+  let usedWordIndices = [];
+  let scores = {};
   config.players.forEach((_, idx) => { scores[idx] = 0; });
 
-  // 當前回合狀態
   let roundState = {
     commonWord: '',
     categoryName: '',
     spyIndices: [],
-    startPlayerIndex: 0, // 本回合隨機起筆玩家
-    drawingTurnList: [],
+    startPlayerIndex: 0,
+    roundPlayerOrder: [],
     currentRevealIndex: 0,
-    currentDrawingIndex: 0,
     currentVoterIndex: 0,
-    votes: {}, // { voterIdx: targetIdx }
+    votes: {},
     spyCaught: false
   };
 
-  // 畫面切換輔助
   function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(screenId).classList.add('active');
@@ -376,9 +381,9 @@
 
   // --- 初始化新回合 ---
   function startNewRound() {
-    // 1. 抽取不重複題目
+    // 抽不重複題目
     if (usedWordIndices.length >= WORD_BANK.length) {
-      usedWordIndices = []; // 題目用盡時重置題庫
+      usedWordIndices = [];
     }
     let chosenIdx;
     do {
@@ -388,38 +393,32 @@
 
     const pair = WORD_BANK[chosenIdx];
     roundState.commonWord = pair[0];
-    roundState.categoryName = pair[1];
+    roundState.categoryName = pair[1]; // 宏觀大類別
 
-    // 2. 抽間諜
+    // 抽間諜
     const numPlayers = config.players.length;
     const playerIndices = Array.from({ length: numPlayers }, (_, i) => i);
     playerIndices.sort(() => Math.random() - 0.5);
     roundState.spyIndices = playerIndices.slice(0, config.spyCount);
 
-    // 3. 隨機決定起始玩家 (0 ~ numPlayers-1)
+    // 隨機起筆玩家
     roundState.startPlayerIndex = Math.floor(Math.random() * numPlayers);
 
-    // 4. 生成作畫順序（共 2 輪，從 startPlayerIndex 開始順時針）
-    roundState.drawingTurnList = [];
-    for (let r = 1; r <= 2; r++) {
-      for (let offset = 0; offset < numPlayers; offset++) {
-        const pIdx = (roundState.startPlayerIndex + offset) % numPlayers;
-        roundState.drawingTurnList.push({
-          playerIndex: pIdx,
-          round: r,
-          ...config.players[pIdx]
-        });
-      }
+    // 產生順序清單（從起始玩家順時針）
+    roundState.roundPlayerOrder = [];
+    for (let offset = 0; offset < numPlayers; offset++) {
+      const pIdx = (roundState.startPlayerIndex + offset) % numPlayers;
+      roundState.roundPlayerOrder.push({
+        playerIndex: pIdx,
+        ...config.players[pIdx]
+      });
     }
 
-    // 5. 重置各子流程指標
     roundState.currentRevealIndex = 0;
-    roundState.currentDrawingIndex = 0;
     roundState.currentVoterIndex = 0;
     roundState.votes = {};
     roundState.spyCaught = false;
 
-    // 更新各頁面回數標記
     document.getElementById('badge-round-reveal').textContent = `第 ${currentRound} 回合`;
     document.getElementById('badge-round-game').textContent = `第 ${currentRound} 回合`;
     document.getElementById('badge-round-voting').textContent = `第 ${currentRound} 回合`;
@@ -428,7 +427,7 @@
     showScreen('step-reveal');
   }
 
-  // ================= 階段 1：身分傳閱 =================
+  // ================= 階段 1：查看身分 =================
   const elRevealBox = document.getElementById('reveal-box');
   const elRevealHint = document.getElementById('reveal-hint');
   const elRevealContent = document.getElementById('reveal-content');
@@ -485,46 +484,32 @@
     if (roundState.currentRevealIndex < config.players.length) {
       setupRevealStep();
     } else {
-      setupDrawingBoard();
+      setupOrderBoard();
       showScreen('step-game');
     }
   });
 
-  // ================= 階段 2：輪流作畫 =================
-  const elTurnTracker = document.getElementById('turn-tracker');
-  function setupDrawingBoard() {
-    renderDrawingTurns();
-  }
-
-  function renderDrawingTurns() {
-    elTurnTracker.innerHTML = '';
-    roundState.drawingTurnList.forEach((turn, idx) => {
-      const item = document.createElement('div');
-      item.className = 'drawing-order-item' + (idx === roundState.currentDrawingIndex ? ' active' : '');
-      item.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <div class="color-dot" style="background-color: ${turn.color}"></div>
-          <span>${turn.name}</span>
+  // ================= 階段 2：輪流作畫面板 (純顯示順序與輪數) =================
+  const elOrderList = document.getElementById('order-list');
+  function setupOrderBoard() {
+    elOrderList.innerHTML = '';
+    roundState.roundPlayerOrder.forEach((p, idx) => {
+      const isStart = idx === 0;
+      const row = document.createElement('div');
+      row.className = 'order-row';
+      row.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1rem; font-weight: bold; width: 24px; color: ${isStart ? 'var(--accent)' : 'var(--text-muted)'};">
+            ${idx + 1}.
+          </span>
+          <div class="color-dot" style="background-color: ${p.color}"></div>
+          <span style="font-weight: ${isStart ? 'bold' : 'normal'};">${p.name}</span>
         </div>
-        <span style="font-size: 0.8rem; color: var(--text-muted);">第 ${turn.round} 輪第 ${idx + 1} 筆</span>
+        ${isStart ? '<span style="font-size: 0.75rem; background: var(--accent); color: #0f172a; padding: 2px 8px; border-radius: 10px; font-weight: bold;">起筆玩家</span>' : ''}
       `;
-      elTurnTracker.appendChild(item);
+      elOrderList.appendChild(row);
     });
   }
-
-  document.getElementById('btn-next-turn').addEventListener('click', () => {
-    if (roundState.currentDrawingIndex < roundState.drawingTurnList.length - 1) {
-      roundState.currentDrawingIndex++;
-      renderDrawingTurns();
-    }
-  });
-
-  document.getElementById('btn-prev-turn').addEventListener('click', () => {
-    if (roundState.currentDrawingIndex > 0) {
-      roundState.currentDrawingIndex--;
-      renderDrawingTurns();
-    }
-  });
 
   document.getElementById('btn-finish-drawing').addEventListener('click', () => {
     roundState.currentVoterIndex = 0;
@@ -549,7 +534,6 @@
 
     elVoteOptions.innerHTML = '';
     config.players.forEach((p, idx) => {
-      // 不能投給自己
       if (idx === roundState.currentVoterIndex) return;
 
       const opt = document.createElement('div');
@@ -574,7 +558,6 @@
   elBtnSubmitVote.addEventListener('click', () => {
     if (selectedTargetIndex === null) return;
 
-    // 紀錄投票結果
     roundState.votes[roundState.currentVoterIndex] = selectedTargetIndex;
     roundState.currentVoterIndex++;
 
@@ -587,14 +570,12 @@
 
   // ================= 階段 4：計分與身分結算 =================
   function tallyAndShowResult() {
-    // 統計得票數
     const voteCounts = {};
     config.players.forEach((_, i) => { voteCounts[i] = 0; });
     Object.values(roundState.votes).forEach(targetIdx => {
       voteCounts[targetIdx] = (voteCounts[targetIdx] || 0) + 1;
     });
 
-    // 找出最高票者
     let maxVotes = -1;
     let mostVotedPlayers = [];
     Object.entries(voteCounts).forEach(([pIdx, count]) => {
@@ -607,12 +588,11 @@
       }
     });
 
-    // 判定間諜是否被揪出 (最高票包含間諜)
     const primarySpy = roundState.spyIndices[0];
     const isSpyCaught = mostVotedPlayers.includes(primarySpy);
     roundState.spyCaught = isSpyCaught;
 
-    // 平民計分：凡是投對間諜的人得 1 分
+    // 平民投對 +1 分
     let correctVoterNames = [];
     Object.entries(roundState.votes).forEach(([voterIdx, targetIdx]) => {
       const v = parseInt(voterIdx, 10);
@@ -622,20 +602,20 @@
       }
     });
 
-    // 間諜隱匿計分：若完全未被抓出，間諜得 3 分
+    // 間諜逃過 +3 分
     if (!isSpyCaught) {
       roundState.spyIndices.forEach(sIdx => {
         scores[sIdx] += 3;
       });
     }
 
-    // 顯示結果資訊
     const elSummary = document.getElementById('result-summary');
     const spyNameStr = roundState.spyIndices.map(i => config.players[i].name).join('、');
     const mostVotedNames = mostVotedPlayers.map(i => config.players[i].name).join('、');
 
     let summaryHtml = `
       <p>🎯 <b>平民題目：</b><span style="color: var(--accent); font-weight: bold;">${roundState.commonWord}</span></p>
+      <p>🏷 <b>所屬類別：</b><span style="color: var(--text-muted);">${roundState.categoryName}</span></p>
       <p>🕵️ <b>間諜身分：</b><span style="color: var(--danger); font-weight: bold;">${spyNameStr}</span></p>
       <p>🗳 <b>最高票玩家：</b>${mostVotedNames}（${maxVotes} 票）</p>
       <hr style="border: 0; border-top: 1px solid var(--border); margin: 8px 0;" />
@@ -648,7 +628,6 @@
           投對間諜的平民（${correctVoterNames.length > 0 ? correctVoterNames.join('、') : '無'}）各獲得 +1 分。
         </p>
       `;
-      // 顯示逆轉猜題區
       document.getElementById('reverse-guess-box').style.display = 'block';
     } else {
       summaryHtml += `
@@ -667,7 +646,6 @@
     const elScoreboard = document.getElementById('scoreboard');
     elScoreboard.innerHTML = '';
 
-    // 按分數由高到低排序顯示
     const sorted = [...config.players.map((p, idx) => ({ ...p, originalIdx: idx, score: scores[idx] }))];
     sorted.sort((a, b) => b.score - a.score);
 
