@@ -129,7 +129,6 @@
       background: rgba(56, 189, 248, 0.1);
     }
 
-    /* 支援注音標籤樣式 */
     .tag-word {
       font-size: 1.8rem;
       font-weight: 800;
@@ -197,6 +196,27 @@
       background: rgba(56, 189, 248, 0.15);
     }
 
+    /* 結算區塊樣式 */
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 12px 0 6px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .info-box {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
     .score-row {
       display: flex;
       align-items: center;
@@ -251,7 +271,7 @@
       <h3 style="font-size: 1.15rem; margin-bottom: 4px;">🎨 作畫順序與規則</h3>
       <div style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 4px; margin: 8px 0 14px 0;">
         <p style="font-size: 0.85rem; line-height: 1.5;">
-          • 全體輪流，<b>共進行 2 輪</b>（每人畫兩次）<br>
+          • 全體輪流，<b>共進行 2 輪</b>（每人各畫一筆共兩次）<br>
           • 筆尖落紙至抬起算<b>一筆</b>，嚴禁交談與寫字！
         </p>
       </div>
@@ -286,26 +306,41 @@
     </div>
   </section>
 
-  <!-- ================= 階段 4：本回合結算與累積分數 ================= -->
+  <!-- ================= 階段 4：投票結果與結算畫面 ================= -->
   <section id="step-result" class="screen">
     <div class="card">
-      <h2 style="color: var(--accent); text-align: center; margin-bottom: 12px;">本回合結算</h2>
+      <h2 style="color: var(--accent); text-align: center; margin-bottom: 12px;">📊 投票結果與本回合結算</h2>
       
-      <div id="result-summary" style="margin-bottom: 16px; font-size: 0.95rem; line-height: 1.6;"></div>
+      <!-- 1. 誰投給誰名單 -->
+      <div class="section-title">🗳 玩家投票明細</div>
+      <div id="vote-details" class="info-box"></div>
+
+      <!-- 2. 間諜名單揭曉 -->
+      <div class="section-title">🕵️ 間諜身分揭曉</div>
+      <div id="spy-details" class="info-box"></div>
+
+      <!-- 3. 題目公開 -->
+      <div class="section-title">🎯 本回合題目與類別</div>
+      <div id="topic-details" class="info-box"></div>
+
+      <!-- 4. 本回合得分明細 -->
+      <div class="section-title">⭐ 本回合得分變更</div>
+      <div id="round-scores-detail" class="info-box"></div>
       
-      <!-- 逆轉猜題區 -->
-      <div id="reverse-guess-box" style="display: none; background: #0f172a; padding: 12px; border-radius: 8px; margin-bottom: 16px; border: 1px dashed var(--accent);">
-        <p style="font-size: 0.9rem; font-weight: bold; margin-bottom: 6px;">🕵️ 間諜逆轉猜題機會：</p>
+      <!-- 5. 間諜逆轉猜題機會（若失敗抓出） -->
+      <div id="reverse-guess-box" style="display: none; background: #0f172a; padding: 12px; border-radius: 8px; margin: 12px 0; border: 1px dashed var(--accent);">
+        <p style="font-size: 0.9rem; font-weight: bold; margin-bottom: 6px; color: #fbbf24;">🕵️ 間諜逆轉猜題機會：</p>
         <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
-          間諜若能精確說出平民題目，點擊「猜中」逆轉得 2 分！
+          間諜若能當場精確說出平民題目，請點擊「猜中」逆轉得 2 分！
         </p>
         <div style="display: flex; gap: 8px;">
-          <button id="btn-spy-guess-fail" class="btn btn-secondary" style="flex: 1; padding: 10px;">未猜中</button>
+          <button id="btn-spy-guess-fail" class="btn btn-secondary" style="flex: 1; padding: 10px;">未猜中 (0分)</button>
           <button id="btn-spy-guess-success" class="btn btn-success" style="flex: 1; padding: 10px;">猜中了 (+2分)</button>
         </div>
       </div>
 
-      <h3 style="font-size: 1rem; margin-bottom: 8px;">🏆 累積分數總榜</h3>
+      <!-- 6. 總積分榜 -->
+      <div class="section-title" style="margin-top: 14px;">🏆 累積分數總榜</div>
       <div id="scoreboard" class="player-list"></div>
 
       <button id="btn-next-round" class="btn btn-success" style="margin-top: 14px;">開始下一回合</button>
@@ -316,7 +351,6 @@
 </div>
 
 <script>
-  // 帶有完整注音標記的題庫：[帶注音的平民詞, 帶注音的大類別]
   const WORD_BANK = [
     // 飲食與點心
     ["<ruby>珍<rt>ㄓㄣ</rt>珠<rt>ㄓㄨ</rt>奶<rt>ㄋㄞˇ</rt>茶<rt>ㄔㄚˊ</rt></ruby>", "<ruby>飲<rt>ㄧㄣˇ</rt>食<rt>ㄕˊ</rt>與<rt>ㄩˇ</rt>點<rt>ㄉㄧㄢˇ</rt>心<rt>ㄒㄧㄣ</rt></ruby>"],
@@ -454,7 +488,8 @@
     currentRevealIndex: 0,
     currentVoterIndex: 0,
     votes: {},
-    spyCaught: false
+    spyCaught: false,
+    earnedScores: {} // 記錄本回合每位玩家獲得分數
   };
 
   function showScreen(screenId) {
@@ -497,6 +532,8 @@
     roundState.currentVoterIndex = 0;
     roundState.votes = {};
     roundState.spyCaught = false;
+    roundState.earnedScores = {};
+    config.players.forEach((_, i) => { roundState.earnedScores[i] = 0; });
 
     document.getElementById('badge-round-reveal').textContent = `第 ${currentRound} 回合`;
     document.getElementById('badge-round-game').textContent = `第 ${currentRound} 回合`;
@@ -607,13 +644,19 @@
     selectedTargetIndex = null;
     elBtnSubmitVote.disabled = true;
 
-    const currentVoter = config.players[roundState.currentVoterIndex];
+    const voterIdx = roundState.currentVoterIndex;
+    const isLastVoter = (voterIdx === config.players.length - 1);
+    
+    // 動態切換按鈕文字
+    elBtnSubmitVote.textContent = isLastVoter ? '確認投票並觀看投票結果' : '確認投票並傳給下一位';
+
+    const currentVoter = config.players[voterIdx];
     elVotingVoterName.textContent = currentVoter.name;
     elVotingVoterName.style.color = currentVoter.color;
 
     elVoteOptions.innerHTML = '';
     config.players.forEach((p, idx) => {
-      if (idx === roundState.currentVoterIndex) return;
+      if (idx === voterIdx) return; // 不能投自己
 
       const opt = document.createElement('div');
       opt.className = 'vote-item';
@@ -647,8 +690,9 @@
     }
   });
 
-  // ================= 階段 4：計分與身分結算 =================
+  // ================= 階段 4：計分與循序揭曉 =================
   function tallyAndShowResult() {
+    // 統計得票數
     const voteCounts = {};
     config.players.forEach((_, i) => { voteCounts[i] = 0; });
     Object.values(roundState.votes).forEach(targetIdx => {
@@ -667,56 +711,104 @@
       }
     });
 
+    // 判斷間諜是否被揪出 (最高票群包含間諜)
     const primarySpy = roundState.spyIndices[0];
     const isSpyCaught = mostVotedPlayers.includes(primarySpy);
     roundState.spyCaught = isSpyCaught;
 
-    let correctVoterNames = [];
-    Object.entries(roundState.votes).forEach(([voterIdx, targetIdx]) => {
-      const v = parseInt(voterIdx, 10);
+    // 計算平民得分：投給間諜的人得 1 分
+    let correctVoters = [];
+    Object.entries(roundState.votes).forEach(([voterIdxStr, targetIdx]) => {
+      const v = parseInt(voterIdxStr, 10);
       if (!roundState.spyIndices.includes(v) && roundState.spyIndices.includes(targetIdx)) {
+        roundState.earnedScores[v] += 1;
         scores[v] += 1;
-        correctVoterNames.push(config.players[v].name);
+        correctVoters.push(v);
       }
     });
 
+    // 計算間諜得分：若間諜成功隱匿（未被最高票投出），間諜得 3 分
     if (!isSpyCaught) {
       roundState.spyIndices.forEach(sIdx => {
+        roundState.earnedScores[sIdx] += 3;
         scores[sIdx] += 3;
       });
     }
 
-    const elSummary = document.getElementById('result-summary');
-    const spyNameStr = roundState.spyIndices.map(i => config.players[i].name).join('、');
-    const mostVotedNames = mostVotedPlayers.map(i => config.players[i].name).join('、');
-
-    let summaryHtml = `
-      <p>🎯 <b>平民題目：</b><span style="color: var(--accent); font-weight: bold;">${roundState.commonWord}</span></p>
-      <p>🏷 <b>所屬類別：</b><span>${roundState.categoryName}</span></p>
-      <p>🕵️ <b>間諜身分：</b><span style="color: var(--danger); font-weight: bold;">${spyNameStr}</span></p>
-      <p>🗳 <b>最高票玩家：</b>${mostVotedNames}（${maxVotes} 票）</p>
-      <hr style="border: 0; border-top: 1px solid var(--border); margin: 8px 0;" />
-    `;
-
-    if (isSpyCaught) {
-      summaryHtml += `
-        <p style="color: var(--success); font-weight: bold;">🎉 平民成功抓出間諜！</p>
-        <p style="font-size: 0.85rem; color: var(--text-muted);">
-          投對間諜的平民（${correctVoterNames.length > 0 ? correctVoterNames.join('、') : '無'}）各獲得 +1 分。
-        </p>
+    // --- 1. 填寫每位玩家投給誰 ---
+    let voteDetailsHtml = '<ul style="list-style: none; padding-left: 0; margin-bottom: 8px;">';
+    config.players.forEach((p, idx) => {
+      const targetIdx = roundState.votes[idx];
+      const targetPlayer = config.players[targetIdx];
+      voteDetailsHtml += `
+        <li style="margin-bottom: 4px;">
+          <b>${p.name}</b> 投給了 👉 <span style="color: ${targetPlayer.color}; font-weight: bold;">${targetPlayer.name}</span>
+        </li>
       `;
+    });
+    voteDetailsHtml += '</ul>';
+
+    const mostVotedNames = mostVotedPlayers.map(i => config.players[i].name).join('、');
+    voteDetailsHtml += `<p style="color: var(--accent); font-weight: bold; margin-top: 6px;">
+      最高票玩家：${mostVotedNames}（得 ${maxVotes} 票）
+    </p>`;
+    document.getElementById('vote-details').innerHTML = voteDetailsHtml;
+
+    // --- 2. 填寫間諜身分揭曉 ---
+    const spyNameStr = roundState.spyIndices.map(i => config.players[i].name).join('、');
+    let spyDetailsHtml = `<p>本局間諜為：<span style="color: var(--danger); font-size: 1.1rem; font-weight: bold;">${spyNameStr}</span></p>`;
+    if (isSpyCaught) {
+      spyDetailsHtml += `<p style="color: var(--success); font-weight: bold; margin-top: 4px;">
+        📢 平民成功揪出間諜！間諜本回合未獲得隱匿分。
+      </p>`;
       document.getElementById('reverse-guess-box').style.display = 'block';
     } else {
-      summaryHtml += `
-        <p style="color: var(--danger); font-weight: bold;">😈 間諜成功偽裝逃過！</p>
-        <p style="font-size: 0.85rem; color: var(--text-muted);">間諜（${spyNameStr}）獲得 +3 分！</p>
-      `;
+      spyDetailsHtml += `<p style="color: var(--danger); font-weight: bold; margin-top: 4px;">
+        📢 間諜成功隱匿逃過！
+      </p>`;
       document.getElementById('reverse-guess-box').style.display = 'none';
     }
+    document.getElementById('spy-details').innerHTML = spyDetailsHtml;
 
-    elSummary.innerHTML = summaryHtml;
+    // --- 3. 填寫題目與類別 ---
+    document.getElementById('topic-details').innerHTML = `
+      <p>題目：<span style="color: #fbbf24; font-weight: bold; font-size: 1.1rem;">${roundState.commonWord}</span></p>
+      <p style="margin-top: 4px;">類別：<span>${roundState.categoryName}</span></p>
+    `;
+
+    // --- 4. 填寫本回合得分 ---
+    renderRoundScoresDetail();
+
+    // --- 6. 填寫累積分數總榜 ---
     renderScoreboard();
+
     showScreen('step-result');
+  }
+
+  function renderRoundScoresDetail() {
+    let html = '<ul style="list-style: none; padding-left: 0;">';
+    config.players.forEach((p, idx) => {
+      const earned = roundState.earnedScores[idx];
+      const isSpy = roundState.spyIndices.includes(idx);
+      let reason = '未得分';
+      if (isSpy) {
+        if (!roundState.spyCaught) reason = '間諜成功逃脫 (+3)';
+        else if (earned === 2) reason = '逆轉猜中題目 (+2)';
+      } else {
+        if (earned === 1) reason = '成功投對間諜 (+1)';
+      }
+
+      html += `
+        <li style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span>${p.name}：</span>
+          <span style="font-weight: bold; color: ${earned > 0 ? 'var(--success)' : 'var(--text-muted)'};">
+            +${earned} 分 <small style="color: var(--text-muted); font-weight: normal;">(${reason})</small>
+          </span>
+        </li>
+      `;
+    });
+    html += '</ul>';
+    document.getElementById('round-scores-detail').innerHTML = html;
   }
 
   function renderScoreboard() {
@@ -741,20 +833,24 @@
     });
   }
 
+  // 間諜逆轉猜題成功 (+2 分)
   document.getElementById('btn-spy-guess-success').addEventListener('click', () => {
     roundState.spyIndices.forEach(sIdx => {
+      roundState.earnedScores[sIdx] += 2;
       scores[sIdx] += 2;
     });
     alert('間諜逆轉猜中題目！額外獲得 +2 分！');
     document.getElementById('reverse-guess-box').style.display = 'none';
+    renderRoundScoresDetail();
     renderScoreboard();
   });
 
   document.getElementById('btn-spy-guess-fail').addEventListener('click', () => {
-    alert('間諜猜題失敗！平民徹底獲勝！');
+    alert('間諜未猜中題目！本回合結束。');
     document.getElementById('reverse-guess-box').style.display = 'none';
   });
 
+  // 下一回合
   document.getElementById('btn-next-round').addEventListener('click', () => {
     currentRound++;
     startNewRound();
