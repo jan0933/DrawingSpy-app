@@ -175,7 +175,7 @@
 
       <div id="reveal-box" class="reveal-box">
         <div id="reveal-hint">
-          <p style="font-size: 1.1rem; font-weight: 600;">點擊此處查看題目</p>
+          <p style="font-size: 1.1rem; font-weight: 600;">點擊此處查看身分</p>
           <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">（其他人請先避開視野）</p>
         </div>
         <div id="reveal-content" style="display: none;">
@@ -231,20 +231,48 @@
 </div>
 
 <script>
-  // 題庫
+  // [平民題目, 大類別名稱]
   const WORD_BANK = [
-    ["珍珠奶茶", "手搖冷飲"],
-    ["智慧型手機", "電子產品"],
-    ["長頸鹿", "草食動物"],
-    ["微波爐", "廚房家電"],
-    ["直升機", "飛行載具"],
-    ["高鐵", "公共交通工具"],
-    ["眼鏡", "隨身配件"],
-    ["雨傘", "防雨工具"],
-    ["吉他", "弦樂器"],
-    ["安全帽", "頭部護具"],
-    ["跑步機", "健身器材"],
-    ["熱氣球", "空中休閒載具"]
+    // 飲食點心
+    ["珍珠奶茶", "飲品類"], ["黑咖啡", "飲品類"], ["西瓜汁", "飲品類"], ["啤酒", "飲品類"],
+    ["臭豆腐", "夜市小吃"], ["滷肉飯", "台灣主食"], ["牛肉麵", "麵食料理"], ["蚵仔煎", "夜市小吃"],
+    ["小籠包", "中式點心"], ["鳳梨酥", "糕餅點心"], ["披薩", "西式料理"], ["漢堡", "速食餐點"],
+    ["義大利麵", "西式料理"], ["壽司", "日式料理"], ["拉麵", "日式料理"], ["生魚片", "海鮮料理"],
+    ["火鍋", "鍋物料理"], ["章魚燒", "日式點心"], ["甜甜圈", "烘焙甜點"], ["冰淇淋", "冷凍甜品"],
+    ["爆米花", "休閒零食"], ["巧克力", "休閒零食"], ["布丁", "冷藏甜品"], ["水餃", "中式麵食"],
+
+    // 水果蔬菜
+    ["香蕉", "水果類"], ["西瓜", "水果類"], ["草莓", "水果類"], ["葡萄", "水果類"],
+    ["蘋果", "水果類"], ["鳳梨", "水果類"], ["橘子", "水果類"], ["檸檬", "水果類"],
+    ["胡蘿蔔", "蔬菜類"], ["玉米", "農作物類"], ["花椰菜", "蔬菜類"], ["洋蔥", "蔬菜類"],
+    ["番茄", "蔬果類"], ["辣椒", "辛香料蔬菜"], ["小黃瓜", "蔬菜類"], ["香菇", "蕈菇類"],
+
+    // 日常用品與穿戴
+    ["牙刷", "個人衛生用品"], ["吹風機", "生活家電"], ["雨傘", "雨具類"], ["雨衣", "雨具類"],
+    ["毛巾", "衛浴織物"], ["鏡子", "生活配件"], ["剪刀", "辦公工具"], ["美工刀", "文具工具"],
+    ["訂書機", "辦公文具"], ["計算機", "電子儀器"], ["手錶", "隨身配件"], ["眼鏡", "隨身配件"],
+    ["太陽眼鏡", "隨身配件"], ["帽子", "頭部穿戴"], ["球鞋", "鞋履類"], ["高跟鞋", "鞋履類"],
+    ["背包", "包袋類"], ["行李箱", "旅行用品"], ["水壺", "容器類"], ["馬克杯", "餐飲器皿"],
+
+    // 家電與科技
+    ["智慧型手機", "電子產品"], ["筆記型電腦", "電子產品"], ["平板電腦", "電子產品"], ["耳機", "影音設備"],
+    ["電視機", "家庭電器"], ["冷氣機", "家庭電器"], ["電風扇", "家庭電器"], ["洗衣機", "家庭電器"],
+    ["電冰箱", "廚房家電"], ["微波爐", "廚房家電"], ["電鍋", "廚房家電"], ["吸塵器", "清掃家電"],
+    ["遙控器", "電子配件"], ["行動電源", "電子配件"], ["滑鼠", "電腦周邊"], ["鍵盤", "電腦周邊"],
+
+    // 動物昆蟲
+    ["狗", "寵物哺乳動物"], ["貓", "寵物哺乳動物"], ["兔子", "小型哺乳動物"], ["大象", "野生動物"],
+    ["長頸鹿", "野生動物"], ["獅子", "野生肉食動物"], ["老虎", "野生肉食動物"], ["斑馬", "草原草食動物"],
+    ["熊貓", "野生動物"], ["袋鼠", "澳洲有袋動物"], ["海豚", "海洋哺乳類"], ["鯨魚", "海洋哺乳類"],
+    ["鯊魚", "海洋魚類"], ["企鵝", "極地鳥類"], ["烏龜", "爬蟲類"], ["鱷魚", "爬蟲類"],
+    ["老鷹", "鳥禽類"], ["貓頭鷹", "鳥禽類"], ["蝴蝶", "昆蟲類"], ["蜜蜂", "昆蟲類"],
+
+    // 交通工具與公共場所
+    ["腳踏車", "交通工具"], ["機車", "交通工具"], ["計程車", "公共交通"], ["公車", "公共交通"],
+    ["高鐵", "軌道交通"], ["捷運", "軌道交通"], ["直升機", "飛行載具"], ["客航飛機", "飛行載具"],
+    ["熱氣球", "空中休閒設施"], ["輪船", "水上載具"], ["潛水艇", "水下載具"], ["火箭", "航天載具"],
+    ["學校", "教育場所"], ["醫院", "醫療設施"], ["警察局", "公共機構"], ["電影院", "娛樂休閒場所"],
+    ["圖書館", "公共文化場所"], ["動物園", "戶外休閒園區"], ["遊樂園", "休閒娛樂設施"], ["機場", "交通樞紐"]
   ];
 
   const rawData = sessionStorage.getItem('spyGameConfig');
@@ -257,14 +285,14 @@
   const players = config.players;
   const spyCount = config.spyCount;
   const mode = config.mode;
-  const spyType = config.spyType || 'hint'; // hint 或 blank
+  const spyType = config.spyType || 'hint';
 
-  // 抽題
+  // 隨機抽題
   const pair = WORD_BANK[Math.floor(Math.random() * WORD_BANK.length)];
   const commonWord = pair[0];
-  const spyWord = spyType === 'blank' ? '【白板】' : pair[1];
+  const categoryName = pair[1]; // 純大類別
 
-  // 抽間諜
+  // 隨機抽間諜
   const indices = Array.from({ length: players.length }, (_, i) => i);
   indices.sort(() => Math.random() - 0.5);
   const spyIndices = indices.slice(0, spyCount);
@@ -275,7 +303,6 @@
   let timerSeconds = 120;
   let timerInterval = null;
 
-  // DOM 綁定
   const elRevealBox = document.getElementById('reveal-box');
   const elRevealHint = document.getElementById('reveal-hint');
   const elRevealContent = document.getElementById('reveal-content');
@@ -300,19 +327,25 @@
     if (elRevealBox.classList.contains('unlocked')) return;
 
     const isSpy = spyIndices.includes(revealIdx);
-    elRoleText.textContent = isSpy ? (spyType === 'blank' ? '【你是白板間諜】' : '【你是間諜】') : '【你是平民】';
-    elRoleText.style.color = isSpy ? 'var(--danger)' : 'var(--accent)';
-    elWordText.textContent = isSpy ? spyWord : commonWord;
 
     if (isSpy) {
       if (spyType === 'blank') {
-        elRuleTip.textContent = '⚠️ 你完全沒有題目！請觀察他人畫風或發言，謹慎偽裝！';
+        elRoleText.textContent = '【你是白板】';
+        elRoleText.style.color = 'var(--danger)';
+        elWordText.textContent = '無題目';
+        elRuleTip.textContent = '⚠️ 你完全沒有任何提示！請仔細觀察他人筆畫/發言，伺機偽裝！';
       } else {
-        elRuleTip.textContent = '⚠️ 你拿到的是概括提示，觀察他人並假裝自己知情！';
+        elRoleText.textContent = '【你是間諜】';
+        elRoleText.style.color = 'var(--danger)';
+        elWordText.textContent = `類別：${categoryName}`;
+        elRuleTip.textContent = '⚠️ 你只知道此大類別，不知道具體題目！請觀察並偽裝自己知情！';
       }
     } else {
+      elRoleText.textContent = '【你是平民】';
+      elRoleText.style.color = 'var(--accent)';
+      elWordText.textContent = commonWord;
       elRuleTip.textContent = mode === 'draw'
-        ? '💡 請隱密表現題目特徵，別畫太明顯讓間諜猜出！'
+        ? '💡 請隱密表現題目特徵，別畫得太明顯讓間諜猜出！'
         : '💡 描述題目特徵，並找出暗藏其中的間諜！';
     }
 
@@ -431,13 +464,13 @@
       document.getElementById('step-game').classList.remove('active');
       document.getElementById('step-result').classList.add('active');
 
-      const spyDisplay = spyType === 'blank' ? '無題目（白板模式）' : spyWord;
+      const spyDisplay = spyType === 'blank' ? '完全無提示（白板）' : `類別提示：${categoryName}`;
 
       document.getElementById('result-summary').innerHTML = `
         <p>🎯 <b>平民題目：</b><span style="color: var(--accent); font-weight: bold;">${commonWord}</span></p>
         <p>🕵️ <b>間諜提示：</b><span style="color: var(--danger); font-weight: bold;">${spyDisplay}</span></p>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 8px;">
-          若間諜被投票抓出，間諜可嘗試精確猜出平民題目「<b>${commonWord}</b>」來逆轉勝！
+          若間諜被抓出，間諜可嘗試精確猜出平民題目「<b>${commonWord}</b>」來逆轉勝！
         </p>
       `;
 
@@ -445,7 +478,7 @@
       elResultList.innerHTML = '';
       players.forEach((p, idx) => {
         const isSpy = spyIndices.includes(idx);
-        const roleLabel = isSpy ? (spyType === 'blank' ? '白板間諜' : '間諜') : '平民';
+        const roleLabel = isSpy ? (spyType === 'blank' ? '白板' : '間諜') : '平民';
         const row = document.createElement('div');
         row.className = 'drawing-order-item';
         row.innerHTML = `
