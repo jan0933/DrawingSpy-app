@@ -44,7 +44,7 @@
 
     header {
       text-align: center;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
 
     h1 {
@@ -101,7 +101,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      max-height: 280px;
+      max-height: 250px;
       overflow-y: auto;
       margin: 10px 0;
       padding-right: 4px;
@@ -147,15 +147,25 @@
 <div class="container">
   <header>
     <h1>誰是間諜助手</h1>
-    <p class="subtitle">設定人數與玩家暱稱</p>
+    <p class="subtitle">設定人數與遊戲規則</p>
   </header>
 
   <div class="card">
-    <label>遊戲玩法</label>
-    <select id="game-mode" class="input-row">
-      <option value="draw">紙筆繪畫模式（輪流添一筆）</option>
-      <option value="classic">經典發言模式（語言敘述）</option>
-    </select>
+    <div style="margin-bottom: 12px;">
+      <label>遊戲玩法</label>
+      <select id="game-mode">
+        <option value="draw">紙筆繪畫模式（輪流添一筆）</option>
+        <option value="classic">經典發言模式（語言敘述）</option>
+      </select>
+    </div>
+
+    <div style="margin-bottom: 12px;">
+      <label>間諜類型</label>
+      <select id="spy-type">
+        <option value="hint">標準間諜（持有相關提示詞）</option>
+        <option value="blank">白板模式（完全空白無提示）</option>
+      </select>
+    </div>
 
     <div class="input-row">
       <div style="flex: 1;">
@@ -167,10 +177,6 @@
           <option value="6">6 人</option>
           <option value="7">7 人</option>
           <option value="8">8 人</option>
-          <option value="9">9 人</option>
-          <option value="10">10 人</option>
-          <option value="11">11 人</option>
-          <option value="12">12 人</option>
         </select>
       </div>
 
@@ -179,12 +185,11 @@
         <select id="spy-count">
           <option value="1" selected>1 人</option>
           <option value="2">2 人</option>
-          <option value="3">3 人</option>
         </select>
       </div>
     </div>
 
-    <label>玩家暱稱（依作畫順序）</label>
+    <label>玩家暱稱（依作畫/發言順序）</label>
     <div id="player-inputs" class="player-list"></div>
 
     <button id="btn-start" class="btn">開始遊戲</button>
@@ -194,14 +199,14 @@
 <script>
   const COLOR_PALETTE = [
     '#f43f5e', '#3b82f6', '#10b981', '#f59e0b',
-    '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16',
-    '#d97706', '#6366f1', '#14b8a6', '#e11d48'
+    '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'
   ];
 
   const elCount = document.getElementById('player-count');
   const elSpyCount = document.getElementById('spy-count');
   const elPlayerInputs = document.getElementById('player-inputs');
   const elMode = document.getElementById('game-mode');
+  const elSpyType = document.getElementById('spy-type');
 
   function updateSpyOptions(playerCount) {
     const maxSpy = Math.max(1, Math.floor(playerCount / 3));
@@ -220,7 +225,6 @@
 
   function renderPlayerInputs() {
     const count = parseInt(elCount.value, 10);
-    // 保留已輸入的暱稱
     const existingNames = Array.from(elPlayerInputs.querySelectorAll('input')).map(input => input.value);
     
     elPlayerInputs.innerHTML = '';
@@ -243,11 +247,9 @@
     renderPlayerInputs();
   });
 
-  // 初次載入
   updateSpyOptions(parseInt(elCount.value, 10));
   renderPlayerInputs();
 
-  // 點擊開始遊戲，儲存資料並跳轉
   document.getElementById('btn-start').addEventListener('click', () => {
     const inputs = elPlayerInputs.querySelectorAll('input');
     const players = Array.from(inputs).map((input, idx) => ({
@@ -258,7 +260,8 @@
     const sessionData = {
       players: players,
       spyCount: parseInt(elSpyCount.value, 10),
-      mode: elMode.value
+      mode: elMode.value,
+      spyType: elSpyType.value
     };
 
     sessionStorage.setItem('spyGameConfig', JSON.stringify(sessionData));
