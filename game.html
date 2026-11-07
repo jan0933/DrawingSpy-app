@@ -153,23 +153,53 @@
       color: var(--text-muted);
     }
 
-    .player-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 280px;
-      overflow-y: auto;
+    /* 單一欄位作畫順序排版 */
+    .flow-order-card {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
       margin: 10px 0;
     }
 
-    .order-row {
+    .flow-order-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .flow-player-item {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 12px 14px;
-      border-radius: 8px;
-      background: #0f172a;
-      border: 1px solid var(--border);
+      gap: 10px;
+      padding: 6px 0;
+      border-bottom: 1px dashed rgba(255,255,255,0.06);
+    }
+
+    .flow-player-item:last-child {
+      border-bottom: none;
+    }
+
+    .flow-num {
+      font-size: 0.95rem;
+      font-weight: 800;
+      width: 22px;
+      color: var(--text-muted);
+    }
+
+    .flow-name {
+      font-size: 1rem;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .start-tag {
+      font-size: 0.75rem;
+      background: var(--accent);
+      color: #0f172a;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 800;
     }
 
     .color-dot {
@@ -233,6 +263,8 @@
       color: #fbbf24;
     }
   </style>
+  <!-- 引入獨立題庫 words.js -->
+  <script src="words.js"></script>
 </head>
 <body>
 
@@ -263,24 +295,28 @@
     </div>
   </section>
 
-  <!-- ================= 階段 2：輪流作畫面板 ================= -->
+  <!-- ================= 階段 2：輪流作畫面板 (單一欄位整合) ================= -->
   <section id="step-game" class="screen">
     <div class="card">
       <span class="round-badge" id="badge-round-game">第 1 回合</span>
       <h3 style="font-size: 1.15rem; margin-bottom: 4px;">🎨 作畫順序與規則</h3>
-      <div style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 4px; margin: 8px 0 14px 0;">
+      <div style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 4px; margin: 8px 0 12px 0;">
         <p style="font-size: 0.85rem; line-height: 1.5;">
-          • 全體輪流，<b>共進行 2 輪</b>（每人各畫一筆共兩次）<br>
-          • 筆尖落紙至抬起算<b>一筆</b>，嚴禁交談與寫字！
+          • 全體依序輪流，<b>共進行 2 輪</b>（每人各畫一筆共兩次）<br>
+          • 筆尖落紙至抬起算<b>一筆</b>，嚴禁交談、出聲與寫字！
         </p>
       </div>
 
-      <p style="font-size: 0.85rem; font-weight: bold; color: var(--text-muted); margin-bottom: 6px;">
+      <p style="font-size: 0.85rem; font-weight: bold; color: var(--text-muted); margin-bottom: 4px;">
         本回合出筆順序：
       </p>
-      <div id="order-list" class="player-list"></div>
+      
+      <!-- 單一欄位呈現 -->
+      <div class="flow-order-card">
+        <div id="flow-order-list" class="flow-order-container"></div>
+      </div>
 
-      <button id="btn-finish-drawing" class="btn btn-success" style="margin-top: 16px;">
+      <button id="btn-finish-drawing" class="btn btn-success" style="margin-top: 8px;">
         作畫結束，前往投票
       </button>
     </div>
@@ -310,15 +346,13 @@
     <div class="card">
       <h2 style="color: var(--accent); text-align: center; margin-bottom: 12px;">📊 投票結果與本回合結算</h2>
       
-      <!-- 1. 玩家投票明細 -->
       <div class="section-title">🗳 1. 玩家投票明細</div>
       <div id="vote-details" class="info-box"></div>
 
-      <!-- 2. 間諜名單揭曉 -->
       <div class="section-title">🕵️ 2. 間諜身分揭曉</div>
       <div id="spy-details" class="info-box"></div>
 
-      <!-- 3. 間諜逆轉猜題（若抓中間諜，先在此處猜題；答案先隱藏） -->
+      <!-- 間諜逆轉猜題（若抓中間諜先在此猜題） -->
       <div id="reverse-guess-box" style="display: none; background: #0f172a; padding: 12px; border-radius: 8px; margin: 12px 0; border: 1px dashed var(--accent);">
         <div class="section-title" style="margin-top: 0; color: #fbbf24;">🎯 3. 間諜逆轉猜題機會</div>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">
@@ -330,17 +364,14 @@
         </div>
       </div>
 
-      <!-- 4. 正式題目公布區（猜題後才解開） -->
       <div class="section-title" id="title-topic">💡 3. 本回合題目與類別</div>
       <div id="topic-details" class="info-box"></div>
 
-      <!-- 5. 本回合得分明細 -->
       <div class="section-title">⭐ 本回合得分變更</div>
       <div id="round-scores-detail" class="info-box"></div>
 
-      <!-- 6. 總積分榜 -->
       <div class="section-title" style="margin-top: 14px;">🏆 累積分數總榜</div>
-      <div id="scoreboard" class="player-list"></div>
+      <div id="scoreboard" style="display: flex; flex-direction: column; gap: 6px; margin: 8px 0;"></div>
 
       <button id="btn-next-round" class="btn btn-success" style="margin-top: 14px;">開始下一回合</button>
       <button id="btn-back-home" class="btn btn-secondary" style="margin-top: 8px;">結束遊戲回首頁</button>
@@ -350,253 +381,6 @@
 </div>
 
 <script>
-  // 10 大類別名稱注音字典
-  const CATEGORY_RUBY = {
-    "食物": "<ruby>食<rt>ㄕˊ</rt>物<rt>ㄨˋ</rt></ruby>",
-    "蔬菜水果": "<ruby>蔬<rt>ㄕㄨ</rt>菜<rt>ㄘㄞˋ</rt>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt></ruby>",
-    "家電": "<ruby>家<rt>ㄐㄧㄚ</rt>電<rt>ㄉㄧㄢˋ</rt></ruby>",
-    "動物": "<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt></ruby>",
-    "交通工具": "<ruby>交<rt>ㄐㄧㄠ</rt>通<rt>ㄊㄨㄥ</rt>工<rt>ㄍㄨㄥ</rt>具<rt>ㄐㄩˋ</rt></ruby>",
-    "場所": "<ruby>場<rt>ㄔㄤˇ</rt>所<rt>ㄙㄨㄛˇ</rt></ruby>",
-    "家具": "<ruby>家<rt>ㄐㄧㄚ</rt>具<rt>ㄐㄩˋ</rt></ruby>",
-    "職業": "<ruby>職<rt>ㄓˊ</rt>業<rt>ㄧㄝˋ</rt></ruby>",
-    "文具": "<ruby>文<rt>ㄨㄣˊ</rt>具<rt>ㄐㄩˋ</rt></ruby>",
-    "卡通人物": "<ruby>卡<rt>ㄎㄚˇ</rt>通<rt>ㄊㄨㄥ</rt>人<rt>ㄖㄣˊ</rt>物<rt>ㄨˋ</rt></ruby>"
-  };
-
-  // 10 大宏觀分類，每類別 21 題，共 210 題
-  const WORD_BANK = [
-    // 1. 食物 (21 題)
-    ["<ruby>珍<rt>ㄓㄣ</rt>珠<rt>ㄓㄨ</rt>奶<rt>ㄋㄞˇ</rt>茶<rt>ㄔㄚˊ</rt></ruby>", "食物"],
-    ["<ruby>臭<rt>ㄔㄡˋ</rt>豆<rt>ㄉㄡˋ</rt>腐<rt>ㄈㄨˇ</rt></ruby>", "食物"],
-    ["<ruby>滷<rt>ㄌㄨˇ</rt>肉<rt>ㄖㄡˋ</rt>飯<rt>ㄈㄢˋ</rt></ruby>", "食物"],
-    ["<ruby>牛<rt>ㄋㄧㄡˊ</rt>肉<rt>ㄖㄡˋ</rt>麵<rt>ㄇㄧㄢˋ</rt></ruby>", "食物"],
-    ["<ruby>蚵<rt>ㄜˊ</rt>仔<rt>ㄗˇ</rt>煎<rt>ㄐㄧㄢ</rt></ruby>", "食物"],
-    ["<ruby>小<rt>ㄒㄧㄠˇ</rt>籠<rt>ㄌㄨㄥˊ</rt>包<rt>ㄅㄠ</rt></ruby>", "食物"],
-    ["<ruby>鳳<rt>ㄈㄥˋ</rt>梨<rt>ㄌㄧˊ</rt>酥<rt>ㄙㄨ</rt></ruby>", "食物"],
-    ["<ruby>披<rt>ㄆㄧ</rt>薩<rt>ㄙㄚˋ</rt></ruby>", "食物"],
-    ["<ruby>漢<rt>ㄏㄢˋ</rt>堡<rt>ㄅㄠˇ</rt></ruby>", "食物"],
-    ["<ruby>薯<rt>ㄕㄨˇ</rt>條<rt>ㄊㄧㄠˊ</rt></ruby>", "食物"],
-    ["<ruby>壽<rt>ㄕㄡˋ</rt>司<rt>ㄙ</rt></ruby>", "食物"],
-    ["<ruby>拉<rt>ㄌㄚ</rt>麵<rt>ㄇㄧㄢˋ</rt></ruby>", "食物"],
-    ["<ruby>火<rt>ㄏㄨㄛˇ</rt>鍋<rt>ㄍㄨㄛ</rt></ruby>", "食物"],
-    ["<ruby>甜<rt>ㄊㄧㄢˊ</rt>甜<rt>ㄊㄧㄢˊ</rt>圈<rt>ㄑㄩㄢ</rt></ruby>", "食物"],
-    ["<ruby>冰<rt>ㄅㄧㄥ</rt>淇<rt>ㄑㄧˊ</rt>淋<rt>ㄌㄧㄣˊ</rt></ruby>", "食物"],
-    ["<ruby>爆<rt>ㄅㄠˋ</rt>米<rt>ㄇㄧˇ</rt>花<rt>ㄏㄨㄚ</rt></ruby>", "食物"],
-    ["<ruby>巧<rt>ㄑㄧㄠˇ</rt>克<rt>ㄎㄜˋ</rt>力<rt>ㄌㄧˋ</rt></ruby>", "食物"],
-    ["<ruby>布<rt>ㄅㄨˋ</rt>丁<rt>ㄉㄧㄥ</rt></ruby>", "食物"],
-    ["<ruby>水<rt>ㄕㄨㄟˇ</rt>餃<rt>ㄐㄧㄠˇ</rt></ruby>", "食物"],
-    ["<ruby>地<rt>ㄉㄧˋ</rt>瓜<rt>ㄍㄨㄚ</rt>球<rt>ㄑㄧㄡˊ</rt></ruby>", "食物"],
-    ["<ruby>熱<rt>ㄖㄜˋ</rt>狗<rt>ㄍㄡˇ</rt></ruby>", "食物"],
-
-    // 2. 蔬菜水果 (21 題)
-    ["<ruby>香<rt>ㄒㄧㄤ</rt>蕉<rt>ㄐㄧㄠ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>西<rt>ㄒㄧ</rt>瓜<rt>ㄍㄨㄚ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>草<rt>ㄘㄠˇ</rt>莓<rt>ㄇㄟˊ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>葡<rt>ㄆㄨˊ</rt>萄<rt>ㄊㄠˊ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>蘋<rt>ㄆㄧㄥˊ</rt>果<rt>ㄍㄨㄛˇ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>鳳<rt>ㄈㄥˋ</rt>梨<rt>ㄌㄧˊ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>橘<rt>ㄐㄩˊ</rt>子<rt>˙ㄗ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>檸<rt>ㄋㄧㄥˊ</rt>檬<rt>ㄇㄥˊ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>櫻<rt>ㄧㄥ</rt>桃<rt>ㄊㄠˊ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>木<rt>ㄇㄨˋ</rt>瓜<rt>ㄍㄨㄚ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>胡<rt>ㄏㄨˊ</rt>蘿<rt>ㄌㄨㄛˊ</rt>蔔<rt>˙ㄅㄛ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>玉<rt>ㄩˋ</rt>米<rt>ㄇㄧˇ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>花<rt>ㄏㄨㄚ</rt>椰<rt>ㄧㄝˊ</rt>菜<rt>ㄘㄞˋ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>洋<rt>ㄧㄤˊ</rt>蔥<rt>ㄘㄨㄥ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>番<rt>ㄈㄢ</rt>茄<rt>ㄑㄧㄝˊ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>辣<rt>ㄌㄚˋ</rt>椒<rt>ㄐㄧㄠ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>小<rt>ㄒㄧㄠˇ</rt>黃<rt>ㄏㄨㄤˊ</rt>瓜<rt>ㄍㄨㄚ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>木<rt>ㄇㄨˋ</rt>耳<rt>ㄦˇ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>香<rt>ㄒㄧㄤ</rt>菇<rt>ㄍㄨ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>南<rt>ㄋㄢˊ</rt>瓜<rt>ㄍㄨㄚ</rt></ruby>", "蔬菜水果"],
-    ["<ruby>茄<rt>ㄑㄧㄝˊ</rt>子<rt>˙ㄗ</rt></ruby>", "蔬菜水果"],
-
-    // 3. 家電 (21 題)
-    ["<ruby>吹<rt>ㄔㄨㄟ</rt>風<rt>ㄈㄥ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
-    ["<ruby>電<rt>ㄉㄧㄢˋ</rt>視<rt>ㄕˋ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
-    ["<ruby>冷<rt>ㄌㄥˇ</rt>氣<rt>ㄑㄧˋ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
-    ["<ruby>電<rt>ㄉㄧㄢˋ</rt>風<rt>ㄈㄥ</rt>扇<rt>ㄕㄢˋ</rt></ruby>", "家電"],
-    ["<ruby>洗<rt>ㄒㄧˇ</rt>衣<rt>ㄧ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
-    ["<ruby>電<rt>ㄉㄧㄢˋ</rt>冰<rt>ㄅㄧㄥ</rt>箱<rt>ㄒㄧㄤ</rt></ruby>", "家電"],
-    ["<ruby>微<rt>ㄨㄟˊ</rt>波<rt>ㄅㄛ</rt>爐<rt>ㄌㄨˊ</rt></ruby>", "家電"],
-    ["<ruby>吸<rt>ㄒㄧ</rt>塵<rt>ㄔㄣˊ</rt>器<rt>ㄑㄧˋ</rt></ruby>", "家電"],
-    ["<ruby>電<rt>ㄉㄧㄢˋ</rt>鍋<rt>ㄍㄨㄛ</rt></ruby>", "家電"],
-    ["<ruby>烤<rt>ㄎㄠˇ</rt>箱<rt>ㄒㄧㄤ</rt></ruby>", "家電"],
-    ["<ruby>除<rt>ㄔㄨˊ</rt>濕<rt>ㄕ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
-    ["<ruby>烘<rt>ㄏㄨㄥ</rt>衣<rt>ㄧ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
-    ["<ruby>掃<rt>ㄙㄠˇ</rt>地<rt>ㄉㄧˋ</rt>機<rt>ㄐㄧ</rt>器<rt>ㄑㄧˋ</rt>人<rt>ㄖㄣˊ</rt></ruby>", "家電"],
-    ["<ruby>果<rt>ㄍㄨㄛˇ</rt>汁<rt>ㄓ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
-    ["<ruby>熱<rt>ㄖㄜˋ</rt>水<rt>ㄕㄨㄟˇ</rt>壺<rt>ㄏㄨˊ</rt></ruby>", "家電"],
-    ["<ruby>咖<rt>ㄎㄚ</rt>啡<rt>ㄈㄟ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
-    ["<ruby>氣<rt>ㄑㄧˋ</rt>炸<rt>ㄓㄚˋ</rt>鍋<rt>ㄍㄨㄛ</rt></ruby>", "家電"],
-    ["<ruby>烤<rt>ㄎㄠˇ</rt>麵<rt>ㄇㄧㄢˋ</rt>包<rt>ㄅㄠ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
-    ["<ruby>捕<rt>ㄅㄨˇ</rt>蚊<rt>ㄨㄣˊ</rt>燈<rt>ㄉㄥ</rt></ruby>", "家電"],
-    ["<ruby>暖<rt>ㄋㄨㄢˇ</rt>爐<rt>ㄌㄨˊ</rt></ruby>", "家電"],
-    ["<ruby>飲<rt>ㄧㄣˇ</rt>水<rt>ㄕㄨㄟˇ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電"],
-
-    // 4. 動物 (21 題)
-    ["<ruby>狗<rt>ㄍㄡˇ</rt></ruby>", "動物"],
-    ["<ruby>貓<rt>ㄇㄠ</rt></ruby>", "動物"],
-    ["<ruby>兔<rt>ㄊㄨˋ</rt>子<rt>˙ㄗ</rt></ruby>", "動物"],
-    ["<ruby>大<rt>ㄉㄚˋ</rt>象<rt>ㄒㄧㄤˋ</rt></ruby>", "動物"],
-    ["<ruby>長<rt>ㄔㄤˊ</rt>頸<rt>ㄐㄧㄥˇ</rt>鹿<rt>ㄌㄨˋ</rt></ruby>", "動物"],
-    ["<ruby>獅<rt>ㄕ</rt>子<rt>˙ㄗ</rt></ruby>", "動物"],
-    ["<ruby>老<rt>ㄌㄠˇ</rt>虎<rt>ㄏㄨˇ</rt></ruby>", "動物"],
-    ["<ruby>斑<rt>ㄅㄢ</rt>馬<rt>ㄇㄚˇ</rt></ruby>", "動物"],
-    ["<ruby>熊<rt>ㄒㄩㄥˊ</rt>貓<rt>ㄇㄠ</rt></ruby>", "動物"],
-    ["<ruby>海<rt>ㄏㄞˇ</rt>豚<rt>ㄊㄨㄣˊ</rt></ruby>", "動物"],
-    ["<ruby>鯊<rt>ㄕㄚ</rt>魚<rt>ㄩˊ</rt></ruby>", "動物"],
-    ["<ruby>企<rt>ㄑㄧˋ</rt>鵝<rt>ㄜˊ</rt></ruby>", "動物"],
-    ["<ruby>烏<rt>ㄨ</rt>龜<rt>ㄍㄨㄟ</rt></ruby>", "動物"],
-    ["<ruby>老<rt>ㄌㄠˇ</rt>鷹<rt>ㄧㄥ</rt></ruby>", "動物"],
-    ["<ruby>猴<rt>ㄏㄡˊ</rt>子<rt>˙ㄗ</rt></ruby>", "動物"],
-    ["<ruby>袋<rt>ㄉㄞˋ</rt>鼠<rt>ㄕㄨˇ</rt></ruby>", "動物"],
-    ["<ruby>無<rt>ㄨˊ</rt>尾<rt>ㄨㄟˇ</rt>熊<rt>ㄒㄩㄥˊ</rt></ruby>", "動物"],
-    ["<ruby>河<rt>ㄏㄜˊ</rt>馬<rt>ㄇㄚˇ</rt></ruby>", "動物"],
-    ["<ruby>犀<rt>ㄒㄧ</rt>牛<rt>ㄋㄧㄡˊ</rt></ruby>", "動物"],
-    ["<ruby>鱷<rt>ㄜˋ</rt>魚<rt>ㄩˊ</rt></ruby>", "動物"],
-    ["<ruby>駱<rt>ㄌㄨㄛˋ</rt>駝<rt>ㄊㄨㄛˊ</rt></ruby>", "動物"],
-
-    // 5. 交通工具 (21 題)
-    ["<ruby>腳<rt>ㄐㄧㄠˇ</rt>踏<rt>ㄊㄚˋ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
-    ["<ruby>機<rt>ㄐㄧ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
-    ["<ruby>計<rt>ㄐㄧˋ</rt>程<rt>ㄔㄥˊ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
-    ["<ruby>公<rt>ㄍㄨㄥ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
-    ["<ruby>高<rt>ㄍㄠ</rt>鐵<rt>ㄊㄧㄝˇ</rt></ruby>", "交通工具"],
-    ["<ruby>捷<rt>ㄐㄧㄝˊ</rt>運<rt>ㄩㄣˋ</rt></ruby>", "交通工具"],
-    ["<ruby>火<rt>ㄏㄨㄛˇ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
-    ["<ruby>直<rt>ㄓˊ</rt>升<rt>ㄕㄥ</rt>機<rt>ㄐㄧ</rt></ruby>", "交通工具"],
-    ["<ruby>飛<rt>ㄈㄟ</rt>機<rt>ㄐㄧ</rt></ruby>", "交通工具"],
-    ["<ruby>熱<rt>ㄖㄜˋ</rt>氣<rt>ㄑㄧˋ</rt>球<rt>ㄑㄧㄡˊ</rt></ruby>", "交通工具"],
-    ["<ruby>輪<rt>ㄌㄨㄣˊ</rt>船<rt>ㄔㄨㄢˊ</rt></ruby>", "交通工具"],
-    ["<ruby>潛<rt>ㄑㄧㄢˊ</rt>水<rt>ㄕㄨㄟˇ</rt>艇<rt>ㄊㄧㄥˇ</rt></ruby>", "交通工具"],
-    ["<ruby>火<rt>ㄏㄨㄛˇ</rt>箭<rt>ㄐㄧㄢˋ</rt></ruby>", "交通工具"],
-    ["<ruby>救<rt>ㄐㄧㄡˋ</rt>護<rt>ㄏㄨˋ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
-    ["<ruby>消<rt>ㄒㄧㄠ</rt>防<rt>ㄈㄤˊ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
-    ["<ruby>警<rt>ㄐㄧㄥˇ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
-    ["<ruby>垃<rt>ㄌㄜˋ</rt>圾<rt>ㄙㄜˋ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
-    ["<ruby>帆<rt>ㄈㄢˊ</rt>船<rt>ㄔㄨㄢˊ</rt></ruby>", "交通工具"],
-    ["<ruby>挖<rt>ㄨㄚ</rt>土<rt>ㄊㄨˇ</rt>機<rt>ㄐㄧ</rt></ruby>", "交通工具"],
-    ["<ruby>滑<rt>ㄏㄨㄚˊ</rt>板<rt>ㄅㄢˇ</rt></ruby>", "交通工具"],
-    ["<ruby>纜<rt>ㄌㄢˇ</rt>車<rt>ㄔㄜ</rt></ruby>", "交通工具"],
-
-    // 6. 場所 (21 題)
-    ["<ruby>學<rt>ㄒㄩㄝˊ</rt>校<rt>ㄒㄧㄠˋ</rt></ruby>", "場所"],
-    ["<ruby>醫<rt>ㄧ</rt>院<rt>ㄩㄢˋ</rt></ruby>", "場所"],
-    ["<ruby>警<rt>ㄐㄧㄥˇ</rt>察<rt>ㄔㄚˊ</rt>局<rt>ㄐㄩˊ</rt></ruby>", "場所"],
-    ["<ruby>消<rt>ㄒㄧㄠ</rt>防<rt>ㄈㄤˊ</rt>局<rt>ㄐㄩˊ</rt></ruby>", "場所"],
-    ["<ruby>電<rt>ㄉㄧㄢˋ</rt>影<rt>ㄧㄥˇ</rt>院<rt>ㄩㄢˋ</rt></ruby>", "場所"],
-    ["<ruby>圖<rt>ㄊㄨˊ</rt>書<rt>ㄕㄨ</rt>館<rt>ㄍㄨㄢˇ</rt></ruby>", "場所"],
-    ["<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>園<rt>ㄩㄢˊ</rt></ruby>", "場所"],
-    ["<ruby>遊<rt>ㄧㄡˊ</rt>樂<rt>ㄌㄜˋ</rt>園<rt>ㄩㄢˊ</rt></ruby>", "場所"],
-    ["<ruby>機<rt>ㄐㄧ</rt>場<rt>ㄔㄤˇ</rt></ruby>", "場所"],
-    ["<ruby>火<rt>ㄏㄨㄛˇ</rt>車<rt>ㄔㄜ</rt>站<rt>ㄓㄢˋ</rt></ruby>", "場所"],
-    ["<ruby>超<rt>ㄔㄠ</rt>商<rt>ㄕㄤ</rt></ruby>", "場所"],
-    ["<ruby>博<rt>ㄅㄛˊ</rt>物<rt>ㄨˋ</rt>館<rt>ㄍㄨㄢˇ</rt></ruby>", "場所"],
-    ["<ruby>游<rt>ㄧㄡˊ</rt>泳<rt>ㄩㄥˇ</rt>池<rt>ㄔˊ</rt></ruby>", "場所"],
-    ["<ruby>加<rt>ㄐㄧㄚ</rt>油<rt>ㄧㄡˊ</rt>站<rt>ㄓㄢˋ</rt></ruby>", "場所"],
-    ["<ruby>體<rt>ㄊㄧˇ</rt>育<rt>ㄩˋ</rt>館<rt>ㄍㄨㄢˇ</rt></ruby>", "場所"],
-    ["<ruby>公<rt>ㄍㄨㄥ</rt>園<rt>ㄩㄢˊ</rt></ruby>", "場所"],
-    ["<ruby>城<rt>ㄔㄥˊ</rt>堡<rt>ㄅㄠˇ</rt></ruby>", "場所"],
-    ["<ruby>燈<rt>ㄉㄥ</rt>塔<rt>ㄊㄚˇ</rt></ruby>", "場所"],
-    ["<ruby>廟<rt>ㄇㄧㄠˋ</rt>宇<rt>ㄩˇ</rt></ruby>", "場所"],
-    ["<ruby>教<rt>ㄐㄧㄠˋ</rt>堂<rt>ㄊㄤˊ</rt></ruby>", "場所"],
-    ["<ruby>夜<rt>ㄧㄝˋ</rt>市<rt>ㄕˋ</rt></ruby>", "場所"],
-
-    // 7. 家具 (21 題)
-    ["<ruby>沙<rt>ㄕㄚ</rt>發<rt>ㄈㄚ</rt></ruby>", "家具"],
-    ["<ruby>床<rt>ㄔㄨㄤˊ</rt>墊<rt>ㄉㄧㄢˋ</rt></ruby>", "家具"],
-    ["<ruby>餐<rt>ㄘㄢ</rt>桌<rt>ㄓㄨㄛ</rt></ruby>", "家具"],
-    ["<ruby>椅<rt>ㄧˇ</rt>子<rt>˙ㄗ</rt></ruby>", "家具"],
-    ["<ruby>衣<rt>ㄧ</rt>櫃<rt>ㄍㄨㄟˋ</rt></ruby>", "家具"],
-    ["<ruby>書<rt>ㄕㄨ</rt>架<rt>ㄐㄧㄚˋ</rt></ruby>", "家具"],
-    ["<ruby>書<rt>ㄕㄨ</rt>桌<rt>ㄓㄨㄛ</rt></ruby>", "家具"],
-    ["<ruby>鞋<rt>ㄒㄧㄝˊ</rt>櫃<rt>ㄍㄨㄟˋ</rt></ruby>", "家具"],
-    ["<ruby>茶<rt>ㄔㄚˊ</rt>几<rt>ㄐㄧ</rt></ruby>", "家具"],
-    ["<ruby>梳<rt>ㄕㄨ</rt>妝<rt>ㄓㄨㄤ</rt>台<rt>ㄊㄞˊ</rt></ruby>", "家具"],
-    ["<ruby>床<rt>ㄔㄨㄤˊ</rt>頭<rt>ㄊㄡˊ</rt>櫃<rt>ㄍㄨㄟˋ</rt></ruby>", "家具"],
-    ["<ruby>電<rt>ㄉㄧㄢˋ</rt>視<rt>ㄕˋ</rt>櫃<rt>ㄍㄨㄟˋ</rt></ruby>", "家具"],
-    ["<ruby>吊<rt>ㄉㄧㄠˋ</rt>椅<rt>ㄧˇ</rt></ruby>", "家具"],
-    ["<ruby>搖<rt>ㄧㄠˊ</rt>椅<rt>ㄧˇ</rt></ruby>", "家具"],
-    ["<ruby>吧<rt>ㄅㄚ</rt>台<rt>ㄊㄞˊ</rt>椅<rt>ㄧˇ</rt></ruby>", "家具"],
-    ["<ruby>衣<rt>ㄧ</rt>帽<rt>ㄇㄠˋ</rt>架<rt>ㄐㄧㄚˋ</rt></ruby>", "家具"],
-    ["<ruby>長<rt>ㄔㄤˊ</rt>凳<rt>ㄉㄥˋ</rt></ruby>", "家具"],
-    ["<ruby>摺<rt>ㄓㄜˊ</rt>疊<rt>ㄉㄧㄝˊ</rt>桌<rt>ㄓㄨㄛ</rt></ruby>", "家具"],
-    ["<ruby>雙<rt>ㄕㄨㄤ</rt>層<rt>ㄘㄥˊ</rt>床<rt>ㄔㄨㄤˊ</rt></ruby>", "家具"],
-    ["<ruby>酒<rt>ㄐㄧㄡˇ</rt>櫃<rt>ㄍㄨㄟˋ</rt></ruby>", "家具"],
-    ["<ruby>屏<rt>ㄆㄧㄥˊ</rt>風<rt>ㄈㄥ</rt></ruby>", "家具"],
-
-    // 8. 職業 (21 題)
-    ["<ruby>醫<rt>ㄧ</rt>生<rt>ㄕㄥ</rt></ruby>", "職業"],
-    ["<ruby>護<rt>ㄏㄨˋ</rt>士<rt>ㄕˋ</rt></ruby>", "職業"],
-    ["<ruby>警<rt>ㄐㄧㄥˇ</rt>察<rt>ㄔㄚˊ</rt></ruby>", "職業"],
-    ["<ruby>消<rt>ㄒㄧㄠ</rt>防<rt>ㄈㄤˊ</rt>員<rt>ㄩㄢˊ</rt></ruby>", "職業"],
-    ["<ruby>老<rt>ㄌㄠˇ</rt>師<rt>ㄕ</rt></ruby>", "職業"],
-    ["<ruby>廚<rt>ㄔㄨˊ</rt>師<rt>ㄕ</rt></ruby>", "職業"],
-    ["<ruby>機<rt>ㄐㄧ</rt>師<rt>ㄕ</rt></ruby>", "職業"],
-    ["<ruby>空<rt>ㄎㄨㄥ</rt>服<rt>ㄈㄨˊ</rt>員<rt>ㄩㄢˊ</rt></ruby>", "職業"],
-    ["<ruby>郵<rt>ㄧㄡˊ</rt>差<rt>ㄔㄞ</rt></ruby>", "職業"],
-    ["<ruby>農<rt>ㄋㄨㄥˊ</rt>夫<rt>ㄈㄨ</rt></ruby>", "職業"],
-    ["<ruby>漁<rt>ㄩˊ</rt>夫<rt>ㄈㄨ</rt></ruby>", "職業"],
-    ["<ruby>畫<rt>ㄏㄨㄚˋ</rt>家<rt>ㄐㄧㄚ</rt></ruby>", "職業"],
-    ["<ruby>魔<rt>ㄇㄛˊ</rt>術<rt>ㄕㄨˋ</rt>師<rt>ㄕ</rt></ruby>", "職業"],
-    ["<ruby>太<rt>ㄊㄞˋ</rt>空<rt>ㄎㄨㄥ</rt>人<rt>ㄖㄣˊ</rt></ruby>", "職業"],
-    ["<ruby>律<rt>ㄌㄩˋ</rt>師<rt>ㄕ</rt></ruby>", "職業"],
-    ["<ruby>建<rt>ㄐㄧㄢˋ</rt>築<rt>ㄓㄨˊ</rt>師<rt>ㄕ</rt></ruby>", "職業"],
-    ["<ruby>理<rt>ㄌㄧˇ</rt>髮<rt>ㄈㄚˇ</rt>師<rt>ㄕ</rt></ruby>", "職業"],
-    ["<ruby>歌<rt>ㄍㄜ</rt>手<rt>ㄕㄡˇ</rt></ruby>", "職業"],
-    ["<ruby>運<rt>ㄩㄣˋ</rt>動<rt>ㄉㄨㄥˋ</rt>員<rt>ㄩㄢˊ</rt></ruby>", "職業"],
-    ["<ruby>保<rt>ㄅㄠˇ</rt>全<rt>ㄑㄩㄢˊ</rt></ruby>", "職業"],
-    ["<ruby>法<rt>ㄈㄚˇ</rt>官<rt>ㄍㄨㄢ</rt></ruby>", "職業"],
-
-    // 9. 文具 (21 題)
-    ["<ruby>鉛<rt>ㄑㄧㄢ</rt>筆<rt>ㄅㄧˇ</rt></ruby>", "文具"],
-    ["<ruby>橡<rt>ㄒㄧㄤˋ</rt>皮<rt>ㄆㄧˊ</rt>擦<rt>ㄘㄚ</rt></ruby>", "文具"],
-    ["<ruby>尺<rt>ㄔˇ</rt></ruby>", "文具"],
-    ["<ruby>剪<rt>ㄐㄧㄢˇ</rt>刀<rt>ㄉㄠ</rt></ruby>", "文具"],
-    ["<ruby>美<rt>ㄇㄟˇ</rt>工<rt>ㄍㄨㄥ</rt>刀<rt>ㄉㄠ</rt></ruby>", "文具"],
-    ["<ruby>膠<rt>ㄐㄧㄠ</rt>水<rt>ㄕㄨㄟˇ</rt></ruby>", "文具"],
-    ["<ruby>訂<rt>ㄉㄧㄥˋ</rt>書<rt>ㄕㄨ</rt>機<rt>ㄐㄧ</rt></ruby>", "文具"],
-    ["<ruby>迴<rt>ㄏㄨㄟˊ</rt>紋<rt>ㄨㄣˊ</rt>針<rt>ㄓㄣ</rt></ruby>", "文具"],
-    ["<ruby>筆<rt>ㄅㄧˇ</rt>記<rt>ㄐㄧˋ</rt>本<rt>ㄅㄣˇ</rt></ruby>", "文具"],
-    ["<ruby>彩色<rt>ㄘㄞˇ ㄙㄜˋ</rt>筆<rt>ㄅㄧˇ</rt></ruby>", "文具"],
-    ["<ruby>蠟<rt>ㄌㄚˋ</rt>筆<rt>ㄅㄧˇ</rt></ruby>", "文具"],
-    ["<ruby>螢<rt>ㄧㄥˊ</rt>光<rt>ㄍㄨㄤ</rt>筆<rt>ㄅㄧˇ</rt></ruby>", "文具"],
-    ["<ruby>圓<rt>ㄩㄢˊ</rt>規<rt>ㄍㄨㄟ</rt></ruby>", "文具"],
-    ["<ruby>量<rt>ㄌㄧㄤˊ</rt>角<rt>ㄐㄧㄠˇ</rt>器<rt>ㄑㄧˋ</rt></ruby>", "文具"],
-    ["<ruby>立<rt>ㄌㄧˋ</rt>可<rt>ㄎㄜˇ</rt>帶<rt>ㄉㄞˋ</rt></ruby>", "文具"],
-    ["<ruby>削<rt>ㄒㄧㄠ</rt>鉛<rt>ㄑㄧㄢ</rt>筆<rt>ㄅㄧˇ</rt>機<rt>ㄐㄧ</rt></ruby>", "文具"],
-    ["<ruby>膠<rt>ㄐㄧㄠ</rt>帶<rt>ㄉㄞˋ</rt></ruby>", "文具"],
-    ["<ruby>資<rt>ㄗ</rt>料<rt>ㄌㄧㄠˋ</rt>夾<rt>ㄐㄧㄚˊ</rt></ruby>", "文具"],
-    ["<ruby>打<rt>ㄉㄚˇ</rt>孔<rt>ㄎㄨㄥˇ</rt>機<rt>ㄐㄧ</rt></ruby>", "文具"],
-    ["<ruby>便<rt>ㄅㄧㄢˋ</rt>條<rt>ㄊㄧㄠˊ</rt>紙<rt>ㄓˇ</rt></ruby>", "文具"],
-    ["<ruby>鉛<rt>ㄑㄧㄢ</rt>筆<rt>ㄅㄧˇ</rt>盒<rt>ㄏㄜˊ</rt></ruby>", "文具"],
-
-    // 10. 卡通人物 (21 題)
-    ["<ruby>哆<rt>ㄉㄨㄛ</rt>啦<rt>ㄌㄚ</rt>A<rt></rt>夢<rt>ㄇㄥˋ</rt></ruby>", "卡通人物"],
-    ["<ruby>皮<rt>ㄆㄧˊ</rt>卡<rt>ㄎㄚˇ</rt>丘<rt>ㄑㄧㄡ</rt></ruby>", "卡通人物"],
-    ["<ruby>巧<rt>ㄑㄧㄠˇ</rt>虎<rt>ㄏㄨˇ</rt></ruby>", "卡通人物"],
-    ["<ruby>麵<rt>ㄇㄧㄢˋ</rt>包<rt>ㄅㄠ</rt>超<rt>ㄔㄠ</rt>人<rt>ㄖㄣˊ</rt></ruby>", "卡通人物"],
-    ["<ruby>櫻<rt>ㄧㄥ</rt>桃<rt>ㄊㄠˊ</rt>小<rt>ㄒㄧㄠˇ</rt>丸<rt>ㄨㄢˊ</rt>子<rt>˙ㄗ</rt></ruby>", "卡通人物"],
-    ["<ruby>蠟<rt>ㄌㄚˋ</rt>筆<rt>ㄅㄧˇ</rt>小<rt>ㄒㄧㄠˇ</rt>新<rt>ㄒㄧㄣ</rt></ruby>", "卡通人物"],
-    ["<ruby>名<rt>ㄇㄧㄥˊ</rt>偵<rt>ㄓㄣ</rt>探<rt>ㄊㄢˋ</rt>柯<rt>ㄎㄜ</rt>南<rt>ㄋㄢˊ</rt></ruby>", "卡通人物"],
-    ["<ruby>米<rt>ㄇㄧˇ</rt>老<rt>ㄌㄠˇ</rt>鼠<rt>ㄕㄨˇ</rt></ruby>", "卡通人物"],
-    ["<ruby>唐<rt>ㄊㄤˊ</rt>老<rt>ㄌㄠˇ</rt>鴨<rt>ㄧㄚ</rt></ruby>", "卡通人物"],
-    ["<ruby>小<rt>ㄒㄧㄠˇ</rt>熊<rt>ㄒㄩㄥˊ</rt>維<rt>ㄨㄟˊ</rt>尼<rt>ㄋㄧˊ</rt></ruby>", "卡通人物"],
-    ["<ruby>海<rt>ㄏㄞˇ</rt>綿<rt>ㄇㄧㄢˊ</rt>寶<rt>ㄅㄠˇ</rt>寶<rt>ㄅㄠˇ</rt></ruby>", "卡通人物"],
-    ["<ruby>派<rt>ㄆㄞˋ</rt>大<rt>ㄉㄚˋ</rt>星<rt>ㄒㄧㄥ</rt></ruby>", "卡通人物"],
-    ["<ruby>史<rt>ㄕˇ</rt>努<rt>ㄋㄨˇ</rt>比<rt>ㄅㄧˇ</rt></ruby>", "卡通人物"],
-    ["<ruby>佩<rt>ㄆㄟˋ</rt>佩<rt>ㄆㄟˋ</rt>豬<rt>ㄓㄨ</rt></ruby>", "卡通人物"],
-    ["<ruby>冰<rt>ㄅㄧㄥ</rt>雪<rt>ㄒㄩㄝˇ</rt>奇<rt>ㄑㄧˊ</rt>緣<rt>ㄩㄢˊ</rt>艾<rt>ㄞˋ</rt>莎<rt>ㄙㄚ</rt></ruby>", "卡通人物"],
-    ["<ruby>巴<rt>ㄅㄚ</rt>斯<rt>ㄙ</rt>光<rt>ㄍㄨㄤ</rt>年<rt>ㄋㄧㄢˊ</rt></ruby>", "卡通人物"],
-    ["<ruby>胡<rt>ㄏㄨˊ</rt>迪<rt>ㄉㄧˊ</rt>警<rt>ㄐㄧㄥˇ</rt>長<rt>ㄓㄤˇ</rt></ruby>", "卡通人物"],
-    ["<ruby>音<rt>ㄧㄣ</rt>速<rt>ㄙㄨˋ</rt>小<rt>ㄒㄧㄠˇ</rt>子<rt>˙ㄗ</rt></ruby>", "卡通人物"],
-    ["<ruby>加<rt>ㄐㄧㄚ</rt>菲<rt>ㄈㄟ</rt>貓<rt>ㄇㄠ</rt></ruby>", "卡通人物"],
-    ["<ruby>大<rt>ㄉㄚˋ</rt>英雄<rt>ㄧㄥ ㄒㄩㄥˊ</rt>天<rt>ㄊㄧㄢ</rt>團<rt>ㄊㄨㄢˊ</rt>杯<rt>ㄅㄟ</rt>麵<rt>ㄇㄧㄢˋ</rt></ruby>", "卡通人物"],
-    ["<ruby>小小<rt>ㄒㄧㄠˇ ㄒㄧㄠˇ</rt>兵<rt>ㄅㄧㄥ</rt></ruby>", "卡通人物"]
-  ];
-
   const rawData = sessionStorage.getItem('spyGameConfig');
   if (!rawData) {
     alert('尚未設定遊戲，將跳轉回首頁！');
@@ -642,7 +426,7 @@
     const pair = WORD_BANK[chosenIdx];
     roundState.commonWord = pair[0];
     roundState.categoryName = pair[1];
-    roundState.categoryRuby = CATEGORY_RUBY[pair[1]] || pair[1];
+    roundState.categoryRuby = (typeof CATEGORY_RUBY !== 'undefined' && CATEGORY_RUBY[pair[1]]) ? CATEGORY_RUBY[pair[1]] : pair[1];
 
     const numPlayers = config.players.length;
     const playerIndices = Array.from({ length: numPlayers }, (_, i) => i);
@@ -711,7 +495,6 @@
       } else {
         elRoleText.innerHTML = '【你是間諜】';
         elRoleText.style.color = 'var(--danger)';
-        // 間諜類別顯示加上完整注音
         elWordText.innerHTML = `<span style="font-size: 0.95rem; color: var(--text-muted); display: block; margin-bottom: 4px;">類別提示：</span>${roundState.categoryRuby}`;
         elRuleTip.textContent = '⚠️ 你只知道此大類別，觀察他人並偽裝自己知情！';
       }
@@ -738,25 +521,21 @@
     }
   });
 
-  // ================= 階段 2：作畫順序一覽 =================
-  const elOrderList = document.getElementById('order-list');
+  // ================= 階段 2：單一欄位作畫順序 =================
+  const elFlowOrderList = document.getElementById('flow-order-list');
   function setupOrderBoard() {
-    elOrderList.innerHTML = '';
+    elFlowOrderList.innerHTML = '';
     roundState.roundPlayerOrder.forEach((p, idx) => {
       const isStart = idx === 0;
       const row = document.createElement('div');
-      row.className = 'order-row';
+      row.className = 'flow-player-item';
       row.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="font-size: 1rem; font-weight: bold; width: 24px; color: ${isStart ? 'var(--accent)' : 'var(--text-muted)'};">
-            ${idx + 1}.
-          </span>
-          <div class="color-dot" style="background-color: ${p.color}"></div>
-          <span style="font-weight: ${isStart ? 'bold' : 'normal'};">${p.name}</span>
-        </div>
-        ${isStart ? '<span style="font-size: 0.75rem; background: var(--accent); color: #0f172a; padding: 2px 8px; border-radius: 10px; font-weight: bold;">起筆玩家</span>' : ''}
+        <span class="flow-num" style="color: ${isStart ? 'var(--accent)' : 'var(--text-muted)'};">${idx + 1}.</span>
+        <div class="color-dot" style="background-color: ${p.color}"></div>
+        <span class="flow-name" style="color: ${isStart ? '#fff' : 'var(--text)'}; font-weight: ${isStart ? 'bold' : 'normal'};">${p.name}</span>
+        ${isStart ? '<span class="start-tag">起筆</span>' : ''}
       `;
-      elOrderList.appendChild(row);
+      elFlowOrderList.appendChild(row);
     });
   }
 
@@ -892,10 +671,8 @@
       spyDetailsHtml += `<p style="color: var(--success); font-weight: bold; margin-top: 4px;">
         📢 平民成功揪出間諜！間諜本回合未獲得隱匿分。
       </p>`;
-      // 顯示第 3 欄：逆轉猜題
       document.getElementById('reverse-guess-box').style.display = 'block';
       document.getElementById('title-topic').textContent = '💡 4. 本回合題目與類別';
-      // 題目先隱藏！
       document.getElementById('topic-details').innerHTML = `
         <p style="color: var(--text-muted); font-style: italic;">🔒 間諜逆轉猜題進行中，題目隱藏中...</p>
       `;
@@ -903,7 +680,6 @@
       spyDetailsHtml += `<p style="color: var(--danger); font-weight: bold; margin-top: 4px;">
         📢 間諜成功隱匿逃過！
       </p>`;
-      // 間諜獲勝，不需要猜題，直接公布答案
       document.getElementById('reverse-guess-box').style.display = 'none';
       document.getElementById('title-topic').textContent = '💡 3. 本回合題目與類別';
       revealTopicInfo();
@@ -919,7 +695,6 @@
     showScreen('step-result');
   }
 
-  // 解開題目標籤
   function revealTopicInfo() {
     document.getElementById('topic-details').innerHTML = `
       <p>題目：<span style="color: #fbbf24; font-weight: bold; font-size: 1.2rem;">${roundState.commonWord}</span></p>
@@ -975,7 +750,6 @@
     });
   }
 
-  // 間諜猜題完成處理
   document.getElementById('btn-spy-guess-success').addEventListener('click', () => {
     roundState.spyIndices.forEach(sIdx => {
       roundState.earnedScores[sIdx] += 2;
@@ -983,7 +757,7 @@
     });
     alert('間諜逆轉猜中題目！額外獲得 +2 分！現在公布題目！');
     document.getElementById('reverse-guess-box').style.display = 'none';
-    revealTopicInfo(); // 揭曉答案
+    revealTopicInfo();
     renderRoundScoresDetail();
     renderScoreboard();
   });
@@ -991,12 +765,11 @@
   document.getElementById('btn-spy-guess-fail').addEventListener('click', () => {
     alert('間諜未猜中題目！平民獲勝！現在公布題目！');
     document.getElementById('reverse-guess-box').style.display = 'none';
-    revealTopicInfo(); // 揭曉答案
+    revealTopicInfo();
     renderRoundScoresDetail();
     renderScoreboard();
   });
 
-  // 下一回合
   document.getElementById('btn-next-round').addEventListener('click', () => {
     currentRound++;
     startNewRound();
