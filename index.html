@@ -169,12 +169,11 @@
   </header>
 
   <div class="card">
-    <!-- 題庫難度選擇 -->
     <div style="margin-bottom: 12px;">
-      <label>題庫難度</label>
+      <label>題目難度</label>
       <select id="game-difficulty">
-        <option value="normal" selected>普通生活版（食物、動物、運動、家電...）</option>
-        <option value="hard">🔥 高難度進階版（情緒、自然、名勝、名人、卡通）</option>
+        <option value="normal" selected>普通難度</option>
+        <option value="hard">高難度</option>
       </select>
     </div>
 
@@ -211,7 +210,7 @@
     <label>玩家暱稱設定</label>
     <div id="player-inputs" class="player-list"></div>
 
-    <button id="btn-start" class="btn">開始遊戲</button>
+    <button id="btn-start" class="btn" type="button">開始遊戲</button>
   </div>
 </div>
 
@@ -226,6 +225,7 @@
   const elPlayerInputs = document.getElementById('player-inputs');
   const elSpyType = document.getElementById('spy-type');
   const elDifficulty = document.getElementById('game-difficulty');
+  const btnStart = document.getElementById('btn-start');
 
   function updateSpyOptions(playerCount) {
     const maxSpy = Math.max(1, Math.floor(playerCount / 3));
@@ -243,7 +243,7 @@
   }
 
   function renderPlayerInputs() {
-    const count = parseInt(elCount.value, 10);
+    const count = parseInt(elCount.value, 10) || 4;
     const existingNicknames = Array.from(elPlayerInputs.querySelectorAll('input')).map(input => input.value);
     
     elPlayerInputs.innerHTML = '';
@@ -255,7 +255,7 @@
       row.innerHTML = `
         <div class="color-dot" style="background-color: ${color}"></div>
         <span class="player-label">玩家 ${i + 1}</span>
-        <input type="text" data-index="${i}" placeholder="可輸入暱稱" value="${defaultNick}" />
+        <input type="text" class="nickname-input" placeholder="可輸入暱稱" value="${defaultNick}" />
       `;
       elPlayerInputs.appendChild(row);
     }
@@ -267,30 +267,42 @@
     renderPlayerInputs();
   });
 
-  updateSpyOptions(parseInt(elCount.value, 10));
+  // 初次初始化
+  updateSpyOptions(4);
   renderPlayerInputs();
 
-  document.getElementById('btn-start').addEventListener('click', () => {
-    const inputs = elPlayerInputs.querySelectorAll('input');
-    const players = Array.from(inputs).map((input, idx) => {
-      const rawNick = input.value.trim();
-      const displayName = rawNick ? `玩家 ${idx + 1}（${rawNick}）` : `玩家 ${idx + 1}`;
-      return {
-        name: displayName,
-        color: COLOR_PALETTE[idx % COLOR_PALETTE.length]
+  // 點擊開始遊戲
+  btnStart.addEventListener('click', () => {
+    try {
+      const inputs = elPlayerInputs.querySelectorAll('.nickname-input');
+      const playerCount = parseInt(elCount.value, 10) || 4;
+      const players = [];
+
+      for (let idx = 0; idx < playerCount; idx++) {
+        const input = inputs[idx];
+        const rawNick = input ? input.value.trim() : '';
+        const displayName = rawNick ? `玩家 ${idx + 1}（${rawNick}）` : `玩家 ${idx + 1}`;
+        players.push({
+          name: displayName,
+          color: COLOR_PALETTE[idx % COLOR_PALETTE.length]
+        });
+      }
+
+      const sessionData = {
+        players: players,
+        spyCount: parseInt(elSpyCount.value, 10) || 1,
+        mode: 'draw',
+        spyType: elSpyType.value || 'hint',
+        difficulty: elDifficulty.value || 'normal'
       };
-    });
 
-    const sessionData = {
-      players: players,
-      spyCount: parseInt(elSpyCount.value, 10),
-      mode: 'draw',
-      spyType: elSpyType.value,
-      difficulty: elDifficulty.value // 儲存所選難度
-    };
-
-    sessionStorage.setItem('spyGameConfig', JSON.stringify(sessionData));
-    window.location.href = 'game.html';
+      sessionStorage.setItem('spyGameConfig', JSON.stringify(sessionData));
+      
+      // 使用相對於當前頁面的跳轉路徑
+      window.location.assign('./game.html');
+    } catch (err) {
+      alert('啟動遊戲時發生錯誤：' + err.message);
+    }
   });
 </script>
 
