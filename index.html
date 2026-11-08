@@ -169,6 +169,15 @@
   </header>
 
   <div class="card">
+    <!-- 題庫難度選擇 -->
+    <div style="margin-bottom: 12px;">
+      <label>題庫難度</label>
+      <select id="game-difficulty">
+        <option value="normal" selected>普通生活版（食物、動物、運動、家電...）</option>
+        <option value="hard">🔥 高難度進階版（情緒、自然、名勝、名人、卡通）</option>
+      </select>
+    </div>
+
     <div style="margin-bottom: 12px;">
       <label>間諜模式</label>
       <select id="spy-type">
@@ -216,6 +225,7 @@
   const elSpyCount = document.getElementById('spy-count');
   const elPlayerInputs = document.getElementById('player-inputs');
   const elSpyType = document.getElementById('spy-type');
+  const elDifficulty = document.getElementById('game-difficulty');
 
   function updateSpyOptions(playerCount) {
     const maxSpy = Math.max(1, Math.floor(playerCount / 3));
@@ -275,7 +285,8 @@
       players: players,
       spyCount: parseInt(elSpyCount.value, 10),
       mode: 'draw',
-      spyType: elSpyType.value
+      spyType: elSpyType.value,
+      difficulty: elDifficulty.value // 儲存所選難度
     };
 
     sessionStorage.setItem('spyGameConfig', JSON.stringify(sessionData));
