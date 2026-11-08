@@ -111,7 +111,7 @@
     }
 
     .reveal-box {
-      min-height: 220px;
+      min-height: 250px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -129,22 +129,32 @@
       background: rgba(56, 189, 248, 0.1);
     }
 
-    .tag-word {
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: #fbbf24;
-      margin: 12px 0 8px 0;
-      line-height: 1.5;
+    /* 國字與右側直立注音樣式 */
+    .tag-word-wrap {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      margin: 16px 0 10px 0;
+      min-height: 120px;
     }
 
     ruby {
-      ruby-align: center;
+      writing-mode: vertical-rl;
+      -webkit-writing-mode: vertical-rl;
+      text-orientation: upright;
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #fbbf24;
+      line-height: 1.35;
+      letter-spacing: 4px;
     }
 
     rt {
-      font-size: 0.55em;
+      font-size: 0.42em;
       color: #93c5fd;
-      font-weight: normal;
+      font-weight: 500;
+      letter-spacing: 0px;
+      user-select: none;
     }
 
     .tag-identity {
@@ -239,7 +249,7 @@
       background: #0f172a;
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 10px 12px;
+      padding: 12px;
       font-size: 0.9rem;
       line-height: 1.6;
       margin-bottom: 8px;
@@ -262,7 +272,6 @@
       color: #fbbf24;
     }
   </style>
-  <!-- 直接同時載入普通與高難度題庫 -->
   <script src="words.js"></script>
   <script src="hard_words.js"></script>
 </head>
@@ -284,7 +293,9 @@
         </div>
         <div id="reveal-content" style="display: none;">
           <div class="tag-identity" id="role-text">平民</div>
-          <div class="tag-word" id="word-text">題目</div>
+          <div class="tag-word-wrap" id="word-container">
+            <span id="word-text">題目</span>
+          </div>
           <p id="rule-tip" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;"></p>
         </div>
       </div>
@@ -386,7 +397,6 @@
   }
   const config = JSON.parse(rawData);
 
-  // 決定使用哪個題庫變數（若變數名稱相同則自動 fallback）
   let ACTIVE_WORD_BANK = [];
   let ACTIVE_CATEGORY_RUBY = {};
 
@@ -394,7 +404,7 @@
     if (config.difficulty === 'hard') {
       if (typeof HARD_WORD_BANK !== 'undefined') {
         ACTIVE_WORD_BANK = HARD_WORD_BANK;
-        ACTIVE_CATEGORY_RUBY = HARD_CATEGORY_RUBY;
+        ACTIVE_CATEGORY_RUBY = typeof HARD_CATEGORY_RUBY !== 'undefined' ? HARD_CATEGORY_RUBY : {};
       } else if (typeof WORD_BANK !== 'undefined') {
         ACTIVE_WORD_BANK = WORD_BANK;
         ACTIVE_CATEGORY_RUBY = typeof CATEGORY_RUBY !== 'undefined' ? CATEGORY_RUBY : {};
@@ -402,7 +412,7 @@
     } else {
       if (typeof NORMAL_WORD_BANK !== 'undefined') {
         ACTIVE_WORD_BANK = NORMAL_WORD_BANK;
-        ACTIVE_CATEGORY_RUBY = NORMAL_CATEGORY_RUBY;
+        ACTIVE_CATEGORY_RUBY = typeof NORMAL_CATEGORY_RUBY !== 'undefined' ? NORMAL_CATEGORY_RUBY : {};
       } else if (typeof WORD_BANK !== 'undefined') {
         ACTIVE_WORD_BANK = WORD_BANK;
         ACTIVE_CATEGORY_RUBY = typeof CATEGORY_RUBY !== 'undefined' ? CATEGORY_RUBY : {};
@@ -520,12 +530,12 @@
       if (config.spyType === 'blank') {
         elRoleText.innerHTML = '【你是白板】';
         elRoleText.style.color = 'var(--danger)';
-        elWordText.innerHTML = '無題目';
+        elWordText.innerHTML = '<span style="font-size: 1.8rem; font-weight: 800; color: #fbbf24;">無題目</span>';
         elRuleTip.textContent = '⚠️ 你完全無提示！觀察他人筆畫並伺機偽裝！';
       } else {
         elRoleText.innerHTML = '【你是間諜】';
         elRoleText.style.color = 'var(--danger)';
-        elWordText.innerHTML = `<span style="font-size: 0.95rem; color: var(--text-muted); display: block; margin-bottom: 4px;">類別提示：</span>${roundState.categoryRuby}`;
+        elWordText.innerHTML = roundState.categoryRuby;
         elRuleTip.textContent = '⚠️ 你只知道此大類別，觀察他人並偽裝自己知情！';
       }
     } else {
@@ -719,8 +729,14 @@
 
   function revealTopicInfo() {
     document.getElementById('topic-details').innerHTML = `
-      <p>題目：<span style="color: #fbbf24; font-weight: bold; font-size: 1.2rem;">${roundState.commonWord}</span></p>
-      <p style="margin-top: 6px;">類別：<span>${roundState.categoryRuby}</span></p>
+      <div style="display: flex; align-items: center; gap: 18px; margin: 8px 0;">
+        <span style="color: var(--text-muted); font-size: 0.95rem;">題目：</span>
+        <div class="tag-word-wrap" style="margin: 0; min-height: auto;">${roundState.commonWord}</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 18px; margin: 8px 0;">
+        <span style="color: var(--text-muted); font-size: 0.95rem;">類別：</span>
+        <div class="tag-word-wrap" style="margin: 0; min-height: auto;">${roundState.categoryRuby}</div>
+      </div>
     `;
   }
 
@@ -803,7 +819,6 @@
     }
   });
 
-  // 啟動遊戲
   window.addEventListener('DOMContentLoaded', () => {
     startNewRound();
   });
