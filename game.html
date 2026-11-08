@@ -129,7 +129,7 @@
       background: rgba(56, 189, 248, 0.1);
     }
 
-    /* 詞彙整體維持橫向由左至右排列 */
+    /* 國字由左至右橫式排列 */
     .tag-word-wrap {
       display: inline-flex;
       flex-direction: row;
@@ -137,7 +137,7 @@
       align-items: center;
       flex-wrap: wrap;
       margin: 16px 0 10px 0;
-      gap: 10px; /* 每個字元方塊的間隔，確保絕不擠壓重疊 */
+      gap: 14px;
     }
 
     /* 每個國字是一個獨立單元 */
@@ -151,18 +151,50 @@
       line-height: 1;
     }
 
-    /* 每個國字右側的直排注音 */
+    /* 注音容器：並列 (左欄直立注音符號 + 右欄二/三/四聲聲調) */
     rt {
-      writing-mode: vertical-rl;
-      -webkit-writing-mode: vertical-rl;
-      font-size: 0.45em;
+      display: inline-flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      font-size: 0.42em;
       color: #93c5fd;
-      font-weight: normal;
+      font-weight: 600;
       line-height: 1;
-      letter-spacing: 0.5px;
-      margin-left: 2px; /* 緊貼國字右側不覆蓋 */
-      display: block;
+      margin-left: 3px;
       user-select: none;
+    }
+
+    /* 左欄：注音符號縱向欄位 (包含上方輕聲點與直排注音) */
+    .zhuyin-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 輕聲點：居中顯示於注音符號正上方 */
+    .tone-light-dot {
+      font-size: 0.75em;
+      line-height: 0.6;
+      margin-bottom: 1px;
+    }
+
+    /* 直排注音符號本體 */
+    .zhuyin-symbols {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1;
+      letter-spacing: 1px;
+    }
+
+    /* 右欄：二、三、四聲聲調，垂直靠下居右 */
+    .zhuyin-tone-side {
+      font-size: 0.85em;
+      line-height: 1;
+      margin-left: 1px;
+      align-self: flex-end;
+      padding-bottom: 2px;
     }
 
     .tag-identity {
@@ -398,6 +430,33 @@
 </div>
 
 <script>
+  // 自動解析標準注音排版：輕聲在正上方，二/三/四聲在右側
+  function formatBopomofo(htmlStr) {
+    if (!htmlStr) return '';
+    return htmlStr.replace(/<rt>(.*?)<\/rt>/g, (match, p1) => {
+      const text = p1.trim();
+      const tones = ['ˊ', 'ˇ', 'ˋ'];
+      let sideTone = '';
+      let isLight = false;
+      let symbols = '';
+
+      for (let ch of text) {
+        if (tones.includes(ch)) {
+          sideTone = ch;
+        } else if (ch === '˙') {
+          isLight = true;
+        } else {
+          symbols += `<span>${ch}</span>`;
+        }
+      }
+
+      const lightHtml = isLight ? `<span class="tone-light-dot">˙</span>` : '';
+      const sideToneHtml = sideTone ? `<span class="zhuyin-tone-side">${sideTone}</span>` : '';
+
+      return `<rt><div class="zhuyin-col">${lightHtml}<span class="zhuyin-symbols">${symbols}</span></div>${sideToneHtml}</rt>`;
+    });
+  }
+
   const rawData = sessionStorage.getItem('spyGameConfig');
   if (!rawData) {
     alert('尚未設定遊戲，將跳轉回首頁！');
@@ -543,13 +602,13 @@
       } else {
         elRoleText.innerHTML = '【你是間諜】';
         elRoleText.style.color = 'var(--danger)';
-        elWordText.innerHTML = roundState.categoryRuby;
+        elWordText.innerHTML = formatBopomofo(roundState.categoryRuby);
         elRuleTip.textContent = '⚠️ 你只知道此大類別，觀察他人並偽裝自己知情！';
       }
     } else {
       elRoleText.innerHTML = '【你是平民】';
       elRoleText.style.color = 'var(--accent)';
-      elWordText.innerHTML = roundState.commonWord;
+      elWordText.innerHTML = formatBopomofo(roundState.commonWord);
       elRuleTip.textContent = '💡 隱密表現特徵，別畫太明顯讓間諜猜出！';
     }
 
@@ -739,11 +798,11 @@
     document.getElementById('topic-details').innerHTML = `
       <div style="display: flex; align-items: center; gap: 12px; margin: 8px 0;">
         <span style="color: var(--text-muted); font-size: 0.95rem; white-space: nowrap;">題目：</span>
-        <div class="tag-word-wrap" style="margin: 0;">${roundState.commonWord}</div>
+        <div class="tag-word-wrap" style="margin: 0;">${formatBopomofo(roundState.commonWord)}</div>
       </div>
       <div style="display: flex; align-items: center; gap: 12px; margin: 8px 0;">
         <span style="color: var(--text-muted); font-size: 0.95rem; white-space: nowrap;">類別：</span>
-        <div class="tag-word-wrap" style="margin: 0;">${roundState.categoryRuby}</div>
+        <div class="tag-word-wrap" style="margin: 0;">${formatBopomofo(roundState.categoryRuby)}</div>
       </div>
     `;
   }
