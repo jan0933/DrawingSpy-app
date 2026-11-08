@@ -1,5 +1,5 @@
-// 5 大高難度類別名稱注音字典
-const CATEGORY_RUBY = {
+// 高難度類別注音字典
+const HARD_CATEGORY_RUBY = {
   "情緒": "<ruby>情<rt>ㄑㄧㄥˊ</rt>緒<rt>ㄒㄩˋ</rt></ruby>",
   "自然現象": "<ruby>自<rt>ㄗˋ</rt>然<rt>ㄖㄢˊ</rt>現<rt>ㄒㄧㄢˋ</rt>象<rt>ㄒㄧㄤˋ</rt></ruby>",
   "卡通人物": "<ruby>卡<rt>ㄎㄚˇ</rt>通<rt>ㄊㄨㄥ</rt>人<rt>ㄖㄣˊ</rt>物<rt>ㄨˋ</rt></ruby>",
@@ -7,8 +7,8 @@ const CATEGORY_RUBY = {
   "世界名人": "<ruby>世<rt>ㄕˋ</rt>界<rt>ㄐㄧㄝˋ</rt>名<rt>ㄇㄧㄥˊ</rt>人<rt>ㄖㄣˊ</rt></ruby>"
 };
 
-// 每個類別各 30 題，共 150 題
-const WORD_BANK = [
+// 高難度題庫清單 (共 150 題)
+const HARD_WORD_BANK = [
   // ================= 1. 情緒 (30 題) =================
   ["<ruby>快<rt>ㄎㄨㄞˋ</rt>樂<rt>ㄌㄜˋ</rt></ruby>", "情緒"],
   ["<ruby>憤<rt>ㄈㄣˋ</rt>怒<rt>ㄋㄨˋ</rt></ruby>", "情緒"],
