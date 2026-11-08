@@ -129,31 +129,39 @@
       background: rgba(56, 189, 248, 0.1);
     }
 
-    /* 國字與右側直立注音樣式 */
+    /* 詞彙整體維持橫向由左至右排列 */
     .tag-word-wrap {
       display: inline-flex;
+      flex-direction: row;
       justify-content: center;
       align-items: center;
+      flex-wrap: wrap;
       margin: 16px 0 10px 0;
-      min-height: 120px;
+      gap: 10px; /* 每個字元方塊的間隔，確保絕不擠壓重疊 */
     }
 
+    /* 每個國字是一個獨立單元 */
     ruby {
-      writing-mode: vertical-rl;
-      -webkit-writing-mode: vertical-rl;
-      text-orientation: upright;
+      display: inline-flex;
+      flex-direction: row;
+      align-items: center;
       font-size: 2.2rem;
       font-weight: 800;
       color: #fbbf24;
-      line-height: 1.35;
-      letter-spacing: 4px;
+      line-height: 1;
     }
 
+    /* 每個國字右側的直排注音 */
     rt {
-      font-size: 0.42em;
+      writing-mode: vertical-rl;
+      -webkit-writing-mode: vertical-rl;
+      font-size: 0.45em;
       color: #93c5fd;
-      font-weight: 500;
-      letter-spacing: 0px;
+      font-weight: normal;
+      line-height: 1;
+      letter-spacing: 0.5px;
+      margin-left: 2px; /* 緊貼國字右側不覆蓋 */
+      display: block;
       user-select: none;
     }
 
@@ -729,13 +737,13 @@
 
   function revealTopicInfo() {
     document.getElementById('topic-details').innerHTML = `
-      <div style="display: flex; align-items: center; gap: 18px; margin: 8px 0;">
-        <span style="color: var(--text-muted); font-size: 0.95rem;">題目：</span>
-        <div class="tag-word-wrap" style="margin: 0; min-height: auto;">${roundState.commonWord}</div>
+      <div style="display: flex; align-items: center; gap: 12px; margin: 8px 0;">
+        <span style="color: var(--text-muted); font-size: 0.95rem; white-space: nowrap;">題目：</span>
+        <div class="tag-word-wrap" style="margin: 0;">${roundState.commonWord}</div>
       </div>
-      <div style="display: flex; align-items: center; gap: 18px; margin: 8px 0;">
-        <span style="color: var(--text-muted); font-size: 0.95rem;">類別：</span>
-        <div class="tag-word-wrap" style="margin: 0; min-height: auto;">${roundState.categoryRuby}</div>
+      <div style="display: flex; align-items: center; gap: 12px; margin: 8px 0;">
+        <span style="color: var(--text-muted); font-size: 0.95rem; white-space: nowrap;">類別：</span>
+        <div class="tag-word-wrap" style="margin: 0;">${roundState.categoryRuby}</div>
       </div>
     `;
   }
