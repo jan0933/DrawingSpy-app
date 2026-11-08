@@ -20,7 +20,6 @@
       margin: 0;
       padding: 0;
       -webkit-tap-highlight-color: transparent;
-      user-select: none;
     }
 
     body {
@@ -139,23 +138,23 @@
     }
 
     .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      display: block;
       width: 100%;
       padding: 14px;
-      font-size: 1rem;
-      font-weight: 600;
+      font-size: 1.1rem;
+      font-weight: 700;
       border-radius: 10px;
       border: none;
       background: var(--accent);
       color: #0f172a;
       cursor: pointer;
       margin-top: 10px;
-      transition: transform 0.1s ease;
+      text-align: center;
+      text-decoration: none;
     }
 
     .btn:active {
+      background: #0284c7;
       transform: scale(0.98);
     }
   </style>
@@ -210,7 +209,8 @@
     <label>玩家暱稱設定</label>
     <div id="player-inputs" class="player-list"></div>
 
-    <button id="btn-start" class="btn" type="button">開始遊戲</button>
+    <!-- 加上直接的 onclick 觸發 -->
+    <button id="btn-start" class="btn" type="button" onclick="handleStartGame()">開始遊戲</button>
   </div>
 </div>
 
@@ -225,7 +225,6 @@
   const elPlayerInputs = document.getElementById('player-inputs');
   const elSpyType = document.getElementById('spy-type');
   const elDifficulty = document.getElementById('game-difficulty');
-  const btnStart = document.getElementById('btn-start');
 
   function updateSpyOptions(playerCount) {
     const maxSpy = Math.max(1, Math.floor(playerCount / 3));
@@ -267,12 +266,12 @@
     renderPlayerInputs();
   });
 
-  // 初次初始化
+  // 初始化
   updateSpyOptions(4);
   renderPlayerInputs();
 
-  // 點擊開始遊戲
-  btnStart.addEventListener('click', () => {
+  // 核心跳轉函式
+  function handleStartGame() {
     try {
       const inputs = elPlayerInputs.querySelectorAll('.nickname-input');
       const playerCount = parseInt(elCount.value, 10) || 4;
@@ -296,14 +295,15 @@
         difficulty: elDifficulty.value || 'normal'
       };
 
+      // 儲存設定至 sessionStorage
       sessionStorage.setItem('spyGameConfig', JSON.stringify(sessionData));
-      
-      // 使用相對於當前頁面的跳轉路徑
-      window.location.assign('./game.html');
-    } catch (err) {
-      alert('啟動遊戲時發生錯誤：' + err.message);
+
+      // 執行頁面跳轉
+      window.location.href = 'game.html';
+    } catch (e) {
+      alert('發生錯誤：' + e.message);
     }
-  });
+  }
 </script>
 
 </body>
