@@ -329,7 +329,7 @@
 
       <div style="text-align: left; margin-bottom: 4px;">
         <label>玩家暱稱</label>
-        <input type="text" id="input-nickname" placeholder="未輸入將自動編號 (如: 玩家 1)" maxlength="8" />
+        <input type="text" id="input-nickname" placeholder="未輸入將依加入順序預設為玩家1、2..." maxlength="8" />
       </div>
 
       <div id="host-create-section">
@@ -564,8 +564,9 @@
     btn.disabled = true;
     btn.textContent = '🏠 正在建立房間...';
 
+    // 房主未輸入時，名稱固定為「房主」
     const rawNick = document.getElementById('input-nickname').value.trim();
-    const nick = rawNick || '玩家 1';
+    const nick = rawNick || '房主';
 
     try {
       currentRoomId = await generateUniqueRoomId();
@@ -615,7 +616,8 @@
       const existingCount = Object.keys(data.players || {}).length;
       if (existingCount >= 8) return alert('房間人數已滿 (上限 8 人)！');
 
-      const nick = rawNick || `玩家 ${existingCount + 1}`;
+      // 訪客未輸入時，依加入順序預設為「玩家 1」、「玩家 2」...
+      const nick = rawNick || `玩家 ${existingCount}`;
       myColor = COLOR_PALETTE[existingCount % COLOR_PALETTE.length];
       isHost = false;
 
@@ -1104,7 +1106,6 @@
       renderAllStrokes(cachedStrokes);
     });
 
-    // 取得 0.0 ~ 1.0 的百分比相對座標
     function getCanvasRatioPos(e) {
       const b = canvas.getBoundingClientRect();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
