@@ -66,6 +66,40 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.25);
     }
 
+    /* 模式切換按鈕區 */
+    .mode-switch-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+    }
+
+    .mode-btn.inactive {
+      background: #0f172a;
+      color: var(--text-muted);
+    }
+
+    .mode-btn:active {
+      transform: scale(0.98);
+    }
+
     label {
       display: block;
       font-size: 0.85rem;
@@ -166,6 +200,12 @@
     <h1>誰是間諜助手</h1>
     <p class="subtitle">紙筆畫畫模式・設定人數與規則</p>
   </header>
+
+  <!-- 模式切換按鈕區 -->
+  <div class="mode-switch-group">
+    <button type="button" class="mode-btn active" id="btn-mode-local">📱 單機傳閱模式</button>
+    <button type="button" class="mode-btn inactive" id="btn-mode-online" onclick="window.location.href='online.html'">🌐 線上連線模式</button>
+  </div>
 
   <div class="card">
     <div style="margin-bottom: 12px;">
