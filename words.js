@@ -12,9 +12,9 @@ const NORMAL_CATEGORY_RUBY = {
   "運動": "<ruby>運<rt>ㄩㄣˋ</rt>動<rt>ㄉㄨㄥˋ</rt></ruby>"
 };
 
-// 普通難度題庫清單 (共 297 題)
+// 普通難度題庫清單 (共 333 題，全數為一字一注音格式)
 const NORMAL_WORD_BANK = [
-  // ================= 1. 食物 (50 題) =================
+  // ================= 1. 食物 (72 題) =================
   ["<ruby>珍<rt>ㄓㄣ</rt>珠<rt>ㄓㄨ</rt>奶<rt>ㄋㄞˇ</rt>茶<rt>ㄔㄚˊ</rt></ruby>", "食物"],
   ["<ruby>臭<rt>ㄔㄡˋ</rt>豆<rt>ㄉㄡˋ</rt>腐<rt>ㄈㄨˇ</rt></ruby>", "食物"],
   ["<ruby>滷<rt>ㄌㄨˇ</rt>肉<rt>ㄖㄡˋ</rt>飯<rt>ㄈㄢˋ</rt></ruby>", "食物"],
@@ -65,6 +65,28 @@ const NORMAL_WORD_BANK = [
   ["<ruby>義<rt>ㄧˋ</rt>大<rt>ㄉㄚˋ</rt>利<rt>ㄌㄧˋ</rt>麵<rt>ㄇㄧㄢˋ</rt></ruby>", "食物"],
   ["<ruby>生<rt>ㄕㄥ</rt>魚<rt>ㄩˊ</rt>片<rt>ㄆㄧㄢˋ</rt></ruby>", "食物"],
   ["<ruby>烤<rt>ㄎㄠˇ</rt>香<rt>ㄒㄧㄤ</rt>腸<rt>ㄔㄤˊ</rt></ruby>", "食物"],
+  ["<ruby>蘿<rt>ㄌㄨㄛˊ</rt>蔔<rt>˙ㄅㄛ</rt>糕<rt>ㄍㄠ</rt></ruby>", "食物"],
+  ["<ruby>鐵<rt>ㄊㄧㄝˇ</rt>板<rt>ㄅㄢˇ</rt>麵<rt>ㄇㄧㄢˋ</rt></ruby>", "食物"],
+  ["<ruby>三<rt>ㄙㄢ</rt>明<rt>ㄇㄧㄥˊ</rt>治<rt>ㄓˋ</rt></ruby>", "食物"],
+  ["<ruby>炸<rt>ㄓㄚˊ</rt>雞<rt>ㄐㄧ</rt>腿<rt>ㄊㄨㄟˇ</rt></ruby>", "食物"],
+  ["<ruby>石<rt>ㄕˊ</rt>鍋<rt>ㄍㄨㄛ</rt>拌<rt>ㄅㄢˋ</rt>飯<rt>ㄈㄢˋ</rt></ruby>", "食物"],
+  ["<ruby>提<rt>ㄊㄧˊ</rt>拉<rt>ㄌㄚ</rt>米<rt>ㄇㄧˇ</rt>蘇<rt>ㄙㄨ</rt></ruby>", "食物"],
+  ["<ruby>芒<rt>ㄇㄤˊ</rt>果<rt>ㄍㄨㄛˇ</rt>冰<rt>ㄅㄧㄥ</rt></ruby>", "食物"],
+  ["<ruby>雞<rt>ㄐㄧ</rt>蛋<rt>ㄉㄢˋ</rt>糕<rt>ㄍㄠ</rt></ruby>", "食物"],
+  ["<ruby>銅<rt>ㄊㄨㄥˊ</rt>鑼<rt>ㄌㄨㄛˊ</rt>燒<rt>ㄕㄠ</rt></ruby>", "食物"],
+  ["<ruby>吉<rt>ㄐㄧˊ</rt>拿<rt>ㄋㄚˊ</rt>棒<rt>ㄅㄤˋ</rt></ruby>", "食物"],
+  ["<ruby>雙<rt>ㄕㄨㄤ</rt>胞<rt>ㄅㄠ</rt>胎<rt>ㄊㄞ</rt></ruby>", "食物"],
+  ["<ruby>大<rt>ㄉㄚˋ</rt>福<rt>ㄈㄨˊ</rt></ruby>", "食物"],
+  ["<ruby>木<rt>ㄇㄨˋ</rt>瓜<rt>ㄍㄨㄚ</rt>牛<rt>ㄋㄧㄡˊ</rt>奶<rt>ㄋㄞˇ</rt></ruby>", "食物"],
+  ["<ruby>冬<rt>ㄉㄨㄥ</rt>瓜<rt>ㄍㄨㄚ</rt>茶<rt>ㄔㄚˊ</rt></ruby>", "食物"],
+  ["<ruby>玉<rt>ㄩˋ</rt>米<rt>ㄇㄧˇ</rt>濃<rt>ㄋㄨㄥˊ</rt>湯<rt>ㄊㄤ</rt></ruby>", "食物"],
+  ["<ruby>味<rt>ㄨㄟˋ</rt>噌<rt>ㄘㄥ</rt>湯<rt>ㄊㄤ</rt></ruby>", "食物"],
+  ["<ruby>酸<rt>ㄙㄨㄢ</rt>辣<rt>ㄌㄚˋ</rt>湯<rt>ㄊㄤ</rt></ruby>", "食物"],
+  ["<ruby>壽<rt>ㄕㄡˋ</rt>喜<rt>ㄒㄧˇ</rt>燒<rt>ㄕㄠ</rt></ruby>", "食物"],
+  ["<ruby>烤<rt>ㄎㄠˇ</rt>地<rt>ㄉㄧˋ</rt>瓜<rt>ㄍㄨㄚ</rt></ruby>", "食物"],
+  ["<ruby>杏<rt>ㄒㄧㄥˋ</rt>仁<rt>ㄖㄣˊ</rt>豆<rt>ㄉㄡˋ</rt>腐<rt>ㄈㄨˇ</rt></ruby>", "食物"],
+  ["<ruby>黑<rt>ㄏㄟ</rt>輪<rt>ㄌㄨㄣˊ</rt></ruby>", "食物"],
+  ["<ruby>燒<rt>ㄕㄠ</rt>賣<rt>ㄇㄞˋ</rt></ruby>", "食物"],
 
   // ================= 2. 蔬菜水果 (21 題) =================
   ["<ruby>香<rt>ㄒㄧㄤ</rt>蕉<rt>ㄐㄧㄠ</rt></ruby>", "蔬菜水果"],
@@ -210,30 +232,19 @@ const NORMAL_WORD_BANK = [
   ["<ruby>教<rt>ㄐㄧㄠˋ</rt>堂<rt>ㄊㄤˊ</rt></ruby>", "場所"],
   ["<ruby>夜<rt>ㄧㄝˋ</rt>市<rt>ㄕˋ</rt></ruby>", "場所"],
 
-  // ================= 7. 家具 (21 題) =================
+  // ================= 7. 家具 (10 題) =================
   ["<ruby>沙<rt>ㄕㄚ</rt>發<rt>ㄈㄚ</rt></ruby>", "家具"],
-  ["<ruby>床<rt>ㄔㄨㄤˊ</rt>墊<rt>ㄉㄧㄢˋ</rt></ruby>", "家具"],
   ["<ruby>餐<rt>ㄘㄢ</rt>桌<rt>ㄓㄨㄛ</rt></ruby>", "家具"],
   ["<ruby>椅<rt>ㄧˇ</rt>子<rt>˙ㄗ</rt></ruby>", "家具"],
   ["<ruby>衣<rt>ㄧ</rt>櫃<rt>ㄍㄨㄟˋ</rt></ruby>", "家具"],
   ["<ruby>書<rt>ㄕㄨ</rt>架<rt>ㄐㄧㄚˋ</rt></ruby>", "家具"],
-  ["<ruby>書<rt>ㄕㄨ</rt>桌<rt>ㄓㄨㄛ</rt></ruby>", "家具"],
   ["<ruby>鞋<rt>ㄒㄧㄝˊ</rt>櫃<rt>ㄍㄨㄟˋ</rt></ruby>", "家具"],
-  ["<ruby>茶<rt>ㄔㄚˊ</rt>几<rt>ㄐㄧ</rt></ruby>", "家具"],
-  ["<ruby>梳<rt>ㄕㄨ</rt>妝<rt>ㄓㄨㄤ</rt>台<rt>ㄊㄞˊ</rt></ruby>", "家具"],
-  ["<ruby>床<rt>ㄔㄨㄤˊ</rt>頭<rt>ㄊㄡˊ</rt>櫃<rt>ㄍㄨㄟˋ</rt></ruby>", "家具"],
-  ["<ruby>電<rt>ㄉㄧㄢˋ</rt>視<rt>ㄕˋ</rt>櫃<rt>ㄍㄨㄟˋ</rt></ruby>", "家具"],
-  ["<ruby>吊<rt>ㄉㄧㄠˋ</rt>椅<rt>ㄧˇ</rt></ruby>", "家具"],
   ["<ruby>搖<rt>ㄧㄠˊ</rt>椅<rt>ㄧˇ</rt></ruby>", "家具"],
-  ["<ruby>吧<rt>ㄅㄚ</rt>台<rt>ㄊㄞˊ</rt>椅<rt>ㄧˇ</rt></ruby>", "家具"],
-  ["<ruby>衣<rt>ㄧ</rt>帽<rt>ㄇㄠˋ</rt>架<rt>ㄐㄧㄚˋ</rt></ruby>", "家具"],
-  ["<ruby>長<rt>ㄔㄤˊ</rt>凳<rt>ㄉㄥˋ</rt></ruby>", "家具"],
-  ["<ruby>摺<rt>ㄓㄜˊ</rt>疊<rt>ㄉㄧㄝˊ</rt>桌<rt>ㄓㄨㄛ</rt></ruby>", "家具"],
   ["<ruby>雙<rt>ㄕㄨㄤ</rt>層<rt>ㄘㄥˊ</rt>床<rt>ㄔㄨㄤˊ</rt></ruby>", "家具"],
-  ["<ruby>酒<rt>ㄐㄧㄡˇ</rt>櫃<rt>ㄍㄨㄟˋ</rt></ruby>", "家具"],
   ["<ruby>屏<rt>ㄆㄧㄥˊ</rt>風<rt>ㄈㄥ</rt></ruby>", "家具"],
+  ["<ruby>衣<rt>ㄧ</rt>帽<rt>ㄇㄠˋ</rt>架<rt>ㄐㄧㄚˋ</rt></ruby>", "家具"],
 
-  // ================= 8. 日常用品 (50 題) =================
+  // ================= 8. 日常用品 (75 題) =================
   ["<ruby>牙<rt>ㄧㄚˊ</rt>刷<rt>ㄕㄨㄚ</rt></ruby>", "日常用品"],
   ["<ruby>牙<rt>ㄧㄚˊ</rt>膏<rt>ㄍㄠ</rt></ruby>", "日常用品"],
   ["<ruby>毛<rt>ㄇㄠˊ</rt>巾<rt>ㄐㄧㄣ</rt></ruby>", "日常用品"],
@@ -284,6 +295,31 @@ const NORMAL_WORD_BANK = [
   ["<ruby>襪<rt>ㄨㄚˋ</rt>子<rt>˙ㄗ</rt></ruby>", "日常用品"],
   ["<ruby>手<rt>ㄕㄡˇ</rt>套<rt>ㄊㄠˋ</rt></ruby>", "日常用品"],
   ["<ruby>圍<rt>ㄨㄟˊ</rt>巾<rt>ㄐㄧㄣ</rt></ruby>", "日常用品"],
+  ["<ruby>遮<rt>ㄓㄜ</rt>陽<rt>ㄧㄤˊ</rt>帽<rt>ㄇㄠˋ</rt></ruby>", "日常用品"],
+  ["<ruby>安<rt>ㄢ</rt>全<rt>ㄑㄩㄢˊ</rt>帽<rt>ㄇㄠˋ</rt></ruby>", "日常用品"],
+  ["<ruby>戒<rt>ㄐㄧㄝˋ</rt>指<rt>ㄓˇ</rt></ruby>", "日常用品"],
+  ["<ruby>項<rt>ㄒㄧㄤˋ</rt>鍊<rt>ㄌㄧㄢˋ</rt></ruby>", "日常用品"],
+  ["<ruby>耳<rt>ㄦˇ</rt>塞<rt>ㄙㄞ</rt></ruby>", "日常用品"],
+  ["<ruby>指<rt>ㄓˇ</rt>甲<rt>ㄐㄧㄚˇ</rt>油<rt>ㄧㄡˊ</rt></ruby>", "日常用品"],
+  ["<ruby>護<rt>ㄏㄨˋ</rt>唇<rt>ㄔㄨㄣˊ</rt>膏<rt>ㄍㄠ</rt></ruby>", "日常用品"],
+  ["<ruby>面<rt>ㄇㄧㄢˋ</rt>膜<rt>ㄇㄛˊ</rt></ruby>", "日常用品"],
+  ["<ruby>防<rt>ㄈㄤˊ</rt>曬<rt>ㄕㄞˋ</rt>乳<rt>ㄖㄨˇ</rt></ruby>", "日常用品"],
+  ["<ruby>香<rt>ㄒㄧㄤ</rt>水<rt>ㄕㄨㄟˇ</rt></ruby>", "日常用品"],
+  ["<ruby>刮<rt>ㄍㄨㄚ</rt>鬍<rt>ㄏㄨˊ</rt>刀<rt>ㄉㄠ</rt></ruby>", "日常用品"],
+  ["<ruby>開<rt>ㄎㄞ</rt>瓶<rt>ㄆㄧㄥˊ</rt>器<rt>ㄑㄧˋ</rt></ruby>", "日常用品"],
+  ["<ruby>保<rt>ㄅㄠˇ</rt>鮮<rt>ㄒㄧㄢ</rt>膜<rt>ㄇㄛˊ</rt></ruby>", "日常用品"],
+  ["<ruby>量<rt>ㄌㄧㄤˊ</rt>杯<rt>ㄅㄟ</rt></ruby>", "日常用品"],
+  ["<ruby>圍<rt>ㄨㄟˊ</rt>裙<rt>ㄑㄩㄣˊ</rt></ruby>", "日常用品"],
+  ["<ruby>隔<rt>ㄍㄜˊ</rt>熱<rt>ㄖㄜˋ</rt>手<rt>ㄕㄡˇ</rt>套<rt>ㄊㄠˋ</rt></ruby>", "日常用品"],
+  ["<ruby>延<rt>ㄧㄢˊ</rt>長<rt>ㄔㄤˊ</rt>線<rt>ㄒㄧㄢˋ</rt></ruby>", "日常用品"],
+  ["<ruby>乾<rt>ㄍㄢ</rt>電<rt>ㄉㄧㄢˋ</rt>池<rt>ㄔˊ</rt></ruby>", "日常用品"],
+  ["<ruby>蒼<rt>ㄘㄤ</rt>蠅<rt>ㄧㄥˊ</rt>拍<rt>ㄆㄞ</rt></ruby>", "日常用品"],
+  ["<ruby>水<rt>ㄕㄨㄟˇ</rt>果<rt>ㄍㄨㄛˇ</rt>刀<rt>ㄉㄠ</rt></ruby>", "日常用品"],
+  ["<ruby>削<rt>ㄒㄧㄠ</rt>皮<rt>ㄆㄧˊ</rt>器<rt>ㄑㄧˋ</rt></ruby>", "日常用品"],
+  ["<ruby>耳<rt>ㄦˇ</rt>機<rt>ㄐㄧ</rt></ruby>", "日常用品"],
+  ["<ruby>牙<rt>ㄧㄚˊ</rt>線<rt>ㄒㄧㄢˋ</rt></ruby>", "日常用品"],
+  ["<ruby>棉<rt>ㄇㄧㄢˊ</rt>花<rt>ㄏㄨㄚ</rt>棒<rt>ㄅㄤˋ</rt></ruby>", "日常用品"],
+  ["<ruby>指<rt>ㄓˇ</rt>南<rt>ㄋㄢˊ</rt>針<rt>ㄓㄣ</rt></ruby>", "日常用品"],
 
   // ================= 9. 文具 (21 題) =================
   ["<ruby>鉛<rt>ㄑㄧㄢ</rt>筆<rt>ㄅㄧˇ</rt></ruby>", "文具"],
@@ -295,7 +331,7 @@ const NORMAL_WORD_BANK = [
   ["<ruby>訂<rt>ㄉㄧㄥˋ</rt>書<rt>ㄕㄨ</rt>機<rt>ㄐㄧ</rt></ruby>", "文具"],
   ["<ruby>迴<rt>ㄏㄨㄟˊ</rt>紋<rt>ㄨㄣˊ</rt>針<rt>ㄓㄣ</rt></ruby>", "文具"],
   ["<ruby>筆<rt>ㄅㄧˇ</rt>記<rt>ㄐㄧˋ</rt>本<rt>ㄅㄣˇ</rt></ruby>", "文具"],
-  ["<ruby>彩色<rt>ㄘㄞˇ ㄙㄜˋ</rt>筆<rt>ㄅㄧˇ</rt></ruby>", "文具"],
+  ["<ruby>彩<rt>ㄘㄞˇ</rt>色<rt>ㄙㄜˋ</rt>筆<rt>ㄅㄧˇ</rt></ruby>", "文具"],
   ["<ruby>蠟<rt>ㄌㄚˋ</rt>筆<rt>ㄅㄧˇ</rt></ruby>", "文具"],
   ["<ruby>螢<rt>ㄧㄥˊ</rt>光<rt>ㄍㄨㄤ</rt>筆<rt>ㄅㄧˇ</rt></ruby>", "文具"],
   ["<ruby>圓<rt>ㄩㄢˊ</rt>規<rt>ㄍㄨㄟ</rt></ruby>", "文具"],
