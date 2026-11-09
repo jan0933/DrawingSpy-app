@@ -547,42 +547,65 @@
 
   checkInviteMode();
 
+  // ================= 房號防碰撞檢查產生器 =================
+  async function generateUniqueRoomId() {
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const candidateId = Math.floor(1000 + Math.random() * 9000).toString();
+      const snapshot = await db.ref('rooms/' + candidateId).get();
+      // 若該號碼未被使用或已處於 closed 狀態，則可安全使用
+      if (!snapshot.exists() || snapshot.val().status === 'closed') {
+        return candidateId;
+      }
+    }
+    // 連續多次碰撞的極端情況，使用 5 位數確保絕對不重複
+    return Math.floor(10000 + Math.random() * 90000).toString();
+  }
+
   // ================= 開房與加入 =================
-  document.getElementById('btn-create-room').onclick = () => {
-    // 房主沒填暱稱時自動預設為「玩家 1」
+  document.getElementById('btn-create-room').onclick = async () => {
+    const btn = document.getElementById('btn-create-room');
+    btn.disabled = true;
+    btn.textContent = '🏠 正在建立房間...';
+
     const rawNick = document.getElementById('input-nickname').value.trim();
     const nick = rawNick || '玩家 1';
 
-    currentRoomId = Math.floor(1000 + Math.random() * 9000).toString();
-    myPlayerId = 'p_' + Date.now();
-    isHost = true;
-    myColor = COLOR_PALETTE[0];
+    try {
+      currentRoomId = await generateUniqueRoomId();
+      myPlayerId = 'p_' + Date.now();
+      isHost = true;
+      myColor = COLOR_PALETTE[0];
 
-    const initialRoom = {
-      status: 'waiting',
-      hostId: myPlayerId,
-      players: {
-        [myPlayerId]: { name: nick, color: myColor, isHost: true, score: 0 }
-      },
-      currentTurnIndex: 0,
-      turnOrder: [myPlayerId],
-      round: 1,
-      strokes: {},
-      votes: {}
-    };
+      const initialRoom = {
+        status: 'waiting',
+        hostId: myPlayerId,
+        players: {
+          [myPlayerId]: { name: nick, color: myColor, isHost: true, score: 0 }
+        },
+        currentTurnIndex: 0,
+        turnOrder: [myPlayerId],
+        round: 1,
+        strokes: {},
+        votes: {}
+      };
 
-    const roomRef = db.ref('rooms/' + currentRoomId);
-    roomRef.set(initialRoom).then(() => {
+      const roomRef = db.ref('rooms/' + currentRoomId);
+      await roomRef.set(initialRoom);
       roomRef.child('status').onDisconnect().set('closed');
       setupLobby();
       listenRoom();
-    });
+    } catch (err) {
+      alert('建立房間失敗，請檢查網路連線：' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '🏠 建立新房間 (當房主)';
+    }
   };
 
   document.getElementById('btn-join-room').onclick = () => {
     const rawNick = document.getElementById('input-nickname').value.trim();
     const rId = document.getElementById('input-room-id').value.trim();
-    if (rId.length !== 4) return alert('請確認 4 位數房號！');
+    if (rId.length !== 4 && rId.length !== 5) return alert('請確認房間號碼！');
 
     currentRoomId = rId;
     myPlayerId = 'p_' + Date.now();
@@ -595,9 +618,7 @@
       const existingCount = Object.keys(data.players || {}).length;
       if (existingCount >= 8) return alert('房間人數已滿 (上限 8 人)！');
 
-      // 訪客沒填暱稱時，依目前人數自動命名為「玩家 2」、「玩家 3」...
       const nick = rawNick || `玩家 ${existingCount + 1}`;
-
       myColor = COLOR_PALETTE[existingCount % COLOR_PALETTE.length];
       isHost = false;
 
