@@ -129,7 +129,6 @@
       background: rgba(56, 189, 248, 0.1);
     }
 
-    /* 國字橫排與直立注音樣式 */
     .tag-word-wrap {
       display: inline-flex;
       flex-direction: row;
@@ -396,30 +395,19 @@
       <div class="section-title">🕵️ 2. 間諜身分揭曉</div>
       <div id="spy-details" class="info-box"></div>
 
-      <!-- 間諜兩階段逆轉猜題區 -->
+      <!-- 間諜逆轉猜題區 -->
       <div id="reverse-guess-box" style="display: none; background: #0f172a; padding: 12px; border-radius: 8px; margin: 12px 0; border: 1px dashed var(--accent);">
-        <div class="section-title" id="reverse-guess-title" style="margin-top: 0; color: #fbbf24;">🎯 3. 間諜逆轉猜題機會 (第一階段)</div>
-        <p id="reverse-guess-desc" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">
-          間諜請於現場直接盲猜平民題目。若猜中可直接逆轉獲得 <b>+2 分</b>；若未猜中將顯示類別提示再猜一次！
-        </p>
+        <div class="section-title" id="reverse-guess-title" style="margin-top: 0; color: #fbbf24;">🎯 3. 間諜逆轉猜題機會</div>
+        <p id="reverse-guess-desc" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;"></p>
 
-        <!-- 提示內容區塊 (第二階段才顯示) -->
+        <!-- 類別提示區塊 (僅白板第二階段顯示) -->
         <div id="guess-hint-box" style="display: none; background: rgba(56, 189, 248, 0.1); border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 4px; margin-bottom: 10px;">
           <span style="font-size: 0.85rem; color: var(--text-muted);">類別提示：</span>
           <div class="tag-word-wrap" id="hint-category-content" style="margin: 4px 0 0 0;"></div>
         </div>
 
-        <!-- 第一階段按鈕組 -->
-        <div id="phase1-btns" style="display: flex; gap: 8px;">
-          <button id="btn-p1-fail" class="btn btn-secondary" style="flex: 1; padding: 10px;">未猜中 (查看類別提示)</button>
-          <button id="btn-p1-success" class="btn btn-success" style="flex: 1; padding: 10px;">盲猜猜中 (+2分)</button>
-        </div>
-
-        <!-- 第二階段按鈕組 -->
-        <div id="phase2-btns" style="display: none; gap: 8px;">
-          <button id="btn-p2-fail" class="btn btn-secondary" style="flex: 1; padding: 10px;">仍未猜中 (0分)</button>
-          <button id="btn-p2-success" class="btn btn-success" style="flex: 1; padding: 10px;">提示後猜中 (+1分)</button>
-        </div>
+        <!-- 按鈕組容器 -->
+        <div id="guess-btn-container" style="display: flex; gap: 8px;"></div>
       </div>
 
       <div class="section-title" id="title-topic">💡 3. 本回合題目與類別</div>
@@ -439,7 +427,6 @@
 </div>
 
 <script>
-  // 自動解析標準注音排版：輕聲在正上方，二/三/四聲在右側
   function formatBopomofo(htmlStr) {
     if (!htmlStr) return '';
     return htmlStr.replace(/<rt>(.*?)<\/rt>/g, (match, p1) => {
@@ -606,7 +593,6 @@
       if (config.spyType === 'blank') {
         elRoleText.innerHTML = '【你是白板】';
         elRoleText.style.color = 'var(--danger)';
-        // 白板顯示注音「無題目」
         const blankWithRuby = '<ruby>無<rt>ㄨˊ</rt>題<rt>ㄊㄧˊ</rt>目<rt>ㄇㄨˋ</rt></ruby>';
         elWordText.innerHTML = formatBopomofo(blankWithRuby);
         elRuleTip.textContent = '⚠️ 你完全無提示！觀察他人筆畫並伺機偽裝！';
@@ -614,7 +600,7 @@
         elRoleText.innerHTML = '【你是間諜】';
         elRoleText.style.color = 'var(--danger)';
         elWordText.innerHTML = formatBopomofo(roundState.categoryRuby);
-        elRuleTip.textContent = '⚠️ 你只知道此大類別，觀察他人並偽裝自己知情！';
+        elRuleTip.textContent = '⚠️ 你已知此大類別，觀察他人並偽裝自己知情！';
       }
     } else {
       elRoleText.innerHTML = '【你是平民】';
@@ -754,11 +740,12 @@
       }
     });
 
-    // 間諜隱匿成功 +3 分
+    // 間諜隱匿成功逃脫計分（白板得 3 分；標準間諜得 2 分）
+    const escapeScore = (config.spyType === 'blank') ? 3 : 2;
     if (!isSpyCaught) {
       roundState.spyIndices.forEach(sIdx => {
-        roundState.earnedScores[sIdx] += 3;
-        scores[sIdx] += 3;
+        roundState.earnedScores[sIdx] += escapeScore;
+        scores[sIdx] += escapeScore;
       });
     }
 
@@ -788,13 +775,8 @@
         📢 平民成功揪出間諜！間諜本回合未獲得隱匿分。
       </p>`;
       
-      // 重置兩階段逆轉猜題介面
-      document.getElementById('reverse-guess-box').style.display = 'block';
-      document.getElementById('reverse-guess-title').textContent = '🎯 3. 間諜逆轉猜題機會 (第一階段)';
-      document.getElementById('reverse-guess-desc').innerHTML = '間諜請於現場直接盲猜平民題目。若猜中可直接逆轉獲得 <b>+2 分</b>；若未猜中將顯示類別提示再猜一次！';
-      document.getElementById('guess-hint-box').style.display = 'none';
-      document.getElementById('phase1-btns').style.display = 'flex';
-      document.getElementById('phase2-btns').style.display = 'none';
+      // 設置猜題介面
+      setupReverseGuessUI();
 
       document.getElementById('title-topic').textContent = '💡 4. 本回合題目與類別';
       document.getElementById('topic-details').innerHTML = `
@@ -802,7 +784,7 @@
       `;
     } else {
       spyDetailsHtml += `<p style="color: var(--danger); font-weight: bold; margin-top: 4px;">
-        📢 間諜成功隱匿逃過！
+        📢 間諜成功隱匿逃過！（獲得 +${escapeScore} 分）
       </p>`;
       document.getElementById('reverse-guess-box').style.display = 'none';
       document.getElementById('title-topic').textContent = '💡 3. 本回合題目與類別';
@@ -813,6 +795,72 @@
     renderRoundScoresDetail();
     renderScoreboard();
     showScreen('step-result');
+  }
+
+  // 設置逆轉猜題 UI（依據白板或標準模式渲染）
+  function setupReverseGuessUI() {
+    const box = document.getElementById('reverse-guess-box');
+    const title = document.getElementById('reverse-guess-title');
+    const desc = document.getElementById('reverse-guess-desc');
+    const hintBox = document.getElementById('guess-hint-box');
+    const btnContainer = document.getElementById('guess-btn-container');
+
+    box.style.display = 'block';
+    hintBox.style.display = 'none';
+    btnContainer.innerHTML = '';
+
+    if (config.spyType === 'blank') {
+      // 白板模式：分兩階段
+      title.textContent = '🎯 3. 間諜逆轉猜題機會 (白板模式：第一階段)';
+      desc.innerHTML = '間諜完全無提示！請現場直接盲猜平民題目。若盲猜猜中可獲得 <b>+2 分</b>；若未猜中可查看類別提示再猜一次！';
+
+      btnContainer.innerHTML = `
+        <button id="btn-blank-p1-fail" class="btn btn-secondary" style="flex: 1; padding: 10px;">未猜中 (查看類別提示)</button>
+        <button id="btn-blank-p1-success" class="btn btn-success" style="flex: 1; padding: 10px;">盲猜猜中 (+2分)</button>
+      `;
+
+      // 綁定第一階段事件
+      document.getElementById('btn-blank-p1-success').onclick = () => handleGuessEnd(2, '太厲害了！白板間諜盲猜猜中！獲得 +2 分！');
+      document.getElementById('btn-blank-p1-fail').onclick = () => {
+        title.textContent = '🎯 3. 間諜逆轉猜題機會 (白板模式：第二階段)';
+        desc.innerHTML = '間諜已獲得類別提示！請根據提示進行最後一次口頭猜題。若猜中可得 <b>+1 分</b>：';
+        document.getElementById('hint-category-content').innerHTML = formatBopomofo(roundState.categoryRuby);
+        hintBox.style.display = 'block';
+
+        btnContainer.innerHTML = `
+          <button id="btn-blank-p2-fail" class="btn btn-secondary" style="flex: 1; padding: 10px;">仍未猜中 (0分)</button>
+          <button id="btn-blank-p2-success" class="btn btn-success" style="flex: 1; padding: 10px;">提示後猜中 (+1分)</button>
+        `;
+        document.getElementById('btn-blank-p2-success').onclick = () => handleGuessEnd(1, '白板間諜根據提示猜中題目！獲得 +1 分！');
+        document.getElementById('btn-blank-p2-fail').onclick = () => handleGuessEnd(0, '間諜提示後仍未猜中！平民徹底獲勝！');
+      };
+    } else {
+      // 標準間諜模式：已知道類別，單一階段猜題（猜中 +1 分）
+      title.textContent = '🎯 3. 間諜逆轉猜題機會 (標準間諜模式)';
+      desc.innerHTML = '間諜本已知曉題目大類別！請於現場口頭猜出精確題目。若猜中可獲得 <b>+1 分</b>：';
+
+      btnContainer.innerHTML = `
+        <button id="btn-hint-fail" class="btn btn-secondary" style="flex: 1; padding: 10px;">未猜中 (0分)</button>
+        <button id="btn-hint-success" class="btn btn-success" style="flex: 1; padding: 10px;">猜中了 (+1分)</button>
+      `;
+
+      document.getElementById('btn-hint-success').onclick = () => handleGuessEnd(1, '標準間諜猜中題目！獲得 +1 分！');
+      document.getElementById('btn-hint-fail').onclick = () => handleGuessEnd(0, '間諜未猜中題目！平民徹底獲勝！');
+    }
+  }
+
+  function handleGuessEnd(addedScore, alertMsg) {
+    if (addedScore > 0) {
+      roundState.spyIndices.forEach(sIdx => {
+        roundState.earnedScores[sIdx] += addedScore;
+        scores[sIdx] += addedScore;
+      });
+    }
+    alert(alertMsg + ' 現在公布題目！');
+    document.getElementById('reverse-guess-box').style.display = 'none';
+    revealTopicInfo();
+    renderRoundScoresDetail();
+    renderScoreboard();
   }
 
   function revealTopicInfo() {
@@ -835,9 +883,13 @@
       const isSpy = roundState.spyIndices.includes(idx);
       let reason = '未得分';
       if (isSpy) {
-        if (!roundState.spyCaught) reason = '間諜成功逃脫 (+3)';
-        else if (earned === 2) reason = '盲猜猜中題目 (+2)';
-        else if (earned === 1) reason = '提示後猜中題目 (+1)';
+        if (!roundState.spyCaught) {
+          reason = `間諜成功逃脫 (+${(config.spyType === 'blank') ? 3 : 2})`;
+        } else if (earned === 2) {
+          reason = '盲猜猜中題目 (+2)';
+        } else if (earned === 1) {
+          reason = (config.spyType === 'blank') ? '提示後猜中題目 (+1)' : '逆轉猜中題目 (+1)';
+        }
       } else {
         if (earned === 1) reason = '成功投對間諜 (+1)';
       }
@@ -877,58 +929,6 @@
     });
   }
 
-  // --- 兩階段逆轉猜題事件 ---
-
-  // 第一階段盲猜猜中 (+2分)
-  document.getElementById('btn-p1-success').addEventListener('click', () => {
-    roundState.spyIndices.forEach(sIdx => {
-      roundState.earnedScores[sIdx] += 2;
-      scores[sIdx] += 2;
-    });
-    alert('太厲害了！間諜盲猜成功！獲得 +2 分！現在公布題目！');
-    document.getElementById('reverse-guess-box').style.display = 'none';
-    revealTopicInfo();
-    renderRoundScoresDetail();
-    renderScoreboard();
-  });
-
-  // 第一階段盲猜未中 -> 進入第二階段 (給類別提示)
-  document.getElementById('btn-p1-fail').addEventListener('click', () => {
-    document.getElementById('reverse-guess-title').textContent = '🎯 3. 間諜逆轉猜題機會 (第二階段：提示後猜題)';
-    document.getElementById('reverse-guess-desc').innerHTML = '間諜已獲得類別提示！請根據提示進行最後一次口頭猜題。若猜中可得 <b>+1 分</b>：';
-    
-    // 顯示類別提示
-    document.getElementById('hint-category-content').innerHTML = formatBopomofo(roundState.categoryRuby);
-    document.getElementById('guess-hint-box').style.display = 'block';
-
-    // 切換按鈕
-    document.getElementById('phase1-btns').style.display = 'none';
-    document.getElementById('phase2-btns').style.display = 'flex';
-  });
-
-  // 第二階段提示後猜中 (+1分)
-  document.getElementById('btn-p2-success').addEventListener('click', () => {
-    roundState.spyIndices.forEach(sIdx => {
-      roundState.earnedScores[sIdx] += 1;
-      scores[sIdx] += 1;
-    });
-    alert('間諜根據類別提示猜中題目！獲得 +1 分！現在公布題目！');
-    document.getElementById('reverse-guess-box').style.display = 'none';
-    revealTopicInfo();
-    renderRoundScoresDetail();
-    renderScoreboard();
-  });
-
-  // 第二階段提示後仍未猜中 (0分)
-  document.getElementById('btn-p2-fail').addEventListener('click', () => {
-    alert('間諜提示後仍未猜中！平民徹底獲勝！現在公布題目！');
-    document.getElementById('reverse-guess-box').style.display = 'none';
-    revealTopicInfo();
-    renderRoundScoresDetail();
-    renderScoreboard();
-  });
-
-  // 下一回合
   document.getElementById('btn-next-round').addEventListener('click', () => {
     currentRound++;
     startNewRound();
