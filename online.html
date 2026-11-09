@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>誰是間諜 - 即時連線畫板</title>
+  <style>
+    :root {
+      --bg: #121826;
+      --card-bg: #1e293b;
+      --accent: #38bdf8;
+      --danger: #f43f5e;
+      --success: #10b981;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-family);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 14px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 10px;
+      border: none;
+      background: var(--accent);
+      color: #0f172a;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .btn-secondary { background: #334155; color: var(--text); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-danger { background: var(--danger); color: #fff; }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #0f172a;
+      color: var(--text);
+      font-size: 1rem;
+      margin-bottom: 8px;
+      outline: none;
+    }
+
+    /* 狀態切換 */
+    .view-section { display: none; flex-direction: column; gap: 12px; }
+    .view-section.active { display: flex; }
+
+    /* 注音字體樣式 */
+    .tag-word-wrap {
+      display: inline-flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    ruby {
+      display: inline-flex;
+      flex-direction: row;
+      align-items: center;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #fbbf24;
+      line-height: 1;
+    }
+    rt {
+      display: inline-flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      font-size: 0.42em;
+      color: #93c5fd;
+      font-weight: 600;
+      line-height: 1;
+      margin-left: 2px;
+    }
+    .zhuyin-col { display: flex; flex-direction: column; align-items: center; }
+    .tone-light-dot { font-size: 0.75em; line-height: 0.6; margin-bottom: 1px; }
+    .zhuyin-symbols { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+    .zhuyin-tone-side { font-size: 0.85em; line-height: 1; align-self: flex-end; padding-bottom: 2px; margin-left: 1px; }
+
+    /* 共用畫板 */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 3px solid var(--border);
+      touch-action: none;
+    }
+
+    /* 輪到自己作畫時的提示呼吸燈動畫 */
+    .canvas-container.my-turn {
+      border-color: #f59e0b;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.75);
+      animation: pulse-border 1.5s infinite;
+    }
+    @keyframes pulse-border {
+      0% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.5); }
+      50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.9); }
+      100% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.5); }
+    }
+
+    #drawing-canvas {
+      display: block;
+      width: 100%;
+      height: 360px;
+    }
+
+    .color-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .player-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #0f172a;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 6px;
+    }
+
+    #qrcode-container {
+      background: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      display: inline-block;
+      margin: 10px auto;
+    }
+  </style>
+
+  <!-- 引入題庫、QRCode 與 Firebase SDK (Compat 模式) -->
+  <script src="words.js"></script>
+  <script src="hard_words.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ================= 視圖 1：大廳入口 ================= -->
+  <section id="view-home" class="view-section active">
+    <div class="card" style="text-align: center;">
+      <h2 style="color: var(--accent); margin-bottom: 12px;">🌐 間諜畫畫連線大廳</h2>
+      <input type="text" id="input-nickname" placeholder="輸入你的暱稱 (例: 小明)" maxlength="8" />
+
+      <button id="btn-create-room" class="btn">🏠 建立新房間 (當房主)</button>
+
+      <div style="margin: 14px 0; display: flex; align-items: center; gap: 8px;">
+        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border);" />
+        <span style="font-size: 0.8rem; color: var(--text-muted);">或加入他人房間</span>
+        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border);" />
+      </div>
+
+      <input type="text" id="input-room-id" placeholder="輸入 4 位數房號" maxlength="4" style="text-align: center; font-size: 1.2rem; letter-spacing: 4px;" />
+      <button id="btn-join-room" class="btn btn-secondary">🚀 加入遊戲</button>
+      <button onclick="window.location.href='index.html'" class="btn btn-secondary" style="margin-top: 8px; background: transparent; border: 1px dashed var(--border);">返回單機版</button>
+    </div>
+  </section>
+
+  <!-- ================= 視圖 2：等候室 (Lobby) ================= -->
+  <section id="view-lobby" class="view-section">
+    <div class="card" style="text-align: center;">
+      <span style="font-size: 0.85rem; color: var(--text-muted);">房間號碼</span>
+      <h1 id="lobby-room-id" style="font-size: 2rem; color: var(--accent); letter-spacing: 4px;">----</h1>
+
+      <div id="qrcode-container"></div>
+      <p style="font-size: 0.8rem; color: var(--text-muted);">好友可直接用相機掃描 QRCode 加入</p>
+
+      <div style="text-align: left; margin: 12px 0;">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px;">已加入的玩家：(<span id="player-count-display">0</span>人)</p>
+        <div id="lobby-player-list"></div>
+      </div>
+
+      <!-- 房主專屬設定面板 -->
+      <div id="host-controls" style="display: none; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <select id="select-difficulty" style="margin-bottom: 0;">
+            <option value="normal">普通難度</option>
+            <option value="hard">高難度</option>
+          </select>
+          <select id="select-spy-type" style="margin-bottom: 0;">
+            <option value="blank">白板模式</option>
+            <option value="hint">標準間諜</option>
+          </select>
+        </div>
+        <button id="btn-start-game" class="btn btn-success">全員到齊，開始遊戲！</button>
+      </div>
+      <p id="guest-waiting-msg" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 8px;">等待房主開始遊戲中...</p>
+    </div>
+  </section>
+
+  <!-- ================= 視圖 3：連線畫板對戰室 ================= -->
+  <section id="view-game" class="view-section">
+    <!-- 個人身分卡片 (依各玩家單獨顯示) -->
+    <div class="card" style="text-align: center; padding: 12px;">
+      <span id="game-identity-badge" style="font-size: 0.85rem; font-weight: bold; color: var(--accent);">【你的身分】</span>
+      <div class="tag-word-wrap" id="game-word-display" style="margin: 8px 0;"></div>
+      <p style="font-size: 0.75rem; color: var(--text-muted);" id="game-tip-text">每人輪流畫一筆，請小心隱藏線索！</p>
+    </div>
+
+    <!-- 當前出筆提示條 -->
+    <div class="card" style="padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div id="current-player-dot" class="color-dot"></div>
+        <span id="current-player-name" style="font-weight: bold;">--</span>
+      </div>
+      <span id="my-turn-alert" style="font-size: 0.85rem; font-weight: bold; color: #fbbf24;"></span>
+    </div>
+
+    <!-- 即時共用同步畫板 -->
+    <div id="canvas-wrapper" class="canvas-container">
+      <canvas id="drawing-canvas"></canvas>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted);">
+      <span>全體共進行 2 輪（每人畫 2 筆）</span>
+      <span id="round-indicator">第 1/2 輪</span>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  // ================= 1. 你的專屬 Firebase 設定 =================
+  const firebaseConfig = {
+    apiKey: "AIzaSyBWI9dTEbAGIgtAaHlaAjHeJ6Di2Fxd-dw",
+    authDomain: "drawingspy.firebaseapp.com",
+    databaseURL: "https://drawingspy-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "drawingspy",
+    storageBucket: "drawingspy.firebasestorage.app",
+    messagingSenderId: "623237609236",
+    appId: "1:623237609236:web:5407f1eb76daeb63603401",
+    measurementId: "G-XMPG9LK1LZ"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  // 玩家代表色分配表
+  const COLOR_PALETTE = [
+    '#f43f5e', '#3b82f6', '#10b981', '#f59e0b',
+    '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'
+  ];
+
+  // 全域狀態變數
+  let currentRoomId = null;
+  let myPlayerId = null;
+  let isHost = false;
+  let myColor = '#f43f5e';
+  let roomData = null;
+
+  // 注音解析函式 (輕聲正上方、二三四聲右側)
+  function formatBopomofo(htmlStr) {
+    if (!htmlStr) return '';
+    return htmlStr.replace(/<rt>(.*?)<\/rt>/g, (match, p1) => {
+      const text = p1.trim();
+      const tones = ['ˊ', 'ˇ', 'ˋ'];
+      let sideTone = '';
+      let isLight = false;
+      let symbols = '';
+
+      for (let ch of text) {
+        if (tones.includes(ch)) sideTone = ch;
+        else if (ch === '˙') isLight = true;
+        else symbols += `<span>${ch}</span>`;
+      }
+      const lightHtml = isLight ? `<span class="tone-light-dot">˙</span>` : '';
+      const sideToneHtml = sideTone ? `<span class="zhuyin-tone-side">${sideTone}</span>` : '';
+      return `<rt><div class="zhuyin-col">${lightHtml}<span class="zhuyin-symbols">${symbols}</span></div>${sideToneHtml}</rt>`;
+    });
+  }
+
+  function showSection(id) {
+    document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  // 自動擷取網址上的 ?room=XXXX 參數
+  const urlParams = new URLSearchParams(window.location.search);
+  const queryRoom = urlParams.get('room');
+  if (queryRoom) {
+    document.getElementById('input-room-id').value = queryRoom;
+  }
+
+  // ================= 2. 開房與加入房號邏輯 =================
+
+  // 房主開房
+  document.getElementById('btn-create-room').onclick = () => {
+    const nick = document.getElementById('input-nickname').value.trim() || '房主';
+    currentRoomId = Math.floor(1000 + Math.random() * 9000).toString();
+    myPlayerId = 'p_' + Date.now();
+    isHost = true;
+    myColor = COLOR_PALETTE[0];
+
+    const initialRoom = {
+      status: 'waiting',
+      hostId: myPlayerId,
+      players: {
+        [myPlayerId]: { name: nick, color: myColor, isHost: true }
+      },
+      currentTurnIndex: 0,
+      turnOrder: [myPlayerId],
+      round: 1,
+      strokes: {}
+    };
+
+    db.ref('rooms/' + currentRoomId).set(initialRoom).then(() => {
+      setupLobby();
+      listenRoom();
+    });
+  };
+
+  // 玩家加入房間
+  document.getElementById('btn-join-room').onclick = () => {
+    const nick = document.getElementById('input-nickname').value.trim() || '玩家';
+    const rId = document.getElementById('input-room-id').value.trim();
+    if (rId.length !== 4) return alert('請輸入正確的 4 位數房號！');
+
+    currentRoomId = rId;
+    myPlayerId = 'p_' + Date.now();
+
+    db.ref('rooms/' + currentRoomId).get().then(snapshot => {
+      if (!snapshot.exists()) return alert('找不到此房間，請確認房號！');
+      const data = snapshot.val();
+      if (data.status !== 'waiting') return alert('該房間遊戲已經開始囉！');
+
+      const existingCount = Object.keys(data.players || {}).length;
+      if (existingCount >= 8) return alert('房間人數已滿 (上限 8 人)！');
+
+      myColor = COLOR_PALETTE[existingCount % COLOR_PALETTE.length];
+      isHost = false;
+
+      db.ref(`rooms/${currentRoomId}/players/${myPlayerId}`).set({
+        name: nick,
+        color: myColor,
+        isHost: false
+      }).then(() => {
+        setupLobby();
+        listenRoom();
+      });
+    });
+  };
+
+  function setupLobby() {
+    showSection('view-lobby');
+    document.getElementById('lobby-room-id').textContent = currentRoomId;
+
+    // 產生 QR Code
+    const joinUrl = `${window.location.origin}${window.location.pathname}?room=${currentRoomId}`;
+    const qrContainer = document.getElementById('qrcode-container');
+    qrContainer.innerHTML = '';
+    new QRCode(qrContainer, {
+      text: joinUrl,
+      width: 140,
+      height: 140,
+      colorDark: "#000000",
+      colorLight: "#ffffff"
+    });
+
+    if (isHost) {
+      document.getElementById('host-controls').style.display = 'block';
+      document.getElementById('guest-waiting-msg').style.display = 'none';
+    } else {
+      document.getElementById('host-controls').style.display = 'none';
+      document.getElementById('guest-waiting-msg').style.display = 'block';
+    }
+  }
+
+  // 房主按下開始遊戲
+  document.getElementById('btn-start-game').onclick = () => {
+    const playerIds = Object.keys(roomData.players || {});
+    if (playerIds.length < 3) return alert('至少需要 3 位玩家才能開始遊戲！');
+
+    const spyId = playerIds[Math.floor(Math.random() * playerIds.length)];
+
+    const difficulty = document.getElementById('select-difficulty').value;
+    const bank = (difficulty === 'hard' && typeof HARD_WORD_BANK !== 'undefined') ? HARD_WORD_BANK : NORMAL_WORD_BANK;
+    const categoryDict = (difficulty === 'hard' && typeof HARD_CATEGORY_RUBY !== 'undefined') ? HARD_CATEGORY_RUBY : NORMAL_CATEGORY_RUBY;
+    const pair = bank[Math.floor(Math.random() * bank.length)];
+
+    const shuffledOrder = [...playerIds].sort(() => Math.random() - 0.5);
+
+    db.ref('rooms/' + currentRoomId).update({
+      status: 'playing',
+      spyType: document.getElementById('select-spy-type').value,
+      spyId: spyId,
+      commonWord: pair[0],
+      categoryName: pair[1],
+      categoryRuby: categoryDict[pair[1]] || pair[1],
+      turnOrder: shuffledOrder,
+      currentTurnIndex: 0,
+      round: 1,
+      strokes: {}
+    });
+  };
+
+  // ================= 3. 即時資料同步 =================
+  function listenRoom() {
+    db.ref('rooms/' + currentRoomId).on('value', snapshot => {
+      roomData = snapshot.val();
+      if (!roomData) return;
+
+      if (roomData.status === 'waiting') {
+        renderLobbyPlayers(roomData.players || {});
+      } else if (roomData.status === 'playing') {
+        renderGameScreen();
+      }
+    });
+  }
+
+  function renderLobbyPlayers(players) {
+    const listEl = document.getElementById('lobby-player-list');
+    listEl.innerHTML = '';
+    const keys = Object.keys(players);
+    document.getElementById('player-count-display').textContent = keys.length;
+
+    keys.forEach((pid) => {
+      const p = players[pid];
+      const div = document.createElement('div');
+      div.className = 'player-chip';
+      div.innerHTML = `
+        <span class="color-dot" style="background-color: ${p.color}"></span>
+        <span style="font-weight: 600;">${p.name} ${p.isHost ? '👑' : ''} ${pid === myPlayerId ? '(你)' : ''}</span>
+      `;
+      listEl.appendChild(div);
+    });
+  }
+
+  // ================= 4. 即時畫板與作畫輪替核心 =================
+  let canvas, ctx;
+  let isDrawing = false;
+  let currentStroke = [];
+
+  function renderGameScreen() {
+    showSection('view-game');
+    initCanvas();
+
+    // 1. 各玩家獨立身分顯示
+    const isSpy = (roomData.spyId === myPlayerId);
+    const badge = document.getElementById('game-identity-badge');
+    const wordDisplay = document.getElementById('game-word-display');
+
+    if (isSpy) {
+      if (roomData.spyType === 'blank') {
+        badge.textContent = '【你是白板】';
+        badge.style.color = 'var(--danger)';
+        wordDisplay.innerHTML = formatBopomofo('<ruby>無<rt>ㄨˊ</rt>題<rt>ㄊㄧˊ</rt>目<rt>ㄇㄨˋ</rt></ruby>');
+      } else {
+        badge.textContent = '【你是間諜】';
+        badge.style.color = 'var(--danger)';
+        wordDisplay.innerHTML = formatBopomofo(roomData.categoryRuby);
+      }
+    } else {
+      badge.textContent = '【你是平民】';
+      badge.style.color = 'var(--accent)';
+      wordDisplay.innerHTML = formatBopomofo(roomData.commonWord);
+    }
+
+    // 2. 出筆順序提示
+    const currentTurnPid = roomData.turnOrder[roomData.currentTurnIndex];
+    const currentPlayer = roomData.players[currentTurnPid];
+    const isMyTurn = (currentTurnPid === myPlayerId);
+
+    document.getElementById('current-player-dot').style.backgroundColor = currentPlayer.color;
+    document.getElementById('current-player-name').textContent = currentPlayer.name + ' 作畫中...';
+
+    const canvasWrapper = document.getElementById('canvas-wrapper');
+    const alertText = document.getElementById('my-turn-alert');
+
+    if (isMyTurn) {
+      canvasWrapper.classList.add('my-turn');
+      alertText.textContent = '👉 輪到你了！請畫一筆！';
+      if (navigator.vibrate) navigator.vibrate(200);
+    } else {
+      canvasWrapper.classList.remove('my-turn');
+      alertText.textContent = '請觀看他人作畫';
+    }
+
+    document.getElementById('round-indicator').textContent = `第 ${roomData.round || 1}/2 輪`;
+  }
+
+  function initCanvas() {
+    if (canvas) return;
+    canvas = document.getElementById('drawing-canvas');
+    ctx = canvas.getContext('2d');
+
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * 2;
+    canvas.height = rect.height * 2;
+    ctx.scale(2, 2);
+
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 4;
+
+    // 監聽筆畫即時重繪
+    db.ref(`rooms/${currentRoomId}/strokes`).on('value', snapshot => {
+      const strokes = snapshot.val() || {};
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      Object.values(strokes).forEach(stroke => {
+        if (!stroke.points || stroke.points.length < 2) return;
+        ctx.strokeStyle = stroke.color;
+        ctx.beginPath();
+        ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+        for (let i = 1; i < stroke.points.length; i++) {
+          ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+        }
+        ctx.stroke();
+      });
+    });
+
+    function getCanvasPos(e) {
+      const b = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: clientX - b.left,
+        y: clientY - b.top
+      };
+    }
+
+    canvas.addEventListener('touchstart', (e) => {
+      const currentTurnPid = roomData.turnOrder[roomData.currentTurnIndex];
+      if (currentTurnPid !== myPlayerId) return;
+
+      isDrawing = true;
+      currentStroke = [getCanvasPos(e)];
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+      if (!isDrawing) return;
+      e.preventDefault();
+      const pos = getCanvasPos(e);
+      currentStroke.push(pos);
+
+      // 本地預覽筆觸
+      ctx.strokeStyle = myColor;
+      const prev = currentStroke[currentStroke.length - 2];
+      ctx.beginPath();
+      ctx.moveTo(prev.x, prev.y);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+    }, { passive: false });
+
+    // 手指放開（單筆畫結束），自動同步並交接
+    canvas.addEventListener('touchend', () => {
+      if (!isDrawing) return;
+      isDrawing = false;
+      if (currentStroke.length < 2) return;
+
+      const strokeRef = db.ref(`rooms/${currentRoomId}/strokes`).push();
+      strokeRef.set({
+        playerId: myPlayerId,
+        color: myColor,
+        points: currentStroke
+      });
+
+      let nextIndex = roomData.currentTurnIndex + 1;
+      let nextRound = roomData.round || 1;
+
+      if (nextIndex >= roomData.turnOrder.length) {
+        nextIndex = 0;
+        nextRound++;
+      }
+
+      db.ref('rooms/' + currentRoomId).update({
+        currentTurnIndex: nextIndex,
+        round: nextRound
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
