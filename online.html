@@ -148,6 +148,7 @@
       display: block;
       width: 100%;
       height: 360px;
+      cursor: crosshair;
     }
 
     .color-dot {
@@ -191,20 +192,35 @@
   <!-- ================= 視圖 1：大廳入口 ================= -->
   <section id="view-home" class="view-section active">
     <div class="card" style="text-align: center;">
-      <h2 style="color: var(--accent); margin-bottom: 12px;">🌐 間諜畫畫連線大廳</h2>
-      <input type="text" id="input-nickname" placeholder="輸入你的暱稱 (例: 小明)" maxlength="8" />
-
-      <button id="btn-create-room" class="btn">🏠 建立新房間 (當房主)</button>
-
-      <div style="margin: 14px 0; display: flex; align-items: center; gap: 8px;">
-        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border);" />
-        <span style="font-size: 0.8rem; color: var(--text-muted);">或加入他人房間</span>
-        <hr style="flex: 1; border: 0; border-top: 1px solid var(--border);" />
+      <h2 id="home-title" style="color: var(--accent); margin-bottom: 12px;">🌐 間諜畫畫連線大廳</h2>
+      
+      <!-- 掃碼進入專屬提示 -->
+      <div id="invite-alert" style="display: none; background: rgba(56, 189, 248, 0.1); border: 1px solid var(--accent); padding: 8px; border-radius: 8px; margin-bottom: 12px;">
+        <span style="font-size: 0.9rem; color: #fff;">準備加入房間：<b id="invite-room-num" style="color: #fbbf24;">----</b></span>
       </div>
 
-      <input type="text" id="input-room-id" placeholder="輸入 4 位數房號" maxlength="4" style="text-align: center; font-size: 1.2rem; letter-spacing: 4px;" />
+      <input type="text" id="input-nickname" placeholder="輸入你的暱稱 (例: 小明)" maxlength="8" />
+
+      <!-- 開房按鈕區（掃碼加入者會被隱藏） -->
+      <div id="host-create-section">
+        <button id="btn-create-room" class="btn">🏠 建立新房間 (當房主)</button>
+
+        <div style="margin: 14px 0; display: flex; align-items: center; gap: 8px;">
+          <hr style="flex: 1; border: 0; border-top: 1px solid var(--border);" />
+          <span style="font-size: 0.8rem; color: var(--text-muted);">或加入他人房間</span>
+          <hr style="flex: 1; border: 0; border-top: 1px solid var(--border);" />
+        </div>
+      </div>
+
+      <!-- 加入房號輸入框（掃碼者會隱藏或唯讀） -->
+      <div id="room-input-container">
+        <input type="text" id="input-room-id" placeholder="輸入 4 位數房號" maxlength="4" style="text-align: center; font-size: 1.2rem; letter-spacing: 4px;" />
+      </div>
+
       <button id="btn-join-room" class="btn btn-secondary">🚀 加入遊戲</button>
-      <button onclick="window.location.href='index.html'" class="btn btn-secondary" style="margin-top: 8px; background: transparent; border: 1px dashed var(--border);">返回單機版</button>
+
+      <!-- 返回單機版按鈕（掃碼加入者會被隱藏） -->
+      <button id="btn-back-local" onclick="window.location.href='index.html'" class="btn btn-secondary" style="margin-top: 8px; background: transparent; border: 1px dashed var(--border);">返回單機版</button>
     </div>
   </section>
 
@@ -272,7 +288,7 @@
 </div>
 
 <script>
-  // ================= 1. 你的專屬 Firebase 設定 =================
+  // ================= 1. Firebase 設定 =================
   const firebaseConfig = {
     apiKey: "AIzaSyBWI9dTEbAGIgtAaHlaAjHeJ6Di2Fxd-dw",
     authDomain: "drawingspy.firebaseapp.com",
@@ -287,20 +303,17 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  // 玩家代表色分配表
   const COLOR_PALETTE = [
     '#f43f5e', '#3b82f6', '#10b981', '#f59e0b',
     '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'
   ];
 
-  // 全域狀態變數
   let currentRoomId = null;
   let myPlayerId = null;
   let isHost = false;
   let myColor = '#f43f5e';
   let roomData = null;
 
-  // 注音解析函式 (輕聲正上方、二三四聲右側)
   function formatBopomofo(htmlStr) {
     if (!htmlStr) return '';
     return htmlStr.replace(/<rt>(.*?)<\/rt>/g, (match, p1) => {
@@ -326,16 +339,25 @@
     document.getElementById(id).classList.add('active');
   }
 
-  // 自動擷取網址上的 ?room=XXXX 參數
+  // 判斷是否為掃碼加入（網址帶有 ?room=XXXX）
   const urlParams = new URLSearchParams(window.location.search);
   const queryRoom = urlParams.get('room');
   if (queryRoom) {
     document.getElementById('input-room-id').value = queryRoom;
+    document.getElementById('invite-room-num').textContent = queryRoom;
+    document.getElementById('invite-alert').style.display = 'block';
+
+    // 簡化介面：隱藏開房區塊、手動輸入房號欄位與返回單機按鈕
+    document.getElementById('host-create-section').style.display = 'none';
+    document.getElementById('room-input-container').style.display = 'none';
+    document.getElementById('btn-back-local').style.display = 'none';
+    document.getElementById('home-title').textContent = '👋 加入間諜畫畫房間';
+    document.getElementById('btn-join-room').textContent = '🚀 確認加入房間';
   }
 
-  // ================= 2. 開房與加入房號邏輯 =================
+  // ================= 2. 開房與加入邏輯 =================
 
-  // 房主開房
+  // 建立房間 (房主)
   document.getElementById('btn-create-room').onclick = () => {
     const nick = document.getElementById('input-nickname').value.trim() || '房主';
     currentRoomId = Math.floor(1000 + Math.random() * 9000).toString();
@@ -361,11 +383,11 @@
     });
   };
 
-  // 玩家加入房間
+  // 加入房間
   document.getElementById('btn-join-room').onclick = () => {
     const nick = document.getElementById('input-nickname').value.trim() || '玩家';
     const rId = document.getElementById('input-room-id').value.trim();
-    if (rId.length !== 4) return alert('請輸入正確的 4 位數房號！');
+    if (rId.length !== 4) return alert('請確認 4 位數房號！');
 
     currentRoomId = rId;
     myPlayerId = 'p_' + Date.now();
@@ -396,7 +418,6 @@
     showSection('view-lobby');
     document.getElementById('lobby-room-id').textContent = currentRoomId;
 
-    // 產生 QR Code
     const joinUrl = `${window.location.origin}${window.location.pathname}?room=${currentRoomId}`;
     const qrContainer = document.getElementById('qrcode-container');
     qrContainer.innerHTML = '';
@@ -417,7 +438,7 @@
     }
   }
 
-  // 房主按下開始遊戲 (測試門檻改為 2 人)
+  // 房主啟動遊戲 (最低 2 人)
   document.getElementById('btn-start-game').onclick = () => {
     const playerIds = Object.keys(roomData.players || {});
     if (playerIds.length < 2) return alert('至少需要 2 位玩家才能開始遊戲！');
@@ -445,7 +466,7 @@
     });
   };
 
-  // ================= 3. 即時資料同步 =================
+  // ================= 3. 資料監聽 =================
   function listenRoom() {
     db.ref('rooms/' + currentRoomId).on('value', snapshot => {
       roomData = snapshot.val();
@@ -477,7 +498,7 @@
     });
   }
 
-  // ================= 4. 即時畫板與作畫輪替核心 =================
+  // ================= 4. 即時畫板 (同時支援手機觸控與電腦滑鼠) =================
   let canvas, ctx;
   let isDrawing = false;
   let currentStroke = [];
@@ -486,7 +507,6 @@
     showSection('view-game');
     initCanvas();
 
-    // 1. 各玩家獨立身分顯示
     const isSpy = (roomData.spyId === myPlayerId);
     const badge = document.getElementById('game-identity-badge');
     const wordDisplay = document.getElementById('game-word-display');
@@ -507,7 +527,6 @@
       wordDisplay.innerHTML = formatBopomofo(roomData.commonWord);
     }
 
-    // 2. 出筆順序提示
     const currentTurnPid = roomData.turnOrder[roomData.currentTurnIndex];
     const currentPlayer = roomData.players[currentTurnPid];
     const isMyTurn = (currentTurnPid === myPlayerId);
@@ -544,7 +563,6 @@
     ctx.lineJoin = 'round';
     ctx.lineWidth = 4;
 
-    // 監聽筆畫即時重繪
     db.ref(`rooms/${currentRoomId}/strokes`).on('value', snapshot => {
       const strokes = snapshot.val() || {};
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -570,31 +588,30 @@
       };
     }
 
-    canvas.addEventListener('touchstart', (e) => {
+    // 觸控與滑鼠通用監聽
+    function startDrawing(e) {
       const currentTurnPid = roomData.turnOrder[roomData.currentTurnIndex];
       if (currentTurnPid !== myPlayerId) return;
 
       isDrawing = true;
       currentStroke = [getCanvasPos(e)];
-    }, { passive: false });
+    }
 
-    canvas.addEventListener('touchmove', (e) => {
+    function drawMove(e) {
       if (!isDrawing) return;
-      e.preventDefault();
+      if (e.cancelable) e.preventDefault();
       const pos = getCanvasPos(e);
       currentStroke.push(pos);
 
-      // 本地預覽筆觸
       ctx.strokeStyle = myColor;
       const prev = currentStroke[currentStroke.length - 2];
       ctx.beginPath();
       ctx.moveTo(prev.x, prev.y);
       ctx.lineTo(pos.x, pos.y);
       ctx.stroke();
-    }, { passive: false });
+    }
 
-    // 手指放開（單筆畫結束），自動同步並交接
-    canvas.addEventListener('touchend', () => {
+    function endDrawing() {
       if (!isDrawing) return;
       isDrawing = false;
       if (currentStroke.length < 2) return;
@@ -618,7 +635,19 @@
         currentTurnIndex: nextIndex,
         round: nextRound
       });
+    }
+
+    // 手機觸控事件
+    canvas.addEventListener('touchstart', startDrawing, { passive: false });
+    canvas.addEventListener('touchmove', drawMove, { passive: false });
+    canvas.addEventListener('touchend', endDrawing);
+
+    // 電腦滑鼠事件
+    canvas.addEventListener('mousedown', (e) => {
+      if (e.button === 0) startDrawing(e);
     });
+    window.addEventListener('mousemove', drawMove);
+    window.addEventListener('mouseup', endDrawing);
   }
 </script>
 
