@@ -417,10 +417,10 @@
     }
   }
 
-  // 房主按下開始遊戲
+  // 房主按下開始遊戲 (測試門檻改為 2 人)
   document.getElementById('btn-start-game').onclick = () => {
     const playerIds = Object.keys(roomData.players || {});
-    if (playerIds.length < 3) return alert('至少需要 3 位玩家才能開始遊戲！');
+    if (playerIds.length < 2) return alert('至少需要 2 位玩家才能開始遊戲！');
 
     const spyId = playerIds[Math.floor(Math.random() * playerIds.length)];
 
