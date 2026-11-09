@@ -33,7 +33,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 14px;
+      padding: 16px;
     }
 
     .container {
@@ -41,25 +41,25 @@
       max-width: 480px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 16px;
     }
 
     header {
       text-align: center;
-      margin-bottom: 2px;
+      margin-bottom: 4px;
     }
 
     h1 {
-      font-size: 1.5rem;
+      font-size: 1.6rem;
       font-weight: 800;
       color: var(--accent);
       letter-spacing: 1px;
     }
 
     p.subtitle {
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       color: var(--text-muted);
-      margin-top: 2px;
+      margin-top: 4px;
     }
 
     .mode-switch-group {
@@ -70,7 +70,7 @@
 
     .mode-btn {
       flex: 1;
-      padding: 12px 8px;
+      padding: 13px 8px;
       font-size: 0.95rem;
       font-weight: 700;
       border-radius: 12px;
@@ -100,7 +100,7 @@
     .card {
       background: var(--card-bg);
       border-radius: 14px;
-      padding: 16px;
+      padding: 18px;
       border: 1px solid var(--border);
       box-shadow: 0 4px 12px rgba(0,0,0,0.25);
     }
@@ -110,7 +110,7 @@
       align-items: center;
       justify-content: center;
       width: 100%;
-      padding: 12px;
+      padding: 13px;
       font-size: 1rem;
       font-weight: 600;
       border-radius: 10px;
@@ -127,7 +127,7 @@
 
     input, select {
       width: 100%;
-      padding: 12px;
+      padding: 12px 14px;
       border-radius: 8px;
       border: 1px solid var(--border);
       background: #0f172a;
@@ -137,10 +137,9 @@
       outline: none;
     }
 
-    .view-section { display: none; flex-direction: column; gap: 12px; }
+    .view-section { display: none; flex-direction: column; gap: 14px; }
     .view-section.active { display: flex; }
 
-    /* 注音字體樣式 */
     .tag-word-wrap {
       display: inline-flex;
       flex-direction: row;
@@ -173,7 +172,6 @@
     .zhuyin-symbols { display: flex; flex-direction: column; align-items: center; line-height: 1; }
     .zhuyin-tone-side { font-size: 0.85em; line-height: 1; align-self: flex-end; padding-bottom: 2px; margin-left: 1px; }
 
-    /* 全局常駐畫板 */
     .canvas-container {
       position: relative;
       width: 100%;
@@ -210,7 +208,6 @@
       flex-shrink: 0;
     }
 
-    /* 畫板上方玩家顏色對照列 */
     .players-color-bar {
       display: flex;
       flex-wrap: wrap;
@@ -238,7 +235,17 @@
       font-weight: bold;
     }
 
-    /* 投票項目排版 */
+    .player-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #0f172a;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 6px;
+    }
+
     .vote-item {
       display: flex;
       align-items: center;
@@ -313,7 +320,7 @@
     <button type="button" class="mode-btn active">🌐 線上連線模式</button>
   </div>
 
-  <!-- ================= 視圖 1：大廳入口 ================= -->
+  <!-- 視圖 1：大廳入口 -->
   <section id="view-home" class="view-section active">
     <div class="card" style="text-align: center;">
       <div id="invite-alert" style="display: none; background: rgba(56, 189, 248, 0.1); border: 1px solid var(--accent); padding: 10px; border-radius: 8px; margin-bottom: 12px;">
@@ -322,7 +329,7 @@
 
       <div style="text-align: left; margin-bottom: 4px;">
         <label>玩家暱稱</label>
-        <input type="text" id="input-nickname" placeholder="輸入你的暱稱 (例: 小明)" maxlength="8" />
+        <input type="text" id="input-nickname" placeholder="未輸入將自動編號 (如: 玩家 1)" maxlength="8" />
       </div>
 
       <div id="host-create-section">
@@ -343,7 +350,7 @@
     </div>
   </section>
 
-  <!-- ================= 視圖 2：等候室 ================= -->
+  <!-- 視圖 2：等候室 -->
   <section id="view-lobby" class="view-section">
     <div class="card" style="text-align: center;">
       <span style="font-size: 0.85rem; color: var(--text-muted);">房間號碼</span>
@@ -369,25 +376,23 @@
           </select>
         </div>
         <button id="btn-start-game" class="btn btn-success">全員到齊，開始遊戲！</button>
+        <button id="btn-host-lobby-end" class="btn btn-secondary" style="margin-top: 8px; background: transparent; border: 1px dashed var(--danger); color: var(--danger);">結束房間回首頁</button>
       </div>
       <p id="guest-waiting-msg" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 8px;">等待房主開始遊戲中...</p>
     </div>
   </section>
 
-  <!-- ================= 視圖 3：作畫 ➔ 投票 ➔ 結算 共用遊戲舞台 ================= -->
+  <!-- 視圖 3：共用遊戲舞台 -->
   <section id="view-game" class="view-section">
     
-    <!-- 頂部身分題目卡片 -->
     <div class="card" style="text-align: center; padding: 10px 14px;">
       <span id="game-identity-badge" style="font-size: 0.85rem; font-weight: bold; color: var(--accent);">【你的身分】</span>
       <div class="tag-word-wrap" id="game-word-display" style="margin: 6px 0;"></div>
       <p style="font-size: 0.75rem; color: var(--text-muted);" id="game-tip-text">每人輪流畫一筆，請小心隱藏線索！</p>
     </div>
 
-    <!-- 玩家對應顏色標籤列 -->
     <div class="players-color-bar" id="game-color-bar"></div>
 
-    <!-- 當前出筆提示狀態條 -->
     <div class="card" id="turn-status-card" style="padding: 8px 12px; display: flex; align-items: center; justify-content: space-between;">
       <div style="display: flex; align-items: center; gap: 8px;">
         <div id="current-player-dot" class="color-dot"></div>
@@ -396,7 +401,6 @@
       <span id="my-turn-alert" style="font-size: 0.85rem; font-weight: bold; color: #fbbf24;"></span>
     </div>
 
-    <!-- 核心畫板（作畫、投票、盲猜全程保留） -->
     <div id="canvas-wrapper" class="canvas-container">
       <canvas id="drawing-canvas"></canvas>
     </div>
@@ -406,7 +410,7 @@
       <span id="round-indicator" style="font-weight: bold; color: var(--accent);">第 1/2 輪</span>
     </div>
 
-    <!-- === 下方動態面板 A：投票面板（作畫結束後出現） === -->
+    <!-- 投票面板 -->
     <div class="card" id="in-game-voting-card" style="display: none;">
       <h3 style="color: var(--accent); text-align: center; margin-bottom: 4px; font-size: 1.1rem;">🗳 輪流作畫結束！請投票</h3>
       <p style="font-size: 0.82rem; color: var(--text-muted); text-align: center; margin-bottom: 10px;">
@@ -421,7 +425,7 @@
       </p>
     </div>
 
-    <!-- === 下方動態面板 B：結算與盲猜面板（投票完成後出現） === -->
+    <!-- 結算與盲猜面板 -->
     <div class="card" id="in-game-result-card" style="display: none;">
       <h2 style="color: var(--accent); text-align: center; margin-bottom: 10px; font-size: 1.3rem;">📊 投票結果與本局結算</h2>
 
@@ -431,7 +435,6 @@
       <div style="font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 4px;">🕵️ 2. 間諜身分揭曉</div>
       <div id="res-spy-details" class="info-box"></div>
 
-      <!-- 間諜逆轉猜題區（看著上方畫板猜題） -->
       <div id="res-reverse-guess-box" style="display: none; background: #0f172a; padding: 10px; border-radius: 8px; margin: 10px 0; border: 1px dashed var(--accent);">
         <div id="res-guess-title" style="font-weight: 700; color: #fbbf24; margin-bottom: 4px;">🎯 3. 間諜逆轉猜題機會</div>
         <p id="res-guess-desc" style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;"></p>
@@ -450,7 +453,6 @@
       <div style="font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-top: 8px; margin-bottom: 4px;">🏆 累積分數榜</div>
       <div id="res-scoreboard" style="display: flex; flex-direction: column; gap: 4px;"></div>
 
-      <!-- 房主下一局/離開控制按鈕 -->
       <div id="host-next-round-ctrl" style="display: none; margin-top: 12px;">
         <button id="btn-online-next-round" class="btn btn-success">開始下一局（保留房號與計分）</button>
         <button id="btn-host-end-game" class="btn btn-secondary" style="margin-top: 8px; background: transparent; border: 1px dashed var(--danger); color: var(--danger);">結束遊戲回首頁</button>
@@ -547,7 +549,10 @@
 
   // ================= 開房與加入 =================
   document.getElementById('btn-create-room').onclick = () => {
-    const nick = document.getElementById('input-nickname').value.trim() || '房主';
+    // 房主沒填暱稱時自動預設為「玩家 1」
+    const rawNick = document.getElementById('input-nickname').value.trim();
+    const nick = rawNick || '玩家 1';
+
     currentRoomId = Math.floor(1000 + Math.random() * 9000).toString();
     myPlayerId = 'p_' + Date.now();
     isHost = true;
@@ -568,7 +573,6 @@
 
     const roomRef = db.ref('rooms/' + currentRoomId);
     roomRef.set(initialRoom).then(() => {
-      // 房主中途斷線/關閉視窗，Firebase 自動解散房間引導其他人返回
       roomRef.child('status').onDisconnect().set('closed');
       setupLobby();
       listenRoom();
@@ -576,7 +580,7 @@
   };
 
   document.getElementById('btn-join-room').onclick = () => {
-    const nick = document.getElementById('input-nickname').value.trim() || '玩家';
+    const rawNick = document.getElementById('input-nickname').value.trim();
     const rId = document.getElementById('input-room-id').value.trim();
     if (rId.length !== 4) return alert('請確認 4 位數房號！');
 
@@ -590,6 +594,9 @@
 
       const existingCount = Object.keys(data.players || {}).length;
       if (existingCount >= 8) return alert('房間人數已滿 (上限 8 人)！');
+
+      // 訪客沒填暱稱時，依目前人數自動命名為「玩家 2」、「玩家 3」...
+      const nick = rawNick || `玩家 ${existingCount + 1}`;
 
       myColor = COLOR_PALETTE[existingCount % COLOR_PALETTE.length];
       isHost = false;
@@ -630,6 +637,16 @@
     }
   }
 
+  document.getElementById('btn-host-lobby-end').onclick = () => {
+    if (confirm('確定要結束房間並返回首頁嗎？已加入的玩家將會一併被導回首頁。')) {
+      db.ref('rooms/' + currentRoomId).update({
+        status: 'closed'
+      }).then(() => {
+        window.location.href = 'index.html';
+      });
+    }
+  };
+
   document.getElementById('btn-start-game').onclick = () => launchGameRound();
 
   function launchGameRound() {
@@ -669,7 +686,6 @@
     db.ref('rooms/' + currentRoomId).on('value', snapshot => {
       roomData = snapshot.val();
       
-      // 關鍵要求：若房主離開房間（status 被改為 closed 或房間被刪除），引導全體回首頁
       if (!roomData || roomData.status === 'closed') {
         alert('房主已離開遊戲，即將返回首頁！');
         window.location.href = 'index.html';
@@ -679,7 +695,6 @@
       if (roomData.status === 'waiting') {
         renderLobbyPlayers(roomData.players || {});
       } else {
-        // 畫板模式：作畫 (playing)、投票 (voting)、結算 (result) 全在 view-game 同一畫布下流轉
         showSection('view-game');
         initCanvas();
         renderSharedGameStage();
@@ -705,7 +720,7 @@
     });
   }
 
-  // ================= 畫板舞台統一渲染 (常駐畫布) =================
+  // ================= 畫板舞台統一渲染 =================
   function renderSharedGameStage() {
     const players = roomData.players || {};
     const turnOrder = roomData.turnOrder || [];
@@ -713,7 +728,7 @@
     const currentPlayer = players[currentTurnPid] || { name: '玩家', color: '#fff' };
     const isMyTurn = (currentTurnPid === myPlayerId && roomData.status === 'playing');
 
-    // 1. 上方玩家代表色對照列
+    // 玩家顏色標籤列
     const colorBar = document.getElementById('game-color-bar');
     colorBar.innerHTML = '';
     turnOrder.forEach(pid => {
@@ -729,7 +744,7 @@
       colorBar.appendChild(tag);
     });
 
-    // 2. 身分與題目顯示
+    // 身分題目
     const isSpy = (roomData.spyId === myPlayerId);
     const badge = document.getElementById('game-identity-badge');
     const wordDisplay = document.getElementById('game-word-display');
@@ -750,7 +765,6 @@
       wordDisplay.innerHTML = formatBopomofo(roomData.commonWord);
     }
 
-    // 3. 畫板外框提示狀態
     const canvasWrapper = document.getElementById('canvas-wrapper');
     const alertText = document.getElementById('my-turn-alert');
     const turnCard = document.getElementById('turn-status-card');
@@ -773,13 +787,11 @@
         alertText.textContent = '請觀看他人作畫';
       }
     } else {
-      // 投票或結算中，關閉作畫輪候卡，保留畫板供所有人比對與盲猜
       turnCard.style.display = 'none';
       progressBar.style.display = 'none';
       canvasWrapper.classList.remove('my-turn');
     }
 
-    // 4. 動態切換下方附屬區塊
     const votingCard = document.getElementById('in-game-voting-card');
     const resultCard = document.getElementById('in-game-result-card');
 
@@ -797,7 +809,7 @@
     }
   }
 
-  // ================= 投票邏輯（畫板下方） =================
+  // ================= 投票邏輯 =================
   function updateInGameVotingUI() {
     const optionsContainer = document.getElementById('online-vote-options');
     const submitBtn = document.getElementById('btn-submit-online-vote');
@@ -910,7 +922,7 @@
     });
   }
 
-  // ================= 結算與盲猜（畫板下方） =================
+  // ================= 結算與盲猜 =================
   function updateInGameResultUI() {
     const players = roomData.players || {};
     const spyId = roomData.spyId;
@@ -937,7 +949,6 @@
     }
     document.getElementById('res-spy-details').innerHTML = spyHtml;
 
-    // 逆轉猜題區
     const guessBox = document.getElementById('res-reverse-guess-box');
     const guessTitle = document.getElementById('res-guess-title');
     const guessDesc = document.getElementById('res-guess-desc');
@@ -1149,7 +1160,6 @@
 
   document.getElementById('btn-online-next-round').onclick = () => launchGameRound();
 
-  // 房主主動點擊結束遊戲
   document.getElementById('btn-host-end-game').onclick = () => {
     if (confirm('確定要結束房間遊戲嗎？所有玩家將會被導回首頁。')) {
       db.ref('rooms/' + currentRoomId).update({
