@@ -179,8 +179,8 @@
     <div style="margin-bottom: 12px;">
       <label>間諜模式</label>
       <select id="spy-type">
+        <option value="blank" selected>白板模式（完全無提示）</option>
         <option value="hint">標準間諜（僅顯示題目大類別）</option>
-        <option value="blank">白板模式（完全無提示）</option>
       </select>
     </div>
 
@@ -209,7 +209,6 @@
     <label>玩家暱稱設定</label>
     <div id="player-inputs" class="player-list"></div>
 
-    <!-- 加上直接的 onclick 觸發 -->
     <button id="btn-start" class="btn" type="button" onclick="handleStartGame()">開始遊戲</button>
   </div>
 </div>
@@ -266,11 +265,9 @@
     renderPlayerInputs();
   });
 
-  // 初始化
   updateSpyOptions(4);
   renderPlayerInputs();
 
-  // 核心跳轉函式
   function handleStartGame() {
     try {
       const inputs = elPlayerInputs.querySelectorAll('.nickname-input');
@@ -291,14 +288,11 @@
         players: players,
         spyCount: parseInt(elSpyCount.value, 10) || 1,
         mode: 'draw',
-        spyType: elSpyType.value || 'hint',
+        spyType: elSpyType.value || 'blank',
         difficulty: elDifficulty.value || 'normal'
       };
 
-      // 儲存設定至 sessionStorage
       sessionStorage.setItem('spyGameConfig', JSON.stringify(sessionData));
-
-      // 執行頁面跳轉
       window.location.href = 'game.html';
     } catch (e) {
       alert('發生錯誤：' + e.message);
