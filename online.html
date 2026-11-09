@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>誰是間諜 - 即時連線畫板</title>
+  <title>誰是間諜助手 - 即時連線畫板</title>
   <style>
     :root {
       --bg: #121826;
@@ -33,7 +33,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 14px;
+      padding: 16px;
     }
 
     .container {
@@ -41,13 +41,71 @@
       max-width: 480px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 16px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: 1px;
+    }
+
+    p.subtitle {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* 頂部一致的模式切換欄 */
+    .mode-switch-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 2px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 13px 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);
+    }
+
+    .mode-btn.inactive {
+      background: #0f172a;
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .mode-btn:active {
+      transform: scale(0.98);
     }
 
     .card {
       background: var(--card-bg);
       border-radius: 14px;
-      padding: 16px;
+      padding: 18px;
       border: 1px solid var(--border);
       box-shadow: 0 4px 12px rgba(0,0,0,0.25);
     }
@@ -57,7 +115,7 @@
       align-items: center;
       justify-content: center;
       width: 100%;
-      padding: 12px;
+      padding: 13px;
       font-size: 1rem;
       font-weight: 600;
       border-radius: 10px;
@@ -74,7 +132,7 @@
 
     input, select {
       width: 100%;
-      padding: 12px;
+      padding: 12px 14px;
       border-radius: 8px;
       border: 1px solid var(--border);
       background: #0f172a;
@@ -85,7 +143,7 @@
     }
 
     /* 狀態切換 */
-    .view-section { display: none; flex-direction: column; gap: 12px; }
+    .view-section { display: none; flex-direction: column; gap: 14px; }
     .view-section.active { display: flex; }
 
     /* 注音字體樣式 */
@@ -132,7 +190,6 @@
       touch-action: none;
     }
 
-    /* 輪到自己作畫時的提示呼吸燈動畫 */
     .canvas-container.my-turn {
       border-color: #f59e0b;
       box-shadow: 0 0 16px rgba(245, 158, 11, 0.75);
@@ -178,7 +235,7 @@
     }
   </style>
 
-  <!-- 引入題庫、QRCode 與 Firebase SDK (Compat 模式) -->
+  <!-- 引入題庫、QRCode 與 Firebase SDK -->
   <script src="words.js"></script>
   <script src="hard_words.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -189,19 +246,32 @@
 
 <div class="container">
 
+  <!-- 統一頂部標題區 -->
+  <header id="common-header">
+    <h1>誰是間諜助手</h1>
+    <p class="subtitle">紙筆畫畫模式・設定人數與規則</p>
+  </header>
+
+  <!-- 統一模式切換欄（此頁右邊亮燈） -->
+  <div class="mode-switch-group" id="top-mode-switch">
+    <button type="button" class="mode-btn inactive" onclick="window.location.href='index.html'">📱 單機傳閱模式</button>
+    <button type="button" class="mode-btn active">🌐 線上連線模式</button>
+  </div>
+
   <!-- ================= 視圖 1：大廳入口 ================= -->
   <section id="view-home" class="view-section active">
     <div class="card" style="text-align: center;">
-      <h2 id="home-title" style="color: var(--accent); margin-bottom: 12px;">🌐 間諜畫畫連線大廳</h2>
-      
       <!-- 掃碼進入專屬提示 -->
-      <div id="invite-alert" style="display: none; background: rgba(56, 189, 248, 0.1); border: 1px solid var(--accent); padding: 8px; border-radius: 8px; margin-bottom: 12px;">
-        <span style="font-size: 0.9rem; color: #fff;">準備加入房間：<b id="invite-room-num" style="color: #fbbf24;">----</b></span>
+      <div id="invite-alert" style="display: none; background: rgba(56, 189, 248, 0.1); border: 1px solid var(--accent); padding: 10px; border-radius: 8px; margin-bottom: 12px;">
+        <span style="font-size: 0.95rem; color: #fff;">準備加入房間：<b id="invite-room-num" style="color: #fbbf24; font-size: 1.2rem;">----</b></span>
       </div>
 
-      <input type="text" id="input-nickname" placeholder="輸入你的暱稱 (例: 小明)" maxlength="8" />
+      <div style="text-align: left; margin-bottom: 4px;">
+        <label>玩家暱稱</label>
+        <input type="text" id="input-nickname" placeholder="輸入你的暱稱 (例: 小明)" maxlength="8" />
+      </div>
 
-      <!-- 開房按鈕區（掃碼加入者會被隱藏） -->
+      <!-- 開房按鈕區（掃碼加入者會自動隱藏） -->
       <div id="host-create-section">
         <button id="btn-create-room" class="btn">🏠 建立新房間 (當房主)</button>
 
@@ -212,15 +282,13 @@
         </div>
       </div>
 
-      <!-- 加入房號輸入框（掃碼者會隱藏或唯讀） -->
-      <div id="room-input-container">
-        <input type="text" id="input-room-id" placeholder="輸入 4 位數房號" maxlength="4" style="text-align: center; font-size: 1.2rem; letter-spacing: 4px;" />
+      <!-- 房號輸入框（掃碼加入者會自動隱藏） -->
+      <div id="room-input-container" style="text-align: left;">
+        <label>輸入房間號碼</label>
+        <input type="text" id="input-room-id" placeholder="4 位數房號" maxlength="4" style="text-align: center; font-size: 1.2rem; letter-spacing: 4px;" />
       </div>
 
       <button id="btn-join-room" class="btn btn-secondary">🚀 加入遊戲</button>
-
-      <!-- 返回單機版按鈕（掃碼加入者會被隱藏） -->
-      <button id="btn-back-local" onclick="window.location.href='index.html'" class="btn btn-secondary" style="margin-top: 8px; background: transparent; border: 1px dashed var(--border);">返回單機版</button>
     </div>
   </section>
 
@@ -228,7 +296,7 @@
   <section id="view-lobby" class="view-section">
     <div class="card" style="text-align: center;">
       <span style="font-size: 0.85rem; color: var(--text-muted);">房間號碼</span>
-      <h1 id="lobby-room-id" style="font-size: 2rem; color: var(--accent); letter-spacing: 4px;">----</h1>
+      <h1 id="lobby-room-id" style="font-size: 2.2rem; color: var(--accent); letter-spacing: 4px; margin: 4px 0;">----</h1>
 
       <div id="qrcode-container"></div>
       <p style="font-size: 0.8rem; color: var(--text-muted);">好友可直接用相機掃描 QRCode 加入</p>
@@ -238,7 +306,6 @@
         <div id="lobby-player-list"></div>
       </div>
 
-      <!-- 房主專屬設定面板 -->
       <div id="host-controls" style="display: none; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
           <select id="select-difficulty" style="margin-bottom: 0;">
@@ -258,14 +325,12 @@
 
   <!-- ================= 視圖 3：連線畫板對戰室 ================= -->
   <section id="view-game" class="view-section">
-    <!-- 個人身分卡片 (依各玩家單獨顯示) -->
     <div class="card" style="text-align: center; padding: 12px;">
       <span id="game-identity-badge" style="font-size: 0.85rem; font-weight: bold; color: var(--accent);">【你的身分】</span>
       <div class="tag-word-wrap" id="game-word-display" style="margin: 8px 0;"></div>
       <p style="font-size: 0.75rem; color: var(--text-muted);" id="game-tip-text">每人輪流畫一筆，請小心隱藏線索！</p>
     </div>
 
-    <!-- 當前出筆提示條 -->
     <div class="card" style="padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;">
       <div style="display: flex; align-items: center; gap: 8px;">
         <div id="current-player-dot" class="color-dot"></div>
@@ -274,7 +339,6 @@
       <span id="my-turn-alert" style="font-size: 0.85rem; font-weight: bold; color: #fbbf24;"></span>
     </div>
 
-    <!-- 即時共用同步畫板 -->
     <div id="canvas-wrapper" class="canvas-container">
       <canvas id="drawing-canvas"></canvas>
     </div>
@@ -337,27 +401,40 @@
   function showSection(id) {
     document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+
+    // 進入等待室或遊戲畫板時，隱藏頂部模式切換欄
+    if (id === 'view-lobby' || id === 'view-game') {
+      document.getElementById('top-mode-switch').style.display = 'none';
+    } else {
+      checkInviteMode();
+    }
   }
 
-  // 判斷是否為掃碼加入（網址帶有 ?room=XXXX）
-  const urlParams = new URLSearchParams(window.location.search);
-  const queryRoom = urlParams.get('room');
-  if (queryRoom) {
-    document.getElementById('input-room-id').value = queryRoom;
-    document.getElementById('invite-room-num').textContent = queryRoom;
-    document.getElementById('invite-alert').style.display = 'block';
+  // 檢查是否為掃描 QR Code 進入（網址帶有 ?room=XXXX）
+  function checkInviteMode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryRoom = urlParams.get('room');
+    if (queryRoom) {
+      document.getElementById('input-room-id').value = queryRoom;
+      document.getElementById('invite-room-num').textContent = queryRoom;
+      document.getElementById('invite-alert').style.display = 'block';
 
-    // 簡化介面：隱藏開房區塊、手動輸入房號欄位與返回單機按鈕
-    document.getElementById('host-create-section').style.display = 'none';
-    document.getElementById('room-input-container').style.display = 'none';
-    document.getElementById('btn-back-local').style.display = 'none';
-    document.getElementById('home-title').textContent = '👋 加入間諜畫畫房間';
-    document.getElementById('btn-join-room').textContent = '🚀 確認加入房間';
+      // 掃碼者只保留暱稱輸入與確認加入，隱藏切換欄與開房欄位
+      document.getElementById('top-mode-switch').style.display = 'none';
+      document.getElementById('host-create-section').style.display = 'none';
+      document.getElementById('room-input-container').style.display = 'none';
+      document.getElementById('btn-join-room').textContent = '🚀 確認加入房間';
+    } else {
+      document.getElementById('top-mode-switch').style.display = 'flex';
+      document.getElementById('host-create-section').style.display = 'block';
+      document.getElementById('room-input-container').style.display = 'block';
+    }
   }
+
+  checkInviteMode();
 
   // ================= 2. 開房與加入邏輯 =================
 
-  // 建立房間 (房主)
   document.getElementById('btn-create-room').onclick = () => {
     const nick = document.getElementById('input-nickname').value.trim() || '房主';
     currentRoomId = Math.floor(1000 + Math.random() * 9000).toString();
@@ -383,7 +460,6 @@
     });
   };
 
-  // 加入房間
   document.getElementById('btn-join-room').onclick = () => {
     const nick = document.getElementById('input-nickname').value.trim() || '玩家';
     const rId = document.getElementById('input-room-id').value.trim();
@@ -438,7 +514,7 @@
     }
   }
 
-  // 房主啟動遊戲 (最低 2 人)
+  // 房主啟動遊戲 (測試門檻 2 人)
   document.getElementById('btn-start-game').onclick = () => {
     const playerIds = Object.keys(roomData.players || {});
     if (playerIds.length < 2) return alert('至少需要 2 位玩家才能開始遊戲！');
@@ -588,7 +664,6 @@
       };
     }
 
-    // 觸控與滑鼠通用監聽
     function startDrawing(e) {
       const currentTurnPid = roomData.turnOrder[roomData.currentTurnIndex];
       if (currentTurnPid !== myPlayerId) return;
@@ -637,12 +712,10 @@
       });
     }
 
-    // 手機觸控事件
     canvas.addEventListener('touchstart', startDrawing, { passive: false });
     canvas.addEventListener('touchmove', drawMove, { passive: false });
     canvas.addEventListener('touchend', endDrawing);
 
-    // 電腦滑鼠事件
     canvas.addEventListener('mousedown', (e) => {
       if (e.button === 0) startDrawing(e);
     });
