@@ -62,7 +62,6 @@
       margin-top: 4px;
     }
 
-    /* 頂部一致的模式切換欄 */
     .mode-switch-group {
       display: flex;
       gap: 10px;
@@ -96,10 +95,6 @@
       background: #0f172a;
       color: var(--text);
       border-color: var(--border);
-    }
-
-    .mode-btn:active {
-      transform: scale(0.98);
     }
 
     .card {
@@ -142,11 +137,9 @@
       outline: none;
     }
 
-    /* 狀態切換 */
     .view-section { display: none; flex-direction: column; gap: 14px; }
     .view-section.active { display: flex; }
 
-    /* 注音字體樣式 */
     .tag-word-wrap {
       display: inline-flex;
       flex-direction: row;
@@ -179,7 +172,6 @@
     .zhuyin-symbols { display: flex; flex-direction: column; align-items: center; line-height: 1; }
     .zhuyin-tone-side { font-size: 0.85em; line-height: 1; align-self: flex-end; padding-bottom: 2px; margin-left: 1px; }
 
-    /* 共用畫板 */
     .canvas-container {
       position: relative;
       width: 100%;
@@ -226,6 +218,50 @@
       margin-bottom: 6px;
     }
 
+    .vote-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+
+    .vote-item.selected {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.15);
+    }
+
+    .info-box {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    .score-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: #0f172a;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .score-badge {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #fbbf24;
+    }
+
     #qrcode-container {
       background: #fff;
       padding: 12px;
@@ -235,7 +271,6 @@
     }
   </style>
 
-  <!-- 引入題庫、QRCode 與 Firebase SDK -->
   <script src="words.js"></script>
   <script src="hard_words.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -246,22 +281,19 @@
 
 <div class="container">
 
-  <!-- 統一頂部標題區 -->
   <header id="common-header">
     <h1>誰是間諜助手</h1>
     <p class="subtitle">紙筆畫畫模式・設定人數與規則</p>
   </header>
 
-  <!-- 統一模式切換欄（此頁右邊亮燈） -->
   <div class="mode-switch-group" id="top-mode-switch">
     <button type="button" class="mode-btn inactive" onclick="window.location.href='index.html'">📱 單機傳閱模式</button>
     <button type="button" class="mode-btn active">🌐 線上連線模式</button>
   </div>
 
-  <!-- ================= 視圖 1：大廳入口 ================= -->
+  <!-- 視圖 1：大廳入口 -->
   <section id="view-home" class="view-section active">
     <div class="card" style="text-align: center;">
-      <!-- 掃碼進入專屬提示 -->
       <div id="invite-alert" style="display: none; background: rgba(56, 189, 248, 0.1); border: 1px solid var(--accent); padding: 10px; border-radius: 8px; margin-bottom: 12px;">
         <span style="font-size: 0.95rem; color: #fff;">準備加入房間：<b id="invite-room-num" style="color: #fbbf24; font-size: 1.2rem;">----</b></span>
       </div>
@@ -271,10 +303,8 @@
         <input type="text" id="input-nickname" placeholder="輸入你的暱稱 (例: 小明)" maxlength="8" />
       </div>
 
-      <!-- 開房按鈕區（掃碼加入者會自動隱藏） -->
       <div id="host-create-section">
         <button id="btn-create-room" class="btn">🏠 建立新房間 (當房主)</button>
-
         <div style="margin: 14px 0; display: flex; align-items: center; gap: 8px;">
           <hr style="flex: 1; border: 0; border-top: 1px solid var(--border);" />
           <span style="font-size: 0.8rem; color: var(--text-muted);">或加入他人房間</span>
@@ -282,7 +312,6 @@
         </div>
       </div>
 
-      <!-- 房號輸入框（掃碼加入者會自動隱藏） -->
       <div id="room-input-container" style="text-align: left;">
         <label>輸入房間號碼</label>
         <input type="text" id="input-room-id" placeholder="4 位數房號" maxlength="4" style="text-align: center; font-size: 1.2rem; letter-spacing: 4px;" />
@@ -292,7 +321,7 @@
     </div>
   </section>
 
-  <!-- ================= 視圖 2：等候室 (Lobby) ================= -->
+  <!-- 視圖 2：等候室 -->
   <section id="view-lobby" class="view-section">
     <div class="card" style="text-align: center;">
       <span style="font-size: 0.85rem; color: var(--text-muted);">房間號碼</span>
@@ -323,7 +352,7 @@
     </div>
   </section>
 
-  <!-- ================= 視圖 3：連線畫板對戰室 ================= -->
+  <!-- 視圖 3：作畫室 -->
   <section id="view-game" class="view-section">
     <div class="card" style="text-align: center; padding: 12px;">
       <span id="game-identity-badge" style="font-size: 0.85rem; font-weight: bold; color: var(--accent);">【你的身分】</span>
@@ -344,15 +373,70 @@
     </div>
 
     <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted);">
-      <span>全體共進行 2 輪（每人畫 2 筆）</span>
-      <span id="round-indicator">第 1/2 輪</span>
+      <span>全體共進行 2 輪（每人各畫 2 筆）</span>
+      <span id="round-indicator" style="font-weight: bold; color: var(--accent);">第 1/2 輪</span>
+    </div>
+  </section>
+
+  <!-- 視圖 4：線上投票室 -->
+  <section id="view-voting" class="view-section">
+    <div class="card">
+      <h3 style="color: var(--accent); text-align: center; margin-bottom: 4px;">🗳 輪流作畫結束！請投票</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center; margin-bottom: 12px;">
+        點選你認為是間諜的玩家，送出後等待其他人完成：
+      </p>
+
+      <div id="online-vote-options"></div>
+
+      <button id="btn-submit-online-vote" class="btn" disabled>送出投票</button>
+      <p id="voting-status-tip" style="text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">
+        已投票人數：<span id="voted-count">0</span> / <span id="total-voter-count">0</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- 視圖 5：結果與結算室 -->
+  <section id="view-result" class="view-section">
+    <div class="card">
+      <h2 style="color: var(--accent); text-align: center; margin-bottom: 12px;">📊 投票結果與本局結算</h2>
+
+      <div style="font-size: 0.95rem; font-weight: 700; color: var(--accent); margin-bottom: 6px;">🗳 1. 玩家投票統計</div>
+      <div id="res-vote-details" class="info-box"></div>
+
+      <div style="font-size: 0.95rem; font-weight: 700; color: var(--accent); margin-bottom: 6px;">🕵️ 2. 間諜身分揭曉</div>
+      <div id="res-spy-details" class="info-box"></div>
+
+      <!-- 間諜逆轉猜題區 -->
+      <div id="res-reverse-guess-box" style="display: none; background: #0f172a; padding: 12px; border-radius: 8px; margin: 12px 0; border: 1px dashed var(--accent);">
+        <div id="res-guess-title" style="font-weight: 700; color: #fbbf24; margin-bottom: 4px;">🎯 3. 間諜逆轉猜題機會</div>
+        <p id="res-guess-desc" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;"></p>
+
+        <div id="res-hint-box" style="display: none; background: rgba(56, 189, 248, 0.1); border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 4px; margin-bottom: 10px;">
+          <span style="font-size: 0.85rem; color: var(--text-muted);">類別提示：</span>
+          <div class="tag-word-wrap" id="res-hint-category" style="margin: 4px 0 0 0;"></div>
+        </div>
+
+        <div id="res-guess-btns" style="display: flex; gap: 8px;"></div>
+      </div>
+
+      <div style="font-size: 0.95rem; font-weight: 700; color: var(--accent); margin-bottom: 6px;" id="res-title-topic">💡 3. 本局題目與類別</div>
+      <div id="res-topic-details" class="info-box"></div>
+
+      <div style="font-size: 0.95rem; font-weight: 700; color: var(--accent); margin-top: 12px; margin-bottom: 6px;">🏆 累積分數榜</div>
+      <div id="res-scoreboard" style="display: flex; flex-direction: column; gap: 6px;"></div>
+
+      <div id="host-next-round-ctrl" style="display: none; margin-top: 14px;">
+        <button id="btn-online-next-round" class="btn btn-success">開始下一局（保留房號與計分）</button>
+      </div>
+      <p id="guest-next-round-tip" style="text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 10px; display: none;">
+        等待房主啟動下一局...
+      </p>
     </div>
   </section>
 
 </div>
 
 <script>
-  // ================= 1. Firebase 設定 =================
   const firebaseConfig = {
     apiKey: "AIzaSyBWI9dTEbAGIgtAaHlaAjHeJ6Di2Fxd-dw",
     authDomain: "drawingspy.firebaseapp.com",
@@ -377,6 +461,7 @@
   let isHost = false;
   let myColor = '#f43f5e';
   let roomData = null;
+  let selectedVoteTarget = null;
 
   function formatBopomofo(htmlStr) {
     if (!htmlStr) return '';
@@ -402,15 +487,13 @@
     document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
     document.getElementById(id).classList.add('active');
 
-    // 進入等待室或遊戲畫板時，隱藏頂部模式切換欄
-    if (id === 'view-lobby' || id === 'view-game') {
+    if (id === 'view-lobby' || id === 'view-game' || id === 'view-voting' || id === 'view-result') {
       document.getElementById('top-mode-switch').style.display = 'none';
     } else {
       checkInviteMode();
     }
   }
 
-  // 檢查是否為掃描 QR Code 進入（網址帶有 ?room=XXXX）
   function checkInviteMode() {
     const urlParams = new URLSearchParams(window.location.search);
     const queryRoom = urlParams.get('room');
@@ -418,8 +501,6 @@
       document.getElementById('input-room-id').value = queryRoom;
       document.getElementById('invite-room-num').textContent = queryRoom;
       document.getElementById('invite-alert').style.display = 'block';
-
-      // 掃碼者只保留暱稱輸入與確認加入，隱藏切換欄與開房欄位
       document.getElementById('top-mode-switch').style.display = 'none';
       document.getElementById('host-create-section').style.display = 'none';
       document.getElementById('room-input-container').style.display = 'none';
@@ -433,8 +514,7 @@
 
   checkInviteMode();
 
-  // ================= 2. 開房與加入邏輯 =================
-
+  // 開房
   document.getElementById('btn-create-room').onclick = () => {
     const nick = document.getElementById('input-nickname').value.trim() || '房主';
     currentRoomId = Math.floor(1000 + Math.random() * 9000).toString();
@@ -446,12 +526,13 @@
       status: 'waiting',
       hostId: myPlayerId,
       players: {
-        [myPlayerId]: { name: nick, color: myColor, isHost: true }
+        [myPlayerId]: { name: nick, color: myColor, isHost: true, score: 0 }
       },
       currentTurnIndex: 0,
       turnOrder: [myPlayerId],
       round: 1,
-      strokes: {}
+      strokes: {},
+      votes: {}
     };
 
     db.ref('rooms/' + currentRoomId).set(initialRoom).then(() => {
@@ -460,6 +541,7 @@
     });
   };
 
+  // 加入
   document.getElementById('btn-join-room').onclick = () => {
     const nick = document.getElementById('input-nickname').value.trim() || '玩家';
     const rId = document.getElementById('input-room-id').value.trim();
@@ -482,7 +564,8 @@
       db.ref(`rooms/${currentRoomId}/players/${myPlayerId}`).set({
         name: nick,
         color: myColor,
-        isHost: false
+        isHost: false,
+        score: 0
       }).then(() => {
         setupLobby();
         listenRoom();
@@ -514,14 +597,18 @@
     }
   }
 
-  // 房主啟動遊戲 (測試門檻 2 人)
-  document.getElementById('btn-start-game').onclick = () => {
+  // 房主發牌起手
+  document.getElementById('btn-start-game').onclick = () => launchGameRound();
+
+  function launchGameRound() {
     const playerIds = Object.keys(roomData.players || {});
     if (playerIds.length < 2) return alert('至少需要 2 位玩家才能開始遊戲！');
 
     const spyId = playerIds[Math.floor(Math.random() * playerIds.length)];
 
-    const difficulty = document.getElementById('select-difficulty').value;
+    const difficulty = document.getElementById('select-difficulty') ? document.getElementById('select-difficulty').value : (roomData.difficulty || 'normal');
+    const spyType = document.getElementById('select-spy-type') ? document.getElementById('select-spy-type').value : (roomData.spyType || 'blank');
+
     const bank = (difficulty === 'hard' && typeof HARD_WORD_BANK !== 'undefined') ? HARD_WORD_BANK : NORMAL_WORD_BANK;
     const categoryDict = (difficulty === 'hard' && typeof HARD_CATEGORY_RUBY !== 'undefined') ? HARD_CATEGORY_RUBY : NORMAL_CATEGORY_RUBY;
     const pair = bank[Math.floor(Math.random() * bank.length)];
@@ -530,7 +617,8 @@
 
     db.ref('rooms/' + currentRoomId).update({
       status: 'playing',
-      spyType: document.getElementById('select-spy-type').value,
+      difficulty: difficulty,
+      spyType: spyType,
       spyId: spyId,
       commonWord: pair[0],
       categoryName: pair[1],
@@ -538,11 +626,14 @@
       turnOrder: shuffledOrder,
       currentTurnIndex: 0,
       round: 1,
-      strokes: {}
+      strokes: null,
+      votes: null,
+      guessPhase: null,
+      topicRevealed: false
     });
-  };
+  }
 
-  // ================= 3. 資料監聽 =================
+  // 監聽
   function listenRoom() {
     db.ref('rooms/' + currentRoomId).on('value', snapshot => {
       roomData = snapshot.val();
@@ -552,6 +643,10 @@
         renderLobbyPlayers(roomData.players || {});
       } else if (roomData.status === 'playing') {
         renderGameScreen();
+      } else if (roomData.status === 'voting') {
+        renderVotingScreen();
+      } else if (roomData.status === 'result') {
+        renderResultScreen();
       }
     });
   }
@@ -574,7 +669,7 @@
     });
   }
 
-  // ================= 4. 即時畫板 (同時支援手機觸控與電腦滑鼠) =================
+  // 作畫面板
   let canvas, ctx;
   let isDrawing = false;
   let currentStroke = [];
@@ -604,7 +699,7 @@
     }
 
     const currentTurnPid = roomData.turnOrder[roomData.currentTurnIndex];
-    const currentPlayer = roomData.players[currentTurnPid];
+    const currentPlayer = roomData.players[currentTurnPid] || { name: '玩家', color: '#fff' };
     const isMyTurn = (currentTurnPid === myPlayerId);
 
     document.getElementById('current-player-dot').style.backgroundColor = currentPlayer.color;
@@ -665,6 +760,7 @@
     }
 
     function startDrawing(e) {
+      if (roomData.status !== 'playing') return;
       const currentTurnPid = roomData.turnOrder[roomData.currentTurnIndex];
       if (currentTurnPid !== myPlayerId) return;
 
@@ -691,6 +787,7 @@
       isDrawing = false;
       if (currentStroke.length < 2) return;
 
+      // 上傳當前筆畫
       const strokeRef = db.ref(`rooms/${currentRoomId}/strokes`).push();
       strokeRef.set({
         playerId: myPlayerId,
@@ -698,18 +795,27 @@
         points: currentStroke
       });
 
+      // 計算下一個玩家與輪次
       let nextIndex = roomData.currentTurnIndex + 1;
       let nextRound = roomData.round || 1;
 
+      // 一輪走完
       if (nextIndex >= roomData.turnOrder.length) {
         nextIndex = 0;
         nextRound++;
       }
 
-      db.ref('rooms/' + currentRoomId).update({
-        currentTurnIndex: nextIndex,
-        round: nextRound
-      });
+      // 關鍵修復：若畫完第 2 輪（nextRound > 2），切換為投票狀態！
+      if (nextRound > 2) {
+        db.ref('rooms/' + currentRoomId).update({
+          status: 'voting'
+        });
+      } else {
+        db.ref('rooms/' + currentRoomId).update({
+          currentTurnIndex: nextIndex,
+          round: nextRound
+        });
+      }
     }
 
     canvas.addEventListener('touchstart', startDrawing, { passive: false });
@@ -722,6 +828,268 @@
     window.addEventListener('mousemove', drawMove);
     window.addEventListener('mouseup', endDrawing);
   }
+
+  // ================= 投票室 =================
+  function renderVotingScreen() {
+    showSection('view-voting');
+    const optionsContainer = document.getElementById('online-vote-options');
+    const submitBtn = document.getElementById('btn-submit-online-vote');
+    const playerIds = Object.keys(roomData.players || {});
+    const votes = roomData.votes || {};
+
+    const votedCount = Object.keys(votes).length;
+    document.getElementById('voted-count').textContent = votedCount;
+    document.getElementById('total-voter-count').textContent = playerIds.length;
+
+    // 自己是否已投過
+    const hasVoted = votes.hasOwnProperty(myPlayerId);
+
+    if (hasVoted) {
+      optionsContainer.innerHTML = `
+        <div style="text-align: center; padding: 20px 0; color: var(--success); font-weight: bold;">
+          ✅ 你已完成投票！等待其他玩家中...
+        </div>
+      `;
+      submitBtn.style.display = 'none';
+    } else {
+      submitBtn.style.display = 'block';
+      submitBtn.disabled = (selectedVoteTarget === null);
+
+      optionsContainer.innerHTML = '';
+      playerIds.forEach(pid => {
+        if (pid === myPlayerId) return; // 不能投自己
+        const p = roomData.players[pid];
+        const opt = document.createElement('div');
+        opt.className = 'vote-item' + (selectedVoteTarget === pid ? ' selected' : '');
+        opt.innerHTML = `
+          <span class="color-dot" style="background-color: ${p.color}"></span>
+          <span style="font-weight: 600;">${p.name}</span>
+        `;
+        opt.onclick = () => {
+          selectedVoteTarget = pid;
+          document.querySelectorAll('.vote-item').forEach(el => el.classList.remove('selected'));
+          opt.classList.add('selected');
+          submitBtn.disabled = false;
+        };
+        optionsContainer.appendChild(opt);
+      });
+    }
+
+    // 全員投票完畢 ➜ 房主端自動觸發結算
+    if (isHost && votedCount >= playerIds.length && roomData.status === 'voting') {
+      tallyOnlineVotes();
+    }
+  }
+
+  document.getElementById('btn-submit-online-vote').onclick = () => {
+    if (!selectedVoteTarget) return;
+    db.ref(`rooms/${currentRoomId}/votes/${myPlayerId}`).set(selectedVoteTarget).then(() => {
+      selectedVoteTarget = null;
+    });
+  };
+
+  // 投票結算
+  function tallyOnlineVotes() {
+    const votes = roomData.votes || {};
+    const players = roomData.players || {};
+    const playerIds = Object.keys(players);
+    const spyId = roomData.spyId;
+    const spyType = roomData.spyType || 'blank';
+
+    const voteCounts = {};
+    playerIds.forEach(id => { voteCounts[id] = 0; });
+    Object.values(votes).forEach(targetId => {
+      voteCounts[targetId] = (voteCounts[targetId] || 0) + 1;
+    });
+
+    let maxVotes = -1;
+    let mostVoted = [];
+    Object.entries(voteCounts).forEach(([pid, count]) => {
+      if (count > maxVotes) {
+        maxVotes = count;
+        mostVoted = [pid];
+      } else if (count === maxVotes) {
+        mostVoted.push(pid);
+      }
+    });
+
+    const isSpyCaught = mostVoted.includes(spyId);
+    const escapeScore = (spyType === 'blank') ? 3 : 2;
+
+    const roundScoreChanges = {};
+    playerIds.forEach(id => { roundScoreChanges[id] = 0; });
+
+    // 平民投對 +1
+    Object.entries(votes).forEach(([voterId, targetId]) => {
+      if (voterId !== spyId && targetId === spyId) {
+        roundScoreChanges[voterId] += 1;
+      }
+    });
+
+    // 間諜逃脫計分
+    if (!isSpyCaught) {
+      roundScoreChanges[spyId] += escapeScore;
+    }
+
+    // 更新各玩家總分
+    const updatedPlayers = { ...players };
+    playerIds.forEach(id => {
+      updatedPlayers[id].score = (updatedPlayers[id].score || 0) + roundScoreChanges[id];
+    });
+
+    db.ref('rooms/' + currentRoomId).update({
+      status: 'result',
+      spyCaught: isSpyCaught,
+      roundScoreChanges: roundScoreChanges,
+      players: updatedPlayers,
+      mostVoted: mostVoted,
+      maxVotes: maxVotes,
+      guessPhase: isSpyCaught ? 'phase1' : 'none',
+      topicRevealed: !isSpyCaught
+    });
+  }
+
+  // ================= 結算室 =================
+  function renderResultScreen() {
+    showSection('view-result');
+    const players = roomData.players || {};
+    const spyId = roomData.spyId;
+    const isSpy = (myPlayerId === spyId);
+    const spyPlayer = players[spyId] || { name: '間諜' };
+    const votes = roomData.votes || {};
+
+    // 1. 投票統計
+    let voteHtml = '<ul style="list-style: none; padding-left: 0;">';
+    Object.entries(votes).forEach(([voterId, targetId]) => {
+      const v = players[voterId] || { name: '玩家' };
+      const t = players[targetId] || { name: '玩家' };
+      voteHtml += `<li style="margin-bottom: 4px;"><b>${v.name}</b> 投給了 👉 <span style="color: ${t.color}; font-weight: bold;">${t.name}</span></li>`;
+    });
+    voteHtml += '</ul>';
+    const mostVotedNames = (roomData.mostVoted || []).map(id => (players[id] || {}).name).join('、');
+    voteHtml += `<p style="color: var(--accent); font-weight: bold; margin-top: 6px;">最高票：${mostVotedNames}（得 ${roomData.maxVotes || 0} 票）</p>`;
+    document.getElementById('res-vote-details').innerHTML = voteHtml;
+
+    // 2. 身分揭曉
+    let spyHtml = `<p>本局間諜為：<span style="color: var(--danger); font-size: 1.15rem; font-weight: bold;">${spyPlayer.name}</span></p>`;
+    if (roomData.spyCaught) {
+      spyHtml += `<p style="color: var(--success); font-weight: bold; margin-top: 4px;">📢 平民成功揪出間諜！進入猜題逆轉階段！</p>`;
+    } else {
+      const escapeScore = (roomData.spyType === 'blank') ? 3 : 2;
+      spyHtml += `<p style="color: var(--danger); font-weight: bold; margin-top: 4px;">📢 間諜成功隱匿逃脫！（得 +${escapeScore} 分）</p>`;
+    }
+    document.getElementById('res-spy-details').innerHTML = spyHtml;
+
+    // 3. 逆轉猜題區
+    const guessBox = document.getElementById('res-reverse-guess-box');
+    const guessTitle = document.getElementById('res-guess-title');
+    const guessDesc = document.getElementById('res-guess-desc');
+    const hintBox = document.getElementById('res-hint-box');
+    const btnContainer = document.getElementById('res-guess-btns');
+
+    if (roomData.spyCaught && roomData.guessPhase !== 'done') {
+      guessBox.style.display = 'block';
+      document.getElementById('res-title-topic').textContent = '💡 4. 本局題目與類別';
+
+      if (roomData.spyType === 'blank') {
+        if (roomData.guessPhase === 'phase1') {
+          guessTitle.textContent = '🎯 3. 間諜逆轉猜題機會 (白板模式：第一階段)';
+          guessDesc.innerHTML = '白板間諜請現場直接口頭盲猜題目。若猜中獲得 <b>+2 分</b>；未猜中可看類別提示再猜一次：';
+          hintBox.style.display = 'none';
+
+          btnContainer.innerHTML = isHost ? `
+            <button class="btn btn-secondary" style="flex: 1;" onclick="setGuessPhase('phase2')">未猜中 (查看類別提示)</button>
+            <button class="btn btn-success" style="flex: 1;" onclick="applySpyGuessScore(2, '白板盲猜猜中')">盲猜猜中 (+2分)</button>
+          ` : `<p style="color: var(--text-muted); font-size: 0.85rem; width: 100%; text-align: center;">等待間諜口頭猜題與房主判定中...</p>`;
+        } else if (roomData.guessPhase === 'phase2') {
+          guessTitle.textContent = '🎯 3. 間諜逆轉猜題機會 (白板模式：第二階段)';
+          guessDesc.innerHTML = '已公布類別提示！請進行最後一次猜題，猜中得 <b>+1 分</b>：';
+          document.getElementById('res-hint-category').innerHTML = formatBopomofo(roomData.categoryRuby);
+          hintBox.style.display = 'block';
+
+          btnContainer.innerHTML = isHost ? `
+            <button class="btn btn-secondary" style="flex: 1;" onclick="applySpyGuessScore(0, '仍未猜中')">仍未猜中 (0分)</button>
+            <button class="btn btn-success" style="flex: 1;" onclick="applySpyGuessScore(1, '提示後猜中')">提示後猜中 (+1分)</button>
+          ` : `<p style="color: var(--text-muted); font-size: 0.85rem; width: 100%; text-align: center;">等待間諜根據提示猜題中...</p>`;
+        }
+      } else {
+        guessTitle.textContent = '🎯 3. 間諜逆轉猜題機會 (標準間諜模式)';
+        guessDesc.innerHTML = '間諜已知道題目類別，請口頭猜出確切題目。若猜中可獲得 <b>+1 分</b>：';
+        hintBox.style.display = 'none';
+
+        btnContainer.innerHTML = isHost ? `
+          <button class="btn btn-secondary" style="flex: 1;" onclick="applySpyGuessScore(0, '未猜中')">未猜中 (0分)</button>
+          <button class="btn btn-success" style="flex: 1;" onclick="applySpyGuessScore(1, '猜中題目')">猜中了 (+1分)</button>
+        ` : `<p style="color: var(--text-muted); font-size: 0.85rem; width: 100%; text-align: center;">等待間諜口頭猜題與房主判定中...</p>`;
+      }
+    } else {
+      guessBox.style.display = 'none';
+      document.getElementById('res-title-topic').textContent = '💡 3. 本局題目與類別';
+    }
+
+    // 4. 題目公布
+    if (roomData.topicRevealed) {
+      document.getElementById('res-topic-details').innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px; margin: 4px 0;">
+          <span style="color: var(--text-muted); font-size: 0.95rem;">題目：</span>
+          <div class="tag-word-wrap">${formatBopomofo(roomData.commonWord)}</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; margin: 4px 0;">
+          <span style="color: var(--text-muted); font-size: 0.95rem;">類別：</span>
+          <div class="tag-word-wrap">${formatBopomofo(roomData.categoryRuby)}</div>
+        </div>
+      `;
+    } else {
+      document.getElementById('res-topic-details').innerHTML = `<p style="color: var(--text-muted); font-style: italic;">🔒 間諜逆轉猜題中，題目隱藏中...</p>`;
+    }
+
+    // 5. 總榜
+    const scoreContainer = document.getElementById('res-scoreboard');
+    scoreContainer.innerHTML = '';
+    const sorted = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
+    sorted.forEach((p, idx) => {
+      const row = document.createElement('div');
+      row.className = 'score-row';
+      row.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="color: var(--text-muted); width: 20px;">${idx + 1}.</span>
+          <span class="color-dot" style="background-color: ${p.color}"></span>
+          <span style="font-weight: 600;">${p.name}</span>
+        </div>
+        <span class="score-badge">${p.score || 0} 分</span>
+      `;
+      scoreContainer.appendChild(row);
+    });
+
+    // 房主下一局按鈕
+    if (isHost) {
+      document.getElementById('host-next-round-ctrl').style.display = 'block';
+      document.getElementById('guest-next-round-tip').style.display = 'none';
+    } else {
+      document.getElementById('host-next-round-ctrl').style.display = 'none';
+      document.getElementById('guest-next-round-tip').style.display = 'block';
+    }
+  }
+
+  // 房主控制猜題階段
+  window.setGuessPhase = function(phase) {
+    db.ref('rooms/' + currentRoomId).update({ guessPhase: phase });
+  };
+
+  window.applySpyGuessScore = function(addScore, reason) {
+    const spyId = roomData.spyId;
+    const players = { ...roomData.players };
+    players[spyId].score = (players[spyId].score || 0) + addScore;
+
+    db.ref('rooms/' + currentRoomId).update({
+      players: players,
+      guessPhase: 'done',
+      topicRevealed: true
+    });
+  };
+
+  // 下一局（保留玩家、房號與分數，重新選題開局）
+  document.getElementById('btn-online-next-round').onclick = () => launchGameRound();
 </script>
 
 </body>
