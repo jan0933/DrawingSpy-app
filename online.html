@@ -343,7 +343,7 @@
 
       <div id="room-input-container" style="text-align: left;">
         <label>輸入房間號碼</label>
-        <input type="text" id="input-room-id" placeholder="4 位數房號" maxlength="4" style="text-align: center; font-size: 1.2rem; letter-spacing: 4px;" />
+        <input type="text" id="input-room-id" placeholder="4 位數房號" maxlength="5" style="text-align: center; font-size: 1.2rem; letter-spacing: 4px;" />
       </div>
 
       <button id="btn-join-room" class="btn btn-secondary">🚀 加入遊戲</button>
@@ -547,17 +547,14 @@
 
   checkInviteMode();
 
-  // ================= 房號防碰撞檢查產生器 =================
   async function generateUniqueRoomId() {
     for (let attempt = 0; attempt < 8; attempt++) {
       const candidateId = Math.floor(1000 + Math.random() * 9000).toString();
       const snapshot = await db.ref('rooms/' + candidateId).get();
-      // 若該號碼未被使用或已處於 closed 狀態，則可安全使用
       if (!snapshot.exists() || snapshot.val().status === 'closed') {
         return candidateId;
       }
     }
-    // 連續多次碰撞的極端情況，使用 5 位數確保絕對不重複
     return Math.floor(10000 + Math.random() * 90000).toString();
   }
 
@@ -749,7 +746,6 @@
     const currentPlayer = players[currentTurnPid] || { name: '玩家', color: '#fff' };
     const isMyTurn = (currentTurnPid === myPlayerId && roomData.status === 'playing');
 
-    // 玩家顏色標籤列
     const colorBar = document.getElementById('game-color-bar');
     colorBar.innerHTML = '';
     turnOrder.forEach(pid => {
@@ -765,7 +761,6 @@
       colorBar.appendChild(tag);
     });
 
-    // 身分題目
     const isSpy = (roomData.spyId === myPlayerId);
     const badge = document.getElementById('game-identity-badge');
     const wordDisplay = document.getElementById('game-word-display');
@@ -1057,13 +1052,14 @@
     }
   }
 
-  // ================= 畫布底層繪製與單筆限制 =================
-  function initCanvas() {
-    if (canvas) return;
-    canvas = document.getElementById('drawing-canvas');
-    ctx = canvas.getContext('2d');
+  // ================= 畫布渲染：相對比例座標系 (0.0 ~ 1.0) =================
+  let cachedStrokes = {};
 
+  function resizeCanvas() {
+    if (!canvas || !ctx) return;
     const rect = canvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+
     canvas.width = rect.width * 2;
     canvas.height = rect.height * 2;
     ctx.scale(2, 2);
@@ -1072,28 +1068,52 @@
     ctx.lineJoin = 'round';
     ctx.lineWidth = 4;
 
+    renderAllStrokes(cachedStrokes);
+  }
+
+  function renderAllStrokes(strokes) {
+    if (!canvas || !ctx) return;
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+
+    ctx.clearRect(0, 0, w, h);
+
+    Object.values(strokes).forEach(stroke => {
+      if (!stroke.points || stroke.points.length < 2) return;
+      ctx.strokeStyle = stroke.color;
+      ctx.beginPath();
+      ctx.moveTo(stroke.points[0].x * w, stroke.points[0].y * h);
+      for (let i = 1; i < stroke.points.length; i++) {
+        ctx.lineTo(stroke.points[i].x * w, stroke.points[i].y * h);
+      }
+      ctx.stroke();
+    });
+  }
+
+  function initCanvas() {
+    if (canvas) return;
+    canvas = document.getElementById('drawing-canvas');
+    ctx = canvas.getContext('2d');
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
     db.ref(`rooms/${currentRoomId}/strokes`).on('value', snapshot => {
-      const strokes = snapshot.val() || {};
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      Object.values(strokes).forEach(stroke => {
-        if (!stroke.points || stroke.points.length < 2) return;
-        ctx.strokeStyle = stroke.color;
-        ctx.beginPath();
-        ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
-        for (let i = 1; i < stroke.points.length; i++) {
-          ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
-        }
-        ctx.stroke();
-      });
+      cachedStrokes = snapshot.val() || {};
+      renderAllStrokes(cachedStrokes);
     });
 
-    function getCanvasPos(e) {
+    // 取得 0.0 ~ 1.0 的百分比相對座標
+    function getCanvasRatioPos(e) {
       const b = canvas.getBoundingClientRect();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const px = Math.max(0, Math.min(b.width, clientX - b.left));
+      const py = Math.max(0, Math.min(b.height, clientY - b.top));
       return {
-        x: clientX - b.left,
-        y: clientY - b.top
+        x: Number((px / b.width).toFixed(4)),
+        y: Number((py / b.height).toFixed(4))
       };
     }
 
@@ -1103,20 +1123,21 @@
       if (currentTurnPid !== myPlayerId) return;
 
       isDrawing = true;
-      currentStroke = [getCanvasPos(e)];
+      currentStroke = [getCanvasRatioPos(e)];
     }
 
     function drawMove(e) {
       if (!isDrawing) return;
       if (e.cancelable) e.preventDefault();
-      const pos = getCanvasPos(e);
+      const pos = getCanvasRatioPos(e);
       currentStroke.push(pos);
 
+      const b = canvas.getBoundingClientRect();
       ctx.strokeStyle = myColor;
       const prev = currentStroke[currentStroke.length - 2];
       ctx.beginPath();
-      ctx.moveTo(prev.x, prev.y);
-      ctx.lineTo(pos.x, pos.y);
+      ctx.moveTo(prev.x * b.width, prev.y * b.height);
+      ctx.lineTo(pos.x * b.width, pos.y * b.height);
       ctx.stroke();
     }
 
