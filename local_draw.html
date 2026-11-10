@@ -159,9 +159,7 @@
       <p id="voting-voter-title" style="font-size: 0.95rem; margin-bottom: 6px; font-weight: 500;">
         請<span id="voting-current-voter-name" style="font-weight: bold;">【玩家 1】</span>進行投票：
       </p>
-      <div id="voting-instruction" style="font-size: 0.85rem; color: #fbbf24; margin-bottom: 10px; font-weight: 600;">
-        本局共有 1 位臥底，請選取 1 位玩家（已選 0/1）
-      </div>
+      <div id="voting-instruction" style="font-size: 0.85rem; color: #fbbf24; margin-bottom: 10px; font-weight: 600;"></div>
       <div id="vote-options"></div>
       <button id="btn-submit-vote" class="btn" disabled>確認投票並傳給下一位</button>
     </div>
@@ -180,20 +178,43 @@
       <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">🗳 2. 玩家投票明細</div>
       <div class="info-box" id="result-votes-details"></div>
 
-      <!-- 3. 題目公布 -->
-      <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">💡 3. 題目公布</div>
-      <div class="info-box" id="result-topic-details"></div>
+      <!-- 3. 逆轉猜題區塊（若有被處死的臥底） -->
+      <div id="reverse-guess-section" style="display: none;">
+        <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: #fbbf24; margin: 10px 0 4px 0;">🎯 3. 淘汰臥底逆轉猜題</div>
+        <div class="info-box" style="border-left: 3px solid #fbbf24;" id="reverse-guess-box">
+          <p id="guess-player-title" style="font-weight: bold; font-size: 1rem; color: var(--accent); margin-bottom: 4px;"></p>
+          <p id="guess-instruction-desc" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;"></p>
+          
+          <div id="guess-hint-box" style="display: none; background: rgba(56, 189, 248, 0.1); border: 1px solid var(--accent); padding: 6px 10px; border-radius: 6px; margin-bottom: 8px;">
+            <span style="font-size: 0.82rem; color: var(--text-muted);">類別提示：</span>
+            <div class="tag-word-wrap" id="guess-hint-category" style="margin: 2px 0 0 0;"></div>
+          </div>
 
-      <!-- 4. 本局得分明細 -->
-      <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">⭐ 4. 本局得分明細</div>
-      <div class="info-box" id="result-round-scores"></div>
+          <div id="guess-action-btns" style="display: flex; gap: 8px;"></div>
+        </div>
+      </div>
 
-      <!-- 5. 累積分數總榜 -->
-      <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">🏆 累積分數總榜</div>
-      <div id="result-scoreboard" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;"></div>
+      <!-- 4. 題目公布（猜題完畢後必定揭曉題目與類別） -->
+      <div id="topic-section-wrapper" style="display: none;">
+        <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">💡 4. 本局題目與類別</div>
+        <div class="info-box" id="result-topic-details"></div>
+      </div>
 
-      <button class="btn btn-success" onclick="startNewGame()">再來一局（保留當前積分）</button>
-      <button class="btn btn-secondary" onclick="window.location.href='index.html'">結束遊戲回首頁</button>
+      <!-- 5. 本局得分明細 -->
+      <div id="scores-section-wrapper" style="display: none;">
+        <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">⭐ 5. 本局得分明細</div>
+        <div class="info-box" id="result-round-scores"></div>
+      </div>
+
+      <!-- 6. 累積分數總榜 -->
+      <div id="scoreboard-section-wrapper" style="display: none;">
+        <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">🏆 6. 累積分數總榜</div>
+        <div id="result-scoreboard" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;"></div>
+
+        <button class="btn btn-success" onclick="startNewGame()">再來一局（保留當前積分）</button>
+        <button class="btn btn-secondary" onclick="window.location.href='index.html'">結束遊戲回首頁</button>
+      </div>
+
     </div>
 
   </section>
@@ -288,6 +309,11 @@
   let confirmedEliminated = [];
   let firstRoundVotes = {};
 
+  // 猜題狀態控制
+  let deadEnemiesToGuess = [];
+  let currentGuesserIndex = 0;
+  let currentBlankPhase = 1;
+
   function formatBopomofo(htmlStr) {
     if (!htmlStr) return '';
     return htmlStr.replace(/<rt>(.*?)<\/rt>/g, (match, p1) => {
@@ -314,6 +340,8 @@
     pkNeededSlots = 1;
     confirmedEliminated = [];
     firstRoundVotes = {};
+    deadEnemiesToGuess = [];
+    currentGuesserIndex = 0;
 
     players.forEach((_, idx) => {
       isAlive[idx] = true;
@@ -494,10 +522,14 @@
     const desc = document.getElementById('modal-next-player-desc');
     const btn = document.getElementById('btn-modal-start-draw');
 
+    const targetDesc = config.blankCount > 0 && config.spyCount > 0 
+      ? `選出 ${allowedVotesCount} 位間諜或白板` 
+      : (config.blankCount > 0 ? `選出 ${allowedVotesCount} 位白板` : `選出 ${allowedVotesCount} 位間諜`);
+
     subtitle.textContent = '本筆作畫已完成！';
     title.textContent = '🎨 全員作畫完成';
     title.style.color = 'var(--accent)';
-    desc.textContent = `作畫結束！全員即將進行密室投票，每人需選出 ${allowedVotesCount} 位臥底。`;
+    desc.textContent = `作畫結束！全員即將進行密室投票，每人需${targetDesc}。`;
     btn.textContent = '進入投票階段';
 
     btn.onclick = () => {
@@ -746,7 +778,10 @@
     if (isPkVoting) {
       info.textContent = `請從 PK 候選人中選取 ${targetCount} 位（已選取 ${currentSelectedTargets.length}/${targetCount}）`;
     } else {
-      info.textContent = `本局臥底共 ${targetCount} 位，請選取 ${targetCount} 位玩家（已選取 ${currentSelectedTargets.length}/${targetCount}）`;
+      const roleName = config.blankCount > 0 && config.spyCount > 0 
+        ? '間諜或白板' 
+        : (config.blankCount > 0 ? '白板' : '間諜');
+      info.textContent = `本局${roleName}共 ${targetCount} 位，請選取 ${targetCount} 位玩家（已選取 ${currentSelectedTargets.length}/${targetCount}）`;
     }
   }
 
@@ -771,7 +806,6 @@
     }
   };
 
-  // 第一輪投票結果審查：檢查是否在切分線上平票
   function checkFirstRoundVotes() {
     firstRoundVotes = { ...votes };
 
@@ -832,7 +866,6 @@
     }
   }
 
-  // PK 投票結算
   function tallyPkAndFinish() {
     const pkVoteCounts = {};
     pkCandidateIndices.forEach(id => pkVoteCounts[id] = 0);
@@ -872,7 +905,6 @@
     finalizeDrawGame(finalEliminated, pkTieHappened, tiedCandidates);
   }
 
-  // 結算與勝負評判
   function finalizeDrawGame(eliminatedIndices, pkTieHappened, tiedCandidates) {
     document.getElementById('voting-panel').style.display = 'none';
     document.getElementById('result-panel').style.display = 'block';
@@ -897,13 +929,12 @@
             earnedScores[v] = (earnedScores[v] || 0) + deadEnemyHitCount;
             totalScores[v] += deadEnemyHitCount;
             const roundText = (vRoundIdx === 1) ? '（PK輪）' : '';
-            scoreReasons[v].push(`平民成功投死臥底${roundText} (+1分 × ${deadEnemyHitCount})`);
+            scoreReasons[v].push(`平民成功投死間諜或白板${roundText} (+1分 × ${deadEnemyHitCount})`);
           }
         }
       });
     });
 
-    // 勝負評判：間諜與白板是否全數在最高票淘汰名單中
     const allEnemiesEliminated = players.every((_, idx) => {
       if (playerRoles[idx] === 'spy' || playerRoles[idx] === 'blank') {
         return !isAlive[idx];
@@ -913,7 +944,6 @@
 
     const isCivilianWin = allEnemiesEliminated;
 
-    // 陣營勝利加分
     if (isCivilianWin) {
       players.forEach((_, idx) => {
         if (playerRoles[idx] === 'civilian' && isAlive[idx]) {
@@ -927,26 +957,26 @@
         if (playerRoles[idx] === 'spy' && isAlive[idx]) {
           earnedScores[idx] = (earnedScores[idx] || 0) + 2;
           totalScores[idx] += 2;
-          scoreReasons[idx].push('臥底獲勝且間諜存活 (+2分)');
+          scoreReasons[idx].push('間諜獲勝且存活 (+2分)');
         } else if (playerRoles[idx] === 'blank' && isAlive[idx]) {
           earnedScores[idx] = (earnedScores[idx] || 0) + 3;
           totalScores[idx] += 3;
-          scoreReasons[idx].push('臥底獲勝且白板存活 (+3分)');
+          scoreReasons[idx].push('白板獲勝且存活 (+3分)');
         }
       });
     }
 
-    // --- UI 渲染（統一為「間諜陣營獲勝！」） ---
+    // 陣營勝利 Banner
     const summaryBox = document.getElementById('result-summary-box');
     if (isCivilianWin) {
       summaryBox.innerHTML = `
         <h3 style="color:var(--success); margin-bottom:4px;">🎉 平民陣營獲勝！</h3>
-        <p style="font-size:0.88rem;">所有間諜與白板全數被投出處決！投死臥底的平民各獲 <b>+1 分</b>，存活平民再獲 <b>+1 分</b>！</p>
+        <p style="font-size:0.88rem;">所有間諜與白板全數被投出處決！投死間諜或白板的平民各獲 <b>+1 分</b>，存活平民再獲 <b>+1 分</b>！</p>
       `;
     } else {
       summaryBox.innerHTML = `
         <h3 style="color:var(--danger); margin-bottom:4px;">😈 間諜陣營獲勝！</h3>
-        <p style="font-size:0.88rem;">臥底成功隱匿或存活！存活間諜獲 <b>+2 分</b>，存活白板獲 <b>+3 分</b>！</p>
+        <p style="font-size:0.88rem;">間諜或白板成功隱匿或存活！存活間諜獲 <b>+2 分</b>，存活白板獲 <b>+3 分</b>！</p>
       `;
     }
 
@@ -994,9 +1024,107 @@
     }
     document.getElementById('result-votes-details').innerHTML = voteDetails;
 
-    // 3. 題目公布
-    let topicHtml = `<div style="display:flex; align-items:center; gap:8px;">本局題目：<div class="tag-word-wrap" style="margin:4px 0;">${formatBopomofo(commonWord)}</div></div>`;
-    topicHtml += `<div style="display:flex; align-items:center; gap:8px;">題目類別：<div class="tag-word-wrap" style="margin:4px 0;">${formatBopomofo(categoryRuby)}</div></div>`;
+    // 判定是否有被處決的間諜或白板需要猜題
+    deadEnemiesToGuess = eliminatedIndices.filter(id => playerRoles[id] === 'spy' || playerRoles[id] === 'blank');
+
+    if (deadEnemiesToGuess.length > 0) {
+      currentGuesserIndex = 0;
+      currentBlankPhase = 1;
+      document.getElementById('reverse-guess-section').style.display = 'block';
+      document.getElementById('topic-section-wrapper').style.display = 'none';
+      document.getElementById('scores-section-wrapper').style.display = 'none';
+      document.getElementById('scoreboard-section-wrapper').style.display = 'none';
+      renderCurrentGuesserUI();
+    } else {
+      document.getElementById('reverse-guess-section').style.display = 'none';
+      revealFinalResults();
+    }
+  }
+
+  // 渲染當前進行逆轉猜題的臥底介面
+  function renderCurrentGuesserUI() {
+    const pIdx = deadEnemiesToGuess[currentGuesserIndex];
+    const p = players[pIdx];
+    const role = playerRoles[pIdx];
+
+    const titleEl = document.getElementById('guess-player-title');
+    const descEl = document.getElementById('guess-instruction-desc');
+    const hintBox = document.getElementById('guess-hint-box');
+    const btnsContainer = document.getElementById('guess-action-btns');
+
+    titleEl.textContent = `【${p.name}】逆轉猜題（身分：${role === 'blank' ? '白板' : '間諜'}）`;
+    titleEl.style.color = p.color;
+
+    if (role === 'spy') {
+      // 間諜猜題：已知類別，看畫作口頭猜題
+      descEl.innerHTML = '請看著上方畫作口頭猜出題目。若猜中可獲得 <b>+1 分</b>：';
+      hintBox.style.display = 'none';
+      btnsContainer.innerHTML = `
+        <button class="btn btn-secondary" style="flex:1;" onclick="applyGuessResult(${pIdx}, 0, '未猜中')">未猜中 (0分)</button>
+        <button class="btn btn-success" style="flex:1;" onclick="applyGuessResult(${pIdx}, 1, '間諜猜中題目 (+1分)')">猜中了 (+1分)</button>
+      `;
+    } else {
+      // 白板猜題：兩段式
+      if (currentBlankPhase === 1) {
+        descEl.innerHTML = '【第一階段盲猜】請看著上方畫作直接盲猜題目。猜中獲 <b>+2 分</b>；未猜中可查看類別提示：';
+        hintBox.style.display = 'none';
+        btnsContainer.innerHTML = `
+          <button class="btn btn-secondary" style="flex:1;" onclick="goToBlankPhase2()">未猜中 (查看類別提示)</button>
+          <button class="btn btn-success" style="flex:1;" onclick="applyGuessResult(${pIdx}, 2, '白板盲猜猜中 (+2分)')">盲猜猜中 (+2分)</button>
+        `;
+      } else {
+        descEl.innerHTML = '【第二階段提示猜】已公布類別提示！請看著上方畫作再猜一次，猜中獲 <b>+1 分</b>：';
+        document.getElementById('guess-hint-category').innerHTML = formatBopomofo(categoryRuby);
+        hintBox.style.display = 'block';
+        btnsContainer.innerHTML = `
+          <button class="btn btn-secondary" style="flex:1;" onclick="applyGuessResult(${pIdx}, 0, '仍未猜中')">仍未猜中 (0分)</button>
+          <button class="btn btn-success" style="flex:1;" onclick="applyGuessResult(${pIdx}, 1, '白板提示後猜中 (+1分)')">提示後猜中 (+1分)</button>
+        `;
+      }
+    }
+  }
+
+  window.goToBlankPhase2 = function() {
+    currentBlankPhase = 2;
+    renderCurrentGuesserUI();
+  };
+
+  window.applyGuessResult = function(playerIdx, addScore, reason) {
+    if (addScore > 0) {
+      earnedScores[playerIdx] = (earnedScores[playerIdx] || 0) + addScore;
+      totalScores[playerIdx] += addScore;
+      scoreReasons[playerIdx].push(reason);
+    }
+
+    currentGuesserIndex++;
+    currentBlankPhase = 1;
+
+    if (currentGuesserIndex < deadEnemiesToGuess.length) {
+      renderCurrentGuesserUI();
+    } else {
+      // 所有淘汰臥底猜題結束，進入最終題目與排行榜公布
+      document.getElementById('reverse-guess-section').style.display = 'none';
+      revealFinalResults();
+    }
+  };
+
+  // 揭曉題目、類別與最終排行榜
+  function revealFinalResults() {
+    document.getElementById('topic-section-wrapper').style.display = 'block';
+    document.getElementById('scores-section-wrapper').style.display = 'block';
+    document.getElementById('scoreboard-section-wrapper').style.display = 'block';
+
+    // 3. 題目公布（始終揭曉題目與類別）
+    let topicHtml = `
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="color:var(--text-muted); font-size:0.95rem;">本局題目：</span>
+        <div class="tag-word-wrap" style="margin:4px 0;">${formatBopomofo(commonWord)}</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+        <span style="color:var(--text-muted); font-size:0.95rem;">題目類別：</span>
+        <div class="tag-word-wrap" style="margin:4px 0;">${formatBopomofo(categoryRuby)}</div>
+      </div>
+    `;
     document.getElementById('result-topic-details').innerHTML = topicHtml;
 
     // 4. 得分明細
