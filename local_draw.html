@@ -224,13 +224,18 @@
     players: []
   };
 
-  const pCount = parseInt(rawConfig.playerCount, 10) || 4;
-  for (let i = 0; i < pCount; i++) {
-    config.players.push({
-      id: i,
-      name: `玩家 ${i + 1}`,
-      color: COLOR_PALETTE[i % COLOR_PALETTE.length]
-    });
+  // 優先採用首頁已組裝好的暱稱陣列，若沒有才退回預設命名
+  if (rawConfig.players && Array.isArray(rawConfig.players) && rawConfig.players.length > 0) {
+    config.players = rawConfig.players;
+  } else {
+    const pCount = parseInt(rawConfig.playerCount, 10) || 4;
+    for (let i = 0; i < pCount; i++) {
+      config.players.push({
+        id: i,
+        name: `玩家 ${i + 1}`,
+        color: COLOR_PALETTE[i % COLOR_PALETTE.length]
+      });
+    }
   }
 
   let players = config.players;
@@ -337,6 +342,10 @@
     elRevealContent.style.display = 'none';
     elBtnNextReveal.disabled = true;
 
+    // 預設重置按鈕文字
+    const isLastPlayer = (currentViewingPlayer === players.length - 1);
+    elBtnNextReveal.textContent = isLastPlayer ? '我看完了，開始作畫' : '我看完了，交給下一位';
+
     document.getElementById('badge-round-reveal').textContent = `身分確認 (${currentViewingPlayer + 1}/${players.length})`;
   }
 
@@ -366,6 +375,10 @@
     elRevealHint.style.display = 'none';
     elRevealContent.style.display = 'block';
     elRevealBox.classList.add('unlocked');
+
+    // 解鎖卡片後，依據是否為最後一位玩家設定按鈕文字
+    const isLastPlayer = (currentViewingPlayer === players.length - 1);
+    elBtnNextReveal.textContent = isLastPlayer ? '我看完了，開始作畫' : '我看完了，交給下一位';
     elBtnNextReveal.disabled = false;
   });
 
@@ -476,7 +489,6 @@
     allStrokes.push({ color: p.color, points: points });
     renderAllStrokes();
 
-    // 換下一位出筆
     currentTurnOrderIndex++;
     if (currentTurnOrderIndex >= turnOrder.length) {
       currentTurnOrderIndex = 0;
@@ -484,7 +496,6 @@
     }
 
     if (currentRound > 2) {
-      // 2 輪作畫完成：更新狀態為「所有玩家作畫完成」，隱藏限制說明與輪次資訊
       document.getElementById('canvas-wrapper').classList.remove('drawing-active');
       document.getElementById('turn-indicator-dot').style.display = 'none';
       document.getElementById('turn-indicator-name').textContent = '所有玩家作畫完成';
@@ -493,7 +504,6 @@
       document.getElementById('turn-rule-tag').style.display = 'none';
       document.getElementById('drawing-progress-info').style.display = 'none';
 
-      // 彈出「本筆作畫已完成！」提示視窗，按鈕為「作畫結束，開始投票」
       showAllFinishedModal();
     } else {
       showHandoverModal(turnOrder[currentTurnOrderIndex]);
@@ -601,7 +611,7 @@
     });
   }
 
-  // ================= 階段 3：投票階段（畫板持續置頂，最後一位玩家按鈕文案特殊處理） =================
+  // ================= 階段 3：投票階段（畫板持續置頂） =================
   function startVotingStage() {
     currentVoterIndex = 0;
     votes = {};
@@ -652,7 +662,7 @@
     }
   };
 
-  // ================= 階段 4：結算與盲猜（顯示回合得分與總積分） =================
+  // ================= 階段 4：結算與盲猜 =================
   function tallyResults() {
     document.getElementById('voting-panel').style.display = 'none';
     document.getElementById('result-panel').style.display = 'block';
