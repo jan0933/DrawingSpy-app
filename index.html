@@ -106,11 +106,19 @@
     }
 
     .form-group {
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       text-align: left;
     }
 
-    .form-group:last-child {
+    /* 並排網格排版 */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .form-row .form-group {
       margin-bottom: 0;
     }
 
@@ -124,12 +132,12 @@
 
     select {
       width: 100%;
-      padding: 12px 14px;
+      padding: 12px 10px;
       border-radius: 8px;
       border: 1px solid var(--border);
       background: #0f172a;
       color: var(--text);
-      font-size: 1rem;
+      font-size: 0.95rem;
       outline: none;
       cursor: pointer;
     }
@@ -156,21 +164,76 @@
       transform: scale(0.98);
     }
 
-    .rules-card {
-      background: #0f172a;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px 16px;
-      font-size: 0.85rem;
-      line-height: 1.6;
-      color: var(--text-muted);
-      text-align: left;
+    /* 遊戲連結區塊 */
+    .link-section {
+      text-align: center;
+      margin-top: 2px;
     }
 
-    .rules-card b {
-      color: var(--text);
+    .link-btn {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+    }
+
+    /* 彈窗 (Modal) */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 20px;
+      max-width: 340px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    #qr-wrapper {
+      background: #ffffff;
+      padding: 12px;
+      border-radius: 10px;
+      display: inline-block;
+      margin: 14px 0 10px 0;
+    }
+
+    .url-text {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      word-break: break-all;
+      background: #0f172a;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
     }
   </style>
+
+  <!-- QRCode 生成器 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -196,78 +259,171 @@
       </select>
     </div>
 
-    <!-- 玩家人數 -->
-    <div class="form-group">
-      <label for="select-player-count">👥 玩家人數</label>
-      <select id="select-player-count">
-        <option value="3">3 位玩家</option>
-        <option value="4" selected>4 位玩家</option>
-        <option value="5">5 位玩家</option>
-        <option value="6">6 位玩家</option>
-        <option value="7">7 位玩家</option>
-        <option value="8">8 位玩家</option>
-      </select>
+    <!-- 第一排並排：玩家人數 ＋ 間諜數量 -->
+    <div class="form-row">
+      <div class="form-group">
+        <label for="select-player-count">👥 玩家人數</label>
+        <select id="select-player-count">
+          <option value="3">3 人</option>
+          <option value="4" selected>4 人</option>
+          <option value="5">5 人</option>
+          <option value="6">6 人</option>
+          <option value="7">7 人</option>
+          <option value="8">8 人</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="select-spy-count">🕵️ 間諜數量</label>
+        <select id="select-spy-count">
+          <option value="1" selected>1 位間諜</option>
+          <option value="2">2 位間諜</option>
+          <option value="3">3 位間諜</option>
+        </select>
+      </div>
     </div>
 
-    <!-- 題目難度 -->
-    <div class="form-group">
-      <label for="select-difficulty">📚 題目難度</label>
-      <select id="select-difficulty">
-        <option value="normal" selected>普通難度（具體物品、食物、動物）</option>
-        <option value="hard">高難度（概念情緒、自然奇景、成語）</option>
-      </select>
-    </div>
+    <!-- 第二排並排：題目難度 ＋ 間諜身分設定 -->
+    <div class="form-row">
+      <div class="form-group">
+        <label for="select-difficulty">📚 題目難度</label>
+        <select id="select-difficulty">
+          <option value="normal" selected>普通難度</option>
+          <option value="hard">高難度</option>
+        </select>
+      </div>
 
-    <!-- 間諜提示方式 -->
-    <div class="form-group">
-      <label for="select-spy-type">🕵️ 間諜身分設定</label>
-      <select id="select-spy-type">
-        <option value="blank" selected>白板模式（間諜完全無題目，猜題得+2分）</option>
-        <option value="hint">標準間諜（間諜可看題目大類別，猜題得+1分）</option>
-      </select>
+      <div class="form-group">
+        <label for="select-spy-type">🎭 間諜身分設定</label>
+        <select id="select-spy-type">
+          <option value="blank" selected>白板模式</option>
+          <option value="hint">標準間諜</option>
+        </select>
+      </div>
     </div>
 
     <button id="btn-start-game" class="btn">🚀 開始遊戲</button>
   </div>
 
-  <div class="rules-card">
-    <p><b>📖 模式說明：</b></p>
-    <p>• <b>紙筆模式</b>：手機僅作身分確認與看題傳閱，所有人拿出實體筆紙輪流畫一筆。</p>
-    <p>• <b>手機畫板模式</b>：完全不用紙筆！每位玩家輪流拿同一支手機在螢幕上畫一筆，兩輪畫畢後直接在畫板下方投票與結算揭曉。</p>
+  <!-- 下方遊戲連結超連結 -->
+  <div class="link-section">
+    <button type="button" class="link-btn" id="btn-open-modal">🔗 遊戲連結 (分享QR Code)</button>
   </div>
 
 </div>
 
+<!-- 彈出 QR Code 視窗 -->
+<div class="modal-overlay" id="qr-modal">
+  <div class="modal-card">
+    <h3 style="color: var(--accent); font-size: 1.15rem;">掃描開啟遊戲</h3>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">好友使用相機掃描即可加入</p>
+    
+    <div id="qr-wrapper"></div>
+    
+    <div class="url-text" id="target-url-text">https://jan0933.github.io/DrawingSpy-app/</div>
+    
+    <div style="display: flex; gap: 8px;">
+      <button type="button" class="btn" style="flex: 1; padding: 10px; margin-top: 0; font-size: 0.9rem;" id="btn-copy-url">複製連結</button>
+      <button type="button" class="btn" style="flex: 1; padding: 10px; margin-top: 0; font-size: 0.9rem; background: #334155; color: var(--text);" id="btn-close-modal">關閉</button>
+    </div>
+  </div>
+</div>
+
 <script>
-  // 載入先前的設定（若有存過）
+  const GAME_URL = 'https://jan0933.github.io/DrawingSpy-app/';
+
+  // 1. 間諜數量防呆：間諜數量不能大於或等於總人數的一半
+  function adjustSpyOptions() {
+    const pCount = parseInt(document.getElementById('select-player-count').value, 10);
+    const spySelect = document.getElementById('select-spy-count');
+    const currentVal = parseInt(spySelect.value, 10);
+
+    const maxSpies = Math.max(1, Math.floor((pCount - 1) / 2));
+    spySelect.innerHTML = '';
+
+    for (let i = 1; i <= Math.min(3, maxSpies); i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${i} 位間諜`;
+      if (i === currentVal) opt.selected = true;
+      spySelect.appendChild(opt);
+    }
+
+    if (!spySelect.value) {
+      spySelect.value = '1';
+    }
+  }
+
+  document.getElementById('select-player-count').addEventListener('change', adjustSpyOptions);
+
+  // 2. 讀取並還原先前設定
   const savedConfig = JSON.parse(sessionStorage.getItem('spy_game_config'));
   if (savedConfig) {
     if (savedConfig.playMode) document.getElementById('select-play-mode').value = savedConfig.playMode;
     if (savedConfig.playerCount) document.getElementById('select-player-count').value = savedConfig.playerCount;
+    adjustSpyOptions();
+    if (savedConfig.spyCount) document.getElementById('select-spy-count').value = savedConfig.spyCount;
     if (savedConfig.difficulty) document.getElementById('select-difficulty').value = savedConfig.difficulty;
     if (savedConfig.spyType) document.getElementById('select-spy-type').value = savedConfig.spyType;
+  } else {
+    adjustSpyOptions();
   }
 
+  // 3. 開始遊戲跳轉
   document.getElementById('btn-start-game').onclick = () => {
     const playMode = document.getElementById('select-play-mode').value;
     const playerCount = parseInt(document.getElementById('select-player-count').value, 10);
+    const spyCount = parseInt(document.getElementById('select-spy-count').value, 10);
     const difficulty = document.getElementById('select-difficulty').value;
     const spyType = document.getElementById('select-spy-type').value;
 
-    // 將設定儲存至 sessionStorage 供下一頁讀取
     sessionStorage.setItem('spy_game_config', JSON.stringify({
       playMode,
       playerCount,
+      spyCount,
       difficulty,
       spyType
     }));
 
-    // 依模式跳轉
     if (playMode === 'paper') {
       window.location.href = 'game.html';
     } else {
       window.location.href = 'local_draw.html';
     }
+  };
+
+  // 4. QR Code Modal 控制
+  let qrGenerated = false;
+  const modal = document.getElementById('qr-modal');
+
+  document.getElementById('btn-open-modal').onclick = () => {
+    modal.classList.add('active');
+    if (!qrGenerated) {
+      new QRCode(document.getElementById('qr-wrapper'), {
+        text: GAME_URL,
+        width: 160,
+        height: 160,
+        colorDark: "#000000",
+        colorLight: "#ffffff"
+      });
+      qrGenerated = true;
+    }
+  };
+
+  document.getElementById('btn-close-modal').onclick = () => {
+    modal.classList.remove('active');
+  };
+
+  modal.onclick = (e) => {
+    if (e.target === modal) modal.classList.remove('active');
+  };
+
+  document.getElementById('btn-copy-url').onclick = () => {
+    navigator.clipboard.writeText(GAME_URL).then(() => {
+      alert('已成功複製遊戲連結！');
+    }).catch(() => {
+      alert('請手動複製連結：' + GAME_URL);
+    });
   };
 </script>
 
