@@ -152,10 +152,10 @@
       <span id="round-indicator" style="font-weight: bold; color: var(--accent);">第 1 / 2 輪</span>
     </div>
 
-    <!-- 唯一一輪密室多票制投票面板 -->
+    <!-- 密室投票面板（常規與 PK 通用） -->
     <div class="card" id="voting-panel" style="display: none;">
-      <h3 style="color: var(--accent); margin-bottom: 4px;">🗳 輪流密室投票</h3>
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">（僅此一輪投票，開票後即刻決定本局勝負）</p>
+      <h3 id="voting-panel-title" style="color: var(--accent); margin-bottom: 4px;">🗳 輪流密室投票</h3>
+      <p id="voting-panel-subtitle" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">（開票後即刻決定本局勝負）</p>
       <p id="voting-voter-title" style="font-size: 0.95rem; margin-bottom: 6px; font-weight: 500;">
         請<span id="voting-current-voter-name" style="font-weight: bold;">【玩家 1】</span>進行投票：
       </p>
@@ -210,6 +210,16 @@
   </div>
 </div>
 
+<!-- PK 提示彈窗 -->
+<div class="modal-overlay" id="draw-pk-modal">
+  <div class="modal-card">
+    <p style="font-size: 0.85rem; color: #fbbf24; font-weight: bold;">⚖️ 出現平票，進入 PK 投票</p>
+    <h2 style="font-size: 1.35rem; margin: 8px 0; color: var(--accent);">爭奪淘汰名額</h2>
+    <p id="draw-pk-desc" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;"></p>
+    <button id="btn-draw-start-pk" class="btn btn-success" style="margin-top: 0;">開始 PK 投票</button>
+  </div>
+</div>
+
 <script>
   const COLOR_PALETTE = [
     '#f43f5e', '#3b82f6', '#10b981', '#f59e0b',
@@ -257,7 +267,7 @@
   let turnOrder = [];
   let currentTurnOrderIndex = 0;
   let currentRound = 1;
-  allStrokes = [];
+  let allStrokes = [];
 
   let canvas, ctx;
   let isDrawing = false;
@@ -270,6 +280,13 @@
   let currentSelectedTargets = [];
   let earnedScores = {};
   let scoreReasons = {};
+
+  // PK 專用狀態
+  let isPkVoting = false;
+  let pkCandidateIndices = [];
+  let pkNeededSlots = 1; // 需透過 PK 決出的淘汰人數
+  let confirmedEliminated = []; // PK 前已因絕對高票直接淘汰的玩家
+  let firstRoundVotes = {};     // 儲存第一輪投票結果以供展示
 
   function formatBopomofo(htmlStr) {
     if (!htmlStr) return '';
@@ -292,6 +309,12 @@
     votes = {};
     earnedScores = {};
     scoreReasons = {};
+    isPkVoting = false;
+    pkCandidateIndices = [];
+    pkNeededSlots = 1;
+    confirmedEliminated = [];
+    firstRoundVotes = {};
+
     players.forEach((_, idx) => {
       isAlive[idx] = true;
       earnedScores[idx] = 0;
@@ -474,7 +497,7 @@
     subtitle.textContent = '本筆作畫已完成！';
     title.textContent = '🎨 全員作畫完成';
     title.style.color = 'var(--accent)';
-    desc.textContent = `作畫結束！全員即將進行唯一一輪密室投票，每人需選出 ${allowedVotesCount} 位臥底。`;
+    desc.textContent = `作畫結束！全員即將進行密室投票，每人需選出 ${allowedVotesCount} 位臥底。`;
     btn.textContent = '進入投票階段';
 
     btn.onclick = () => {
@@ -629,8 +652,17 @@
     });
   }
 
-  // ================= 階段 3：唯一一輪密室多票制投票 =================
+  // ================= 階段 3：投票階段（支援常規與 PK 投票） =================
   function startVotingStage() {
+    isPkVoting = false;
+    currentVoterIndex = 0;
+    votes = {};
+    document.getElementById('voting-panel').style.display = 'block';
+    updateVotingUI();
+  }
+
+  function startPkVotingStage() {
+    isPkVoting = true;
     currentVoterIndex = 0;
     votes = {};
     document.getElementById('voting-panel').style.display = 'block';
@@ -638,25 +670,45 @@
   }
 
   function updateVotingUI() {
-    const voter = players[currentVoterIndex];
+    const aliveIndices = players.map((_, i) => i).filter(i => isAlive[i]);
+    const voterRealIdx = aliveIndices[currentVoterIndex];
+    const voter = players[voterRealIdx];
+
+    const titleEl = document.getElementById('voting-panel-title');
+    const subTitleEl = document.getElementById('voting-panel-subtitle');
+    const targetVotesNeeded = isPkVoting ? pkNeededSlots : allowedVotesCount;
+
+    if (isPkVoting) {
+      titleEl.textContent = '⚖️ 平票 PK 投票';
+      titleEl.style.color = '#fbbf24';
+      subTitleEl.textContent = '（請從候選人中投出淘汰者，若再次平票則無人淘汰）';
+    } else {
+      titleEl.textContent = '🗳 輪流密室投票';
+      titleEl.style.color = 'var(--accent)';
+      subTitleEl.textContent = '（每人需選滿指定票數，開票後即刻決定勝負）';
+    }
+
     const voterTitle = document.getElementById('voting-current-voter-name');
     voterTitle.textContent = `【${voter.name}】`;
     voterTitle.style.color = voter.color;
-    updateActivePlayerTag(currentVoterIndex);
+    updateActivePlayerTag(voterRealIdx);
 
     currentSelectedTargets = [];
-    updateInstructionText();
+    updateInstructionText(targetVotesNeeded);
 
-    const isLastVoter = (currentVoterIndex === players.length - 1);
+    const isLastVoter = (currentVoterIndex === aliveIndices.length - 1);
     const submitBtn = document.getElementById('btn-submit-vote');
-    submitBtn.textContent = isLastVoter ? '確認投票並直接開票' : '確認投票並傳給下一位';
+    submitBtn.textContent = isLastVoter ? (isPkVoting ? '確認投票並公布最終結果' : '確認投票並直接開票') : '確認投票並傳給下一位';
     submitBtn.disabled = true;
 
     const container = document.getElementById('vote-options');
     container.innerHTML = '';
 
-    players.forEach((p, idx) => {
-      if (idx === currentVoterIndex) return;
+    const candidatePool = isPkVoting ? pkCandidateIndices : aliveIndices;
+
+    candidatePool.forEach(idx => {
+      if (idx === voterRealIdx) return;
+      const p = players[idx];
       const item = document.createElement('div');
       item.className = 'vote-item';
       item.id = `vote-opt-${idx}`;
@@ -675,77 +727,187 @@
           item.classList.remove('selected');
           item.querySelector('.vote-check').style.display = 'none';
         } else {
-          if (currentSelectedTargets.length < allowedVotesCount) {
+          if (currentSelectedTargets.length < targetVotesNeeded) {
             currentSelectedTargets.push(idx);
             item.classList.add('selected');
             item.querySelector('.vote-check').style.display = 'inline';
           }
         }
-        updateInstructionText();
-        submitBtn.disabled = (currentSelectedTargets.length !== allowedVotesCount);
+        updateInstructionText(targetVotesNeeded);
+        submitBtn.disabled = (currentSelectedTargets.length !== targetVotesNeeded);
       };
 
       container.appendChild(item);
     });
   }
 
-  function updateInstructionText() {
+  function updateInstructionText(targetCount) {
     const info = document.getElementById('voting-instruction');
-    info.textContent = `本局臥底共 ${allowedVotesCount} 位，請選取 ${allowedVotesCount} 位玩家（已選取 ${currentSelectedTargets.length}/${allowedVotesCount}）`;
+    if (isPkVoting) {
+      info.textContent = `請從 PK 候選人中選取 ${targetCount} 位（已選取 ${currentSelectedTargets.length}/${targetCount}）`;
+    } else {
+      info.textContent = `本局臥底共 ${targetCount} 位，請選取 ${targetCount} 位玩家（已選取 ${currentSelectedTargets.length}/${targetCount}）`;
+    }
   }
 
   document.getElementById('btn-submit-vote').onclick = () => {
-    if (currentSelectedTargets.length !== allowedVotesCount) return;
+    const targetVotesNeeded = isPkVoting ? pkNeededSlots : allowedVotesCount;
+    if (currentSelectedTargets.length !== targetVotesNeeded) return;
 
-    votes[currentVoterIndex] = [...currentSelectedTargets];
+    const aliveIndices = players.map((_, i) => i).filter(i => isAlive[i]);
+    const voterRealIdx = aliveIndices[currentVoterIndex];
+
+    votes[voterRealIdx] = [...currentSelectedTargets];
     currentVoterIndex++;
 
-    if (currentVoterIndex < players.length) {
+    if (currentVoterIndex < aliveIndices.length) {
       updateVotingUI();
     } else {
-      tallyResults();
+      if (!isPkVoting) {
+        checkFirstRoundVotes();
+      } else {
+        tallyPkAndFinish();
+      }
     }
   };
 
-  // ================= 階段 4：直接開票並結算 =================
-  function tallyResults() {
-    document.getElementById('voting-panel').style.display = 'none';
-    document.getElementById('result-panel').style.display = 'block';
+  // 第一輪投票結果審查：檢查是否在切分線上平票
+  function checkFirstRoundVotes() {
+    firstRoundVotes = { ...votes };
 
-    // 1. 票數統計
     const voteCounts = {};
     players.forEach((_, idx) => voteCounts[idx] = 0);
     Object.values(votes).forEach(tList => {
       tList.forEach(t => { voteCounts[t] = (voteCounts[t] || 0) + 1; });
     });
 
-    // 2. 淘汰名單：取最高票的前 allowedVotesCount 名
-    const sortedVoteList = Object.entries(voteCounts).map(([id, cnt]) => ({
-      id: parseInt(id, 10),
-      count: cnt
-    })).sort((a, b) => b.count - a.count);
+    // 票數由高到低分組
+    const groups = {};
+    Object.entries(voteCounts).forEach(([id, cnt]) => {
+      if (!groups[cnt]) groups[cnt] = [];
+      groups[cnt].push(parseInt(id, 10));
+    });
 
-    const eliminatedIndices = sortedVoteList.slice(0, allowedVotesCount).map(item => item.id);
+    const sortedCounts = Object.keys(groups).map(Number).sort((a, b) => b - a);
+
+    confirmedEliminated = [];
+    let slotsNeeded = allowedVotesCount;
+    let tieFound = false;
+
+    for (let cnt of sortedCounts) {
+      const candidates = groups[cnt];
+      if (candidates.length <= slotsNeeded) {
+        confirmedEliminated.push(...candidates);
+        slotsNeeded -= candidates.length;
+        if (slotsNeeded === 0) break;
+      } else {
+        // 在分界線上出現平票！需要 PK 決出剩餘的 slotsNeeded 個名額
+        pkCandidateIndices = [...candidates];
+        pkNeededSlots = slotsNeeded;
+        tieFound = true;
+        break;
+      }
+    }
+
+    if (tieFound) {
+      document.getElementById('voting-panel').style.display = 'none';
+      const modal = document.getElementById('draw-pk-modal');
+      const desc = document.getElementById('draw-pk-desc');
+      const candNames = pkCandidateIndices.map(id => players[id].name).join(' 與 ');
+
+      let text = `玩家 <b>${candNames}</b> 票數相同並列！<br>需進行 PK 投票選出最後 <b>${pkNeededSlots}</b> 位淘汰者。`;
+      if (confirmedEliminated.length > 0) {
+        const confNames = confirmedEliminated.map(id => players[id].name).join('、');
+        text += `<br>（${confNames} 已因絕對高票確定淘汰）`;
+      }
+      text += `<br><br><span style="color:#fbbf24;">⚠️ 若 PK 投票再次平票，剩餘 ${pkNeededSlots} 個名額將判定無人淘汰（平安夜）！</span>`;
+
+      desc.innerHTML = text;
+      modal.classList.add('active');
+
+      document.getElementById('btn-draw-start-pk').onclick = () => {
+        modal.classList.remove('active');
+        startPkVotingStage();
+      };
+    } else {
+      // 無平票，直接結算
+      finalizeDrawGame(confirmedEliminated, false, []);
+    }
+  }
+
+  // PK 投票結算
+  function tallyPkAndFinish() {
+    const pkVoteCounts = {};
+    pkCandidateIndices.forEach(id => pkVoteCounts[id] = 0);
+
+    Object.values(votes).forEach(tList => {
+      tList.forEach(t => {
+        if (pkVoteCounts[t] !== undefined) pkVoteCounts[t]++;
+      });
+    });
+
+    // 依 PK 得票分組
+    const pkGroups = {};
+    Object.entries(pkVoteCounts).forEach(([id, cnt]) => {
+      if (!pkGroups[cnt]) pkGroups[cnt] = [];
+      pkGroups[cnt].push(parseInt(id, 10));
+    });
+
+    const sortedCounts = Object.keys(pkGroups).map(Number).sort((a, b) => b - a);
+
+    let finalEliminated = [...confirmedEliminated];
+    let slotsNeeded = pkNeededSlots;
+    let pkTieHappened = false;
+    let tiedCandidates = [];
+
+    for (let cnt of sortedCounts) {
+      const candidates = pkGroups[cnt];
+      if (candidates.length <= slotsNeeded) {
+        finalEliminated.push(...candidates);
+        slotsNeeded -= candidates.length;
+        if (slotsNeeded === 0) break;
+      } else {
+        // 【PK 再次平票】➔ 無人淘汰！名額放棄
+        pkTieHappened = true;
+        tiedCandidates = [...candidates];
+        break;
+      }
+    }
+
+    finalizeDrawGame(finalEliminated, pkTieHappened, tiedCandidates);
+  }
+
+  // 結算與勝負評判
+  function finalizeDrawGame(eliminatedIndices, pkTieHappened, tiedCandidates) {
+    document.getElementById('voting-panel').style.display = 'none';
+    document.getElementById('result-panel').style.display = 'block';
+
+    // 標記淘汰
     eliminatedIndices.forEach(id => { isAlive[id] = false; });
 
-    // 3. 【核心修正】：只有平民投票給「確實在本輪死亡淘汰」的間諜或白板，每投死 1 位才獲得 +1 分
-    Object.entries(votes).forEach(([vStr, tList]) => {
-      const v = parseInt(vStr, 10);
-      if (playerRoles[v] === 'civilian') {
-        let deadEnemyHitCount = 0;
-        tList.forEach(t => {
-          // 必須身分是間諜或白板，而且他在本輪「被處決淘汰（死亡）」
-          if ((playerRoles[t] === 'spy' || playerRoles[t] === 'blank') && eliminatedIndices.includes(t)) {
-            deadEnemyHitCount++;
-          }
-        });
+    // 3. 【核心計分】：只有平民投票給「確實在本輪死亡淘汰」的間諜或白板，每投死 1 位 +1 分
+    // 合併正式投票與 PK 投票的命中判斷
+    const allVotesToCheck = [firstRoundVotes, isPkVoting ? votes : {}];
 
-        if (deadEnemyHitCount > 0) {
-          earnedScores[v] = (earnedScores[v] || 0) + deadEnemyHitCount;
-          totalScores[v] += deadEnemyHitCount;
-          scoreReasons[v].push(`平民成功投死臥底 (+1分 × ${deadEnemyHitCount})`);
+    allVotesToCheck.forEach((voteMap, vRoundIdx) => {
+      Object.entries(voteMap).forEach(([vStr, tList]) => {
+        const v = parseInt(vStr, 10);
+        if (playerRoles[v] === 'civilian') {
+          let deadEnemyHitCount = 0;
+          tList.forEach(t => {
+            if ((playerRoles[t] === 'spy' || playerRoles[t] === 'blank') && eliminatedIndices.includes(t)) {
+              deadEnemyHitCount++;
+            }
+          });
+
+          if (deadEnemyHitCount > 0) {
+            earnedScores[v] = (earnedScores[v] || 0) + deadEnemyHitCount;
+            totalScores[v] += deadEnemyHitCount;
+            const roundText = (vRoundIdx === 1) ? '（PK輪）' : '';
+            scoreReasons[v].push(`平民成功投死臥底${roundText} (+1分 × ${deadEnemyHitCount})`);
+          }
         }
-      }
+      });
     });
 
     // 4. 勝負評判：間諜與白板是否全數在最高票淘汰名單中
@@ -786,16 +948,16 @@
     if (isCivilianWin) {
       summaryBox.innerHTML = `
         <h3 style="color:var(--success); margin-bottom:4px;">🎉 平民陣營獲勝！</h3>
-        <p style="font-size:0.88rem;">所有間諜與白板全數被投出淘汰！成功投死臥底的平民各獲 <b>+1 分</b>，最後存活的平民再獲 <b>+1 分</b>！</p>
+        <p style="font-size:0.88rem;">所有間諜與白板全數被投出處決！投死臥底的平民各獲 <b>+1 分</b>，存活平民再獲 <b>+1 分</b>！</p>
       `;
     } else {
       summaryBox.innerHTML = `
         <h3 style="color:var(--danger); margin-bottom:4px;">😈 間諜與白板獲勝！</h3>
-        <p style="font-size:0.88rem;">臥底成功隱匿存活！存活的間諜獲得 <b>+2 分</b>，存活的白板獲得 <b>+3 分</b>！</p>
+        <p style="font-size:0.88rem;">臥底成功隱匿或存活！存活間諜獲 <b>+2 分</b>，存活白板獲 <b>+3 分</b>！</p>
       `;
     }
 
-    // 1. 全員身分揭曉（置頂）
+    // 1. 全員身分揭曉
     let rolesHtml = '<ul style="list-style:none; padding-left:0; margin-top:2px;">';
     players.forEach((p, idx) => {
       let roleLabel = '';
@@ -812,13 +974,31 @@
     document.getElementById('result-roles-details').innerHTML = rolesHtml;
 
     // 2. 玩家投票明細
-    let voteDetails = '<b>🗳 本輪投票統計：</b><br>';
-    Object.entries(votes).forEach(([v, tList]) => {
+    let voteDetails = '<b>【正式投票紀錄】</b><br>';
+    Object.entries(firstRoundVotes).forEach(([v, tList]) => {
       const targetNames = tList.map(t => `<span style="color:${players[t].color}; font-weight:bold;">${players[t].name}</span>`).join('、');
       voteDetails += `${players[v].name} 投給了 👉 ${targetNames}<br>`;
     });
-    const eliminatedNames = eliminatedIndices.map(id => players[id].name).join('、');
-    voteDetails += `<div style="margin-top:6px; color:var(--danger); font-weight:bold;">➔ 本輪淘汰最高票玩家：${eliminatedNames}</div>`;
+
+    if (isPkVoting) {
+      voteDetails += '<br><b>【PK 投票紀錄】</b><br>';
+      Object.entries(votes).forEach(([v, tList]) => {
+        const targetNames = tList.map(t => `<span style="color:${players[t].color}; font-weight:bold;">${players[t].name}</span>`).join('、');
+        voteDetails += `${players[v].name} 投給了 👉 ${targetNames}<br>`;
+      });
+    }
+
+    if (pkTieHappened) {
+      const tiedNames = tiedCandidates.map(id => players[id].name).join(' 與 ');
+      voteDetails += `<div style="margin-top:6px; color:#38bdf8; font-weight:bold;">➔ PK 再次平票（${tiedNames}）：該名額判定無人淘汰（平安夜）！</div>`;
+    }
+
+    if (eliminatedIndices.length > 0) {
+      const eliminatedNames = eliminatedIndices.map(id => players[id].name).join('、');
+      voteDetails += `<div style="margin-top:6px; color:var(--danger); font-weight:bold;">➔ 最終處決淘汰玩家：${eliminatedNames}</div>`;
+    } else {
+      voteDetails += `<div style="margin-top:6px; color:#38bdf8; font-weight:bold;">➔ 最終處決結果：全員皆存活</div>`;
+    }
     document.getElementById('result-votes-details').innerHTML = voteDetails;
 
     // 3. 題目公布
