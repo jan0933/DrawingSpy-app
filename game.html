@@ -453,12 +453,41 @@
     });
   }
 
-  const rawData = sessionStorage.getItem('spyGameConfig');
-  if (!rawData) {
+  // ================= 讀取設定並相容新舊格式 =================
+  const COLOR_PALETTE = [
+    '#f43f5e', '#3b82f6', '#10b981', '#f59e0b',
+    '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'
+  ];
+
+  let rawConfig = JSON.parse(sessionStorage.getItem('spy_game_config')) 
+               || JSON.parse(sessionStorage.getItem('spyGameConfig'))
+               || null;
+
+  if (!rawConfig) {
     alert('尚未設定遊戲，將跳轉回首頁！');
     window.location.href = 'index.html';
   }
-  const config = JSON.parse(rawData);
+
+  // 自動轉換並組裝標準 config 物件
+  const config = {
+    difficulty: rawConfig.difficulty || 'normal',
+    spyType: rawConfig.spyType || 'blank',
+    spyCount: rawConfig.spyCount ? parseInt(rawConfig.spyCount, 10) : 1,
+    players: []
+  };
+
+  if (rawConfig.players && Array.isArray(rawConfig.players) && rawConfig.players.length > 0) {
+    config.players = rawConfig.players;
+  } else {
+    const pCount = parseInt(rawConfig.playerCount, 10) || 4;
+    for (let i = 0; i < pCount; i++) {
+      config.players.push({
+        id: i,
+        name: `玩家 ${i + 1}`,
+        color: COLOR_PALETTE[i % COLOR_PALETTE.length]
+      });
+    }
+  }
 
   let ACTIVE_WORD_BANK = [];
   let ACTIVE_CATEGORY_RUBY = {};
@@ -725,8 +754,7 @@
       }
     });
 
-    const primarySpy = roundState.spyIndices[0];
-    const isSpyCaught = mostVotedPlayers.includes(primarySpy);
+    const isSpyCaught = mostVotedPlayers.some(idx => roundState.spyIndices.includes(idx));
     roundState.spyCaught = isSpyCaught;
 
     // 平民投對 +1 分
@@ -775,7 +803,6 @@
         📢 平民成功揪出間諜！間諜本回合未獲得隱匿分。
       </p>`;
       
-      // 設置猜題介面
       setupReverseGuessUI();
 
       document.getElementById('title-topic').textContent = '💡 4. 本回合題目與類別';
@@ -797,7 +824,6 @@
     showScreen('step-result');
   }
 
-  // 設置逆轉猜題 UI（依據白板或標準模式渲染）
   function setupReverseGuessUI() {
     const box = document.getElementById('reverse-guess-box');
     const title = document.getElementById('reverse-guess-title');
@@ -810,7 +836,6 @@
     btnContainer.innerHTML = '';
 
     if (config.spyType === 'blank') {
-      // 白板模式：分兩階段
       title.textContent = '🎯 3. 間諜逆轉猜題機會 (白板模式：第一階段)';
       desc.innerHTML = '間諜完全無提示！請現場直接盲猜平民題目。若盲猜猜中可獲得 <b>+2 分</b>；若未猜中可查看類別提示再猜一次！';
 
@@ -819,7 +844,6 @@
         <button id="btn-blank-p1-success" class="btn btn-success" style="flex: 1; padding: 10px;">盲猜猜中 (+2分)</button>
       `;
 
-      // 綁定第一階段事件
       document.getElementById('btn-blank-p1-success').onclick = () => handleGuessEnd(2, '太厲害了！白板間諜盲猜猜中！獲得 +2 分！');
       document.getElementById('btn-blank-p1-fail').onclick = () => {
         title.textContent = '🎯 3. 間諜逆轉猜題機會 (白板模式：第二階段)';
@@ -835,7 +859,6 @@
         document.getElementById('btn-blank-p2-fail').onclick = () => handleGuessEnd(0, '間諜提示後仍未猜中！平民徹底獲勝！');
       };
     } else {
-      // 標準間諜模式：已知道類別，單一階段猜題（猜中 +1 分）
       title.textContent = '🎯 3. 間諜逆轉猜題機會 (標準間諜模式)';
       desc.innerHTML = '間諜本已知曉題目大類別！請於現場口頭猜出精確題目。若猜中可獲得 <b>+1 分</b>：';
 
