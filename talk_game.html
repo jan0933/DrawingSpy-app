@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>誰是間諜 - 口說模式</title>
+  <style>
+    :root {
+      --bg: #121826;
+      --card-bg: #1e293b;
+      --accent: #38bdf8;
+      --danger: #f43f5e;
+      --success: #10b981;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg); color: var(--text); font-family: var(--font-family); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 16px; }
+    .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 14px; }
+    .card { background: var(--card-bg); border-radius: 14px; padding: 18px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.25); text-align: center; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 14px; font-size: 1rem; font-weight: 600; border-radius: 10px; border: none; background: var(--accent); color: #0f172a; cursor: pointer; margin-top: 8px; transition: transform 0.1s ease; }
+    .btn:active { transform: scale(0.98); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-secondary { background: #334155; color: var(--text); }
+    
+    .screen { display: none; flex-direction: column; gap: 14px; }
+    .screen.active { display: flex; }
+    .round-badge { display: inline-block; align-self: center; background: #0f172a; border: 1px solid var(--accent); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; }
+
+    .reveal-box { min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 2px dashed var(--accent); border-radius: 12px; padding: 20px; cursor: pointer; background: rgba(56, 189, 248, 0.03); }
+    .reveal-box.unlocked { border-style: solid; background: rgba(56, 189, 248, 0.1); }
+
+    .tag-word-wrap { display: inline-flex; flex-direction: row; justify-content: center; align-items: center; flex-wrap: wrap; margin: 16px 0 10px 0; gap: 10px; }
+    ruby { display: inline-flex; flex-direction: row; align-items: center; font-size: 2.2rem; font-weight: 800; color: #fbbf24; line-height: 1; }
+    rt { display: inline-flex !important; flex-direction: row !important; align-items: center !important; font-size: 0.42em; color: #93c5fd; font-weight: 600; margin-left: 3px; }
+    .zhuyin-col { display: flex; flex-direction: column; align-items: center; }
+    .tone-light-dot { font-size: 0.75em; line-height: 0.6; margin-bottom: 1px; }
+    .zhuyin-symbols { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+    .zhuyin-tone-side { font-size: 0.85em; line-height: 1; align-self: flex-end; padding-bottom: 2px; margin-left: 1px; }
+
+    .color-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    .flow-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #0f172a; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 6px; }
+    .vote-item { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid var(--border); cursor: pointer; margin-bottom: 6px; text-align: left; }
+    .vote-item.selected { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); }
+    .info-box { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 0.9rem; line-height: 1.6; margin-bottom: 8px; text-align: left; }
+    .score-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #0f172a; border-radius: 8px; margin-bottom: 6px; border: 1px solid var(--border); }
+  </style>
+  <script src="talk_words.js"></script>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- 階段 1：查看身分 -->
+  <section id="step-reveal" class="screen active">
+    <div class="card">
+      <span class="round-badge" id="badge-round-reveal">第 1 回合</span>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">請將手機交給</p>
+      <h2 id="reveal-player-name" style="font-size: 1.6rem; color: var(--accent); margin: 6px 0 16px 0;">玩家 1</h2>
+
+      <div id="reveal-box" class="reveal-box">
+        <div id="reveal-hint">
+          <p style="font-size: 1.1rem; font-weight: 600;">點擊此處查看題目詞彙</p>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">（其他人請先避開視野）</p>
+        </div>
+        <div id="reveal-content" style="display: none;">
+          <div style="font-size: 0.95rem; font-weight: bold; color: var(--text-muted);" id="role-text">平民</div>
+          <div class="tag-word-wrap" id="word-container"></div>
+          <p id="rule-tip" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;"></p>
+        </div>
+      </div>
+
+      <button id="btn-next-reveal" class="btn btn-secondary" style="margin-top: 18px;" disabled>我看完了，交給下一位</button>
+    </div>
+  </section>
+
+  <!-- 階段 2：發言順序 -->
+  <section id="step-talk" class="screen">
+    <div class="card">
+      <span class="round-badge" id="badge-round-talk">第 1 回合</span>
+      <h3 style="font-size: 1.15rem; margin-bottom: 4px;">🗣️ 輪流發言階段</h3>
+      <div style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 4px; margin: 8px 0 12px 0; text-align: left; font-size: 0.85rem; line-height: 1.5;">
+        • 所有人依序用<b>一句話</b>描述自己的詞，不可直接說出關鍵字！<br>
+        • 間諜拿到的是極度相似的詞彙（或白板），請小心掩飾！
+      </div>
+
+      <p style="font-size: 0.85rem; font-weight: bold; color: var(--text-muted); text-align: left; margin-bottom: 6px;">發言順序：</p>
+      <div id="flow-order-list"></div>
+
+      <button id="btn-start-vote" class="btn btn-success" style="margin-top: 10px;">全員發言完畢，前往投票</button>
+    </div>
+  </section>
+
+  <!-- 階段 3：密室投票 -->
+  <section id="step-voting" class="screen">
+    <div class="card">
+      <span class="round-badge" id="badge-round-voting">第 1 回合</span>
+      <h3 style="color: var(--accent); margin-bottom: 6px;">🗳 輪流密室投票</h3>
+      <p style="font-size: 0.95rem; margin-bottom: 10px;">
+        請<span id="voting-current-voter-name" style="font-weight: bold;">【玩家 1】</span>點選你懷疑的間諜：
+      </p>
+      <div id="vote-options"></div>
+      <button id="btn-submit-vote" class="btn" disabled>確認投票並傳給下一位</button>
+    </div>
+  </section>
+
+  <!-- 階段 4：結算與揭曉 -->
+  <section id="step-result" class="screen">
+    <div class="card">
+      <h2 style="color: var(--accent); margin-bottom: 10px;">📊 結算與揭曉</h2>
+      <div class="info-box" id="result-votes-details"></div>
+      <div class="info-box" id="result-spy-details"></div>
+
+      <!-- 間諜逆轉猜題區 -->
+      <div id="reverse-guess-box" style="display: none; background: #0f172a; padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px dashed var(--accent);">
+        <div style="color: #fbbf24; font-weight: bold; margin-bottom: 4px;">🎯 間諜逆轉猜題機會</div>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">間諜若能口頭猜中平民的詞彙，即可逆轉獲得分數：</p>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary" style="flex:1" onclick="onGuessComplete(0)">未猜中 (0分)</button>
+          <button class="btn btn-success" style="flex:1" onclick="onGuessComplete(1)">猜中了 (+1分)</button>
+        </div>
+      </div>
+
+      <div class="info-box" id="result-topic-details"></div>
+      <div class="info-box" id="result-round-scores"></div>
+      <div id="result-scoreboard" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;"></div>
+
+      <button class="btn btn-success" onclick="startNewGame()">再來一局（保留當前積分）</button>
+      <button class="btn btn-secondary" onclick="window.location.href='index.html'">結束遊戲回首頁</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  function formatBopomofo(htmlStr) {
+    if (!htmlStr) return '';
+    return htmlStr.replace(/<rt>(.*?)<\/rt>/g, (match, p1) => {
+      const text = p1.trim();
+      const tones = ['ˊ', 'ˇ', 'ˋ'];
+      let sideTone = '', isLight = false, symbols = '';
+      for (let ch of text) {
+        if (tones.includes(ch)) sideTone = ch;
+        else if (ch === '˙') isLight = true;
+        else symbols += `<span>${ch}</span>`;
+      }
+      return `<rt><div class="zhuyin-col">${isLight ? '<span class="tone-light-dot">˙</span>' : ''}<span class="zhuyin-symbols">${symbols}</span></div>${sideTone ? `<span class="zhuyin-tone-side">${sideTone}</span>` : ''}</rt>`;
+    });
+  }
+
+  const rawConfig = JSON.parse(sessionStorage.getItem('spy_game_config')) || {
+    playerCount: 4, spyCount: 1, difficulty: 'normal', spyType: 'hint', players: []
+  };
+
+  let players = rawConfig.players;
+  let totalScores = {};
+  players.forEach((_, idx) => { totalScores[idx] = 0; });
+
+  let spyIndices = [];
+  let civilianWord = '';
+  let spyWord = '';
+  let categoryName = '';
+  let currentViewingPlayer = 0;
+  let turnOrder = [];
+  let currentVoterIndex = 0;
+  let votes = {};
+  let selectedVoteTarget = null;
+  let earnedScores = {};
+
+  function initGame() {
+    const playerIndices = Array.from({ length: players.length }, (_, i) => i);
+    playerIndices.sort(() => Math.random() - 0.5);
+    spyIndices = playerIndices.slice(0, rawConfig.spyCount);
+
+    const filteredBank = TALK_WORD_BANK.filter(item => {
+      return (rawConfig.difficulty === 'hard') ? true : (item[3] === 'normal');
+    });
+    const pair = filteredBank[Math.floor(Math.random() * filteredBank.length)];
+    
+    // 隨機分配誰是詞A誰是詞B
+    if (Math.random() > 0.5) {
+      civilianWord = pair[0];
+      spyWord = pair[1];
+    } else {
+      civilianWord = pair[1];
+      spyWord = pair[0];
+    }
+    categoryName = pair[2];
+
+    const startIdx = Math.floor(Math.random() * players.length);
+    turnOrder = [];
+    for (let i = 0; i < players.length; i++) {
+      turnOrder.push((startIdx + i) % players.length);
+    }
+
+    currentViewingPlayer = 0;
+    votes = {};
+    earnedScores = {};
+    players.forEach((_, idx) => { earnedScores[idx] = 0; });
+
+    showScreen('step-reveal');
+    setupRevealStep();
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function setupRevealStep() {
+    const p = players[currentViewingPlayer];
+    document.getElementById('reveal-player-name').textContent = p.name;
+    document.getElementById('reveal-player-name').style.color = p.color;
+
+    const elBox = document.getElementById('reveal-box');
+    elBox.classList.remove('unlocked');
+    document.getElementById('reveal-hint').style.display = 'block';
+    document.getElementById('reveal-content').style.display = 'none';
+
+    const isLast = (currentViewingPlayer === players.length - 1);
+    const btn = document.getElementById('btn-next-reveal');
+    btn.textContent = isLast ? '我看完了，開始遊戲' : '我看完了，交給下一位';
+    btn.disabled = true;
+  }
+
+  document.getElementById('reveal-box').onclick = () => {
+    const elBox = document.getElementById('reveal-box');
+    if (elBox.classList.contains('unlocked')) return;
+
+    const isSpy = spyIndices.includes(currentViewingPlayer);
+    const roleText = document.getElementById('role-text');
+    const wordBox = document.getElementById('word-container');
+    const ruleTip = document.getElementById('rule-tip');
+
+    if (isSpy) {
+      if (rawConfig.spyType === 'blank') {
+        roleText.textContent = '【你是白板】';
+        roleText.style.color = 'var(--danger)';
+        wordBox.innerHTML = formatBopomofo('<ruby>無<rt>ㄨˊ</rt>題<rt>ㄊㄧˊ</rt>目<rt>ㄇㄨˋ</rt></ruby>');
+        ruleTip.textContent = '⚠️ 你完全沒有詞彙！請認真聽他人描述伺機偽裝！';
+      } else {
+        roleText.textContent = '【你是間諜】';
+        roleText.style.color = 'var(--danger)';
+        wordBox.innerHTML = formatBopomofo(spyWord);
+        ruleTip.textContent = '⚠️ 你的詞與平民極為相似，請小心隱藏並觀察異狀！';
+      }
+    } else {
+      roleText.textContent = '【你是平民】';
+      roleText.style.color = 'var(--accent)';
+      wordBox.innerHTML = formatBopomofo(civilianWord);
+      ruleTip.textContent = '💡 你的詞屬於此類別，請用一句話含蓄描述！';
+    }
+
+    document.getElementById('reveal-hint').style.display = 'none';
+    document.getElementById('reveal-content').style.display = 'block';
+    elBox.classList.add('unlocked');
+    document.getElementById('btn-next-reveal').disabled = false;
+  };
+
+  document.getElementById('btn-next-reveal').onclick = () => {
+    currentViewingPlayer++;
+    if (currentViewingPlayer < players.length) {
+      setupRevealStep();
+    } else {
+      setupTalkOrder();
+      showScreen('step-talk');
+    }
+  };
+
+  function setupTalkOrder() {
+    const list = document.getElementById('flow-order-list');
+    list.innerHTML = '';
+    turnOrder.forEach((pIdx, orderIdx) => {
+      const p = players[pIdx];
+      const div = document.createElement('div');
+      div.className = 'flow-item';
+      div.innerHTML = `
+        <span style="font-weight: bold; width: 22px; color: ${orderIdx === 0 ? 'var(--accent)' : 'var(--text-muted)'};">${orderIdx + 1}.</span>
+        <span class="color-dot" style="background-color: ${p.color};"></span>
+        <span style="flex: 1; text-align: left; font-weight: 500;">${p.name}</span>
+        ${orderIdx === 0 ? '<span style="font-size:0.75rem; background:var(--accent); color:#0f172a; padding:2px 8px; border-radius:10px; font-weight:bold;">起始發言</span>' : ''}
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  document.getElementById('btn-start-vote').onclick = () => {
+    currentVoterIndex = 0;
+    votes = {};
+    setupVotingStep();
+    showScreen('step-voting');
+  };
+
+  function setupVotingStep() {
+    const voter = players[currentVoterIndex];
+    const nameEl = document.getElementById('voting-current-voter-name');
+    nameEl.textContent = `【${voter.name}】`;
+    nameEl.style.color = voter.color;
+
+    const isLast = (currentVoterIndex === players.length - 1);
+    const submitBtn = document.getElementById('btn-submit-vote');
+    submitBtn.textContent = isLast ? '確認投票並觀看投票結果' : '確認投票並傳給下一位';
+    submitBtn.disabled = true;
+
+    const container = document.getElementById('vote-options');
+    container.innerHTML = '';
+    selectedVoteTarget = null;
+
+    players.forEach((p, idx) => {
+      if (idx === currentVoterIndex) return;
+      const opt = document.createElement('div');
+      opt.className = 'vote-item';
+      opt.innerHTML = `<span class="color-dot" style="background-color: ${p.color};"></span><b>${p.name}</b>`;
+      opt.onclick = () => {
+        document.querySelectorAll('.vote-item').forEach(el => el.classList.remove('selected'));
+        opt.classList.add('selected');
+        selectedVoteTarget = idx;
+        submitBtn.disabled = false;
+      };
+      container.appendChild(opt);
+    });
+  }
+
+  document.getElementById('btn-submit-vote').onclick = () => {
+    if (selectedVoteTarget === null) return;
+    votes[currentVoterIndex] = selectedVoteTarget;
+    currentVoterIndex++;
+
+    if (currentVoterIndex < players.length) {
+      setupVotingStep();
+    } else {
+      tallyResults();
+    }
+  };
+
+  function tallyResults() {
+    const voteCounts = {};
+    players.forEach((_, idx) => voteCounts[idx] = 0);
+    Object.values(votes).forEach(t => voteCounts[t] = (voteCounts[t] || 0) + 1);
+
+    let maxVotes = -1;
+    let mostVoted = [];
+    Object.entries(voteCounts).forEach(([pid, cnt]) => {
+      if (cnt > maxVotes) { maxVotes = cnt; mostVoted = [parseInt(pid, 10)]; }
+      else if (cnt === maxVotes) { mostVoted.push(parseInt(pid, 10)); }
+    });
+
+    const isSpyCaught = mostVoted.some(idx => spyIndices.includes(idx));
+    const spyNames = spyIndices.map(i => players[i].name).join('、');
+
+    Object.entries(votes).forEach(([v, t]) => {
+      const voterIdx = parseInt(v, 10);
+      if (!spyIndices.includes(voterIdx) && spyIndices.includes(t)) {
+        earnedScores[voterIdx] = (earnedScores[voterIdx] || 0) + 1;
+        totalScores[voterIdx] += 1;
+      }
+    });
+
+    const escapeScore = (rawConfig.spyType === 'blank') ? 3 : 2;
+    if (!isSpyCaught) {
+      spyIndices.forEach(sIdx => {
+        earnedScores[sIdx] = (earnedScores[sIdx] || 0) + escapeScore;
+        totalScores[sIdx] += escapeScore;
+      });
+    }
+
+    let voteDetails = '<b>🗳 投票統計：</b><br>';
+    Object.entries(votes).forEach(([v, t]) => {
+      voteDetails += `${players[v].name} 投給了 👉 <span style="color:${players[t].color}">${players[t].name}</span><br>`;
+    });
+    voteDetails += `<b style="color:var(--accent)">最高票：${mostVoted.map(i => players[i].name).join('、')} (${maxVotes} 票)</b>`;
+    document.getElementById('result-votes-details').innerHTML = voteDetails;
+
+    let spyDetails = `<b>🕵️ 間諜身分：</b><span style="color:var(--danger); font-size:1.1rem; font-weight:bold;">${spyNames}</span><br>`;
+    if (isSpyCaught) {
+      spyDetails += `<span style="color:var(--success); font-weight:bold;">平民成功揪出間諜！請間諜進行逆轉猜題！</span>`;
+      document.getElementById('reverse-guess-box').style.display = 'block';
+    } else {
+      spyDetails += `<span style="color:var(--danger); font-weight:bold;">間諜隱匿成功逃脫！獲得 +${escapeScore} 分</span>`;
+      document.getElementById('reverse-guess-box').style.display = 'none';
+      revealWords();
+    }
+    document.getElementById('result-spy-details').innerHTML = spyDetails;
+
+    renderScoreBoards();
+    showScreen('step-result');
+  }
+
+  window.onGuessComplete = function(addScore) {
+    if (addScore > 0) {
+      spyIndices.forEach(sIdx => {
+        earnedScores[sIdx] = (earnedScores[sIdx] || 0) + addScore;
+        totalScores[sIdx] += addScore;
+      });
+    }
+    document.getElementById('reverse-guess-box').style.display = 'none';
+    revealWords();
+    renderScoreBoards();
+  };
+
+  function revealWords() {
+    let html = `<b>💡 本局詞彙揭示（類別：${categoryName}）：</b><br>`;
+    html += `<div style="display:flex; align-items:center; gap:8px; margin-top:4px;">平民詞：<div class="tag-word-wrap">${formatBopomofo(civilianWord)}</div></div>`;
+    if (rawConfig.spyType === 'blank') {
+      html += `<div style="display:flex; align-items:center; gap:8px; margin-top:4px;">間諜詞：<span style="color:var(--danger); font-weight:bold;">白板（無題目）</span></div>`;
+    } else {
+      html += `<div style="display:flex; align-items:center; gap:8px; margin-top:4px;">間諜詞：<div class="tag-word-wrap">${formatBopomofo(spyWord)}</div></div>`;
+    }
+    document.getElementById('result-topic-details').innerHTML = html;
+  }
+
+  function renderScoreBoards() {
+    let roundHtml = '<b>⭐ 本回合得分變更：</b><ul style="list-style: none; padding-left: 0; margin-top: 4px;">';
+    players.forEach((p, idx) => {
+      const earned = earnedScores[idx] || 0;
+      roundHtml += `<li style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>${p.name}：</span><b style="color:${earned > 0 ? 'var(--success)' : 'var(--text-muted)'};">+${earned} 分</b></li>`;
+    });
+    roundHtml += '</ul>';
+    document.getElementById('result-round-scores').innerHTML = roundHtml;
+
+    const board = document.getElementById('result-scoreboard');
+    board.innerHTML = '<div style="text-align:left; font-size:0.9rem; font-weight:bold; color:var(--accent); margin-bottom:4px;">🏆 累積分數總榜：</div>';
+    const sorted = [...players.map((p, idx) => ({ ...p, score: totalScores[idx] }))].sort((a, b) => b.score - a.score);
+    sorted.forEach((p, rank) => {
+      const row = document.createElement('div');
+      row.className = 'score-row';
+      row.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:0.85rem; width:20px; color:var(--text-muted);">${rank + 1}.</span>
+          <div class="color-dot" style="background-color:${p.color};"></div>
+          <span>${p.name}</span>
+        </div>
+        <span style="font-size:1.1rem; font-weight:bold; color:#fbbf24;">${p.score} 分</span>
+      `;
+      board.appendChild(row);
+    });
+  }
+
+  window.startNewGame = function() {
+    initGame();
+  };
+
+  window.addEventListener('DOMContentLoaded', initGame);
+</script>
+</body>
+</html>
