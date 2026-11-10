@@ -70,6 +70,9 @@
     .vote-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: #0f172a; border: 1px solid var(--border); cursor: pointer; margin-bottom: 6px; text-align: left; }
     .vote-item.selected { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); }
     .info-box { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 0.88rem; line-height: 1.6; margin-bottom: 8px; text-align: left; }
+    
+    .score-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #0f172a; border-radius: 8px; margin-bottom: 6px; border: 1px solid var(--border); }
+    .score-badge { font-size: 1.1rem; font-weight: bold; color: #fbbf24; }
 
     /* 換手全螢幕對話框 */
     .modal-overlay {
@@ -103,7 +106,7 @@
 
 <div class="container">
 
-  <!-- ================= 階段 1：傳閱看題（畫板完全不出現） ================= -->
+  <!-- ================= 階段 1：傳閱看題 ================= -->
   <section id="step-reveal" class="card" style="display: block;">
     <span class="round-badge" id="badge-round-reveal">第 1 回合</span>
     <p style="color: var(--text-muted); font-size: 0.9rem;">請將手機交給</p>
@@ -128,7 +131,7 @@
     </button>
   </section>
 
-  <!-- ================= 階段 2：畫板區（所有人看畢後才顯示，全場保留） ================= -->
+  <!-- ================= 階段 2：畫板區（全場保留） ================= -->
   <section id="drawing-section" style="display: none; flex-direction: column; gap: 14px;">
     
     <!-- 頂部即時出筆提示 -->
@@ -137,7 +140,7 @@
         <span id="turn-indicator-dot" class="color-dot"></span>
         <span id="turn-indicator-name" style="font-weight: bold; font-size: 1rem;">玩家 1 作畫中</span>
       </div>
-      <span style="font-size: 0.82rem; color: #fbbf24; font-weight: bold;">畫一筆即自動換人</span>
+      <span style="font-size: 0.82rem; color: #fbbf24; font-weight: bold;">每人限一筆畫</span>
     </div>
 
     <!-- 玩家代表色條 -->
@@ -153,12 +156,14 @@
       <span id="round-indicator" style="font-weight: bold; color: var(--accent);">第 1 / 2 輪</span>
     </div>
 
-    <!-- 投票面板（輪流畫完後於畫板下方呈現） -->
+    <!-- 投票面板 -->
     <div class="card" id="voting-panel" style="display: none;">
-      <h3 style="color: var(--accent); margin-bottom: 6px;">🗳 請依上方畫作進行密室投票</h3>
-      <p id="voting-voter-title" style="font-size: 0.85rem; color: #fbbf24; margin-bottom: 10px;">請【玩家 1】點選你懷疑的間諜：</p>
+      <h3 style="color: var(--accent); margin-bottom: 6px;">🗳 輪流密室投票</h3>
+      <p id="voting-voter-title" style="font-size: 0.95rem; margin-bottom: 10px; font-weight: 500;">
+        請<span id="voting-current-voter-name" style="font-weight: bold;">【玩家 1】</span>點選你懷疑的間諜：
+      </p>
       <div id="vote-options"></div>
-      <button id="btn-submit-vote" class="btn" disabled>確認投票並傳給下一位</button>
+      <button id="btn-submit-vote" class="btn" disabled>確認投票</button>
     </div>
 
     <!-- 結算與盲猜面板 -->
@@ -180,7 +185,13 @@
 
       <div class="info-box" id="result-topic-details"></div>
 
-      <button class="btn btn-success" onclick="startNewGame()">再來一局（保留畫布重開）</button>
+      <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">⭐ 本回合得分變更</div>
+      <div class="info-box" id="result-round-scores"></div>
+
+      <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">🏆 累積分數總榜</div>
+      <div id="result-scoreboard" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;"></div>
+
+      <button class="btn btn-success" onclick="startNewGame()">再來一局（保留當前積分）</button>
       <button class="btn btn-secondary" onclick="window.location.href='index.html'">回單機首頁</button>
     </div>
 
@@ -201,7 +212,6 @@
 <script>
   const COLOR_PALETTE = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
-  // 讀取設定
   const rawConfig = JSON.parse(sessionStorage.getItem('spy_game_config')) 
                  || JSON.parse(sessionStorage.getItem('spyGameConfig'))
                  || { playerCount: 4, spyCount: 1, difficulty: 'normal', spyType: 'blank' };
@@ -223,13 +233,20 @@
   }
 
   let players = config.players;
+  let totalScores = {};
+  players.forEach((_, idx) => { totalScores[idx] = 0; });
+
   let spyIndices = [];
   let commonWord = '';
   let categoryName = '';
   let categoryRuby = '';
 
+  let currentRoundGame = 1;
   let currentViewingPlayer = 0;
-  let currentTurnIndex = 0;
+  
+  // 順序控制：固定順序輪轉
+  let turnOrder = [];
+  let currentTurnOrderIndex = 0;
   let currentRound = 1;
   let allStrokes = [];
 
@@ -241,6 +258,7 @@
   let currentVoterIndex = 0;
   let votes = {};
   let selectedVoteTarget = null;
+  let earnedScores = {};
 
   function formatBopomofo(htmlStr) {
     if (!htmlStr) return '';
@@ -258,8 +276,8 @@
   }
 
   function initGame() {
-    // 隨機選出間諜
-    const playerIndices = Array.from({ length: config.players.length }, (_, i) => i);
+    // 隨機選間諜
+    const playerIndices = Array.from({ length: players.length }, (_, i) => i);
     playerIndices.sort(() => Math.random() - 0.5);
     spyIndices = playerIndices.slice(0, config.spyCount);
 
@@ -271,11 +289,20 @@
     categoryName = item[1];
     categoryRuby = catDict[item[1]] || item[1];
 
+    // 隨機選起筆玩家，但順序固定循環
+    const startIdx = Math.floor(Math.random() * players.length);
+    turnOrder = [];
+    for (let i = 0; i < players.length; i++) {
+      turnOrder.push((startIdx + i) % players.length);
+    }
+
     currentViewingPlayer = 0;
-    currentTurnIndex = 0;
+    currentTurnOrderIndex = 0;
     currentRound = 1;
     allStrokes = [];
     votes = {};
+    earnedScores = {};
+    players.forEach((_, idx) => { earnedScores[idx] = 0; });
 
     document.getElementById('step-reveal').style.display = 'block';
     document.getElementById('drawing-section').style.display = 'none';
@@ -347,25 +374,26 @@
       document.getElementById('drawing-section').style.display = 'flex';
       renderPlayersBar();
       initCanvas();
-      showHandoverModal(0, true);
+      showHandoverModal(turnOrder[0], true);
     }
   });
 
   function renderPlayersBar() {
     const bar = document.getElementById('game-color-bar');
     bar.innerHTML = '';
-    players.forEach((p, idx) => {
+    turnOrder.forEach((pIdx, orderIdx) => {
+      const p = players[pIdx];
       const tag = document.createElement('div');
-      tag.id = `tag-player-${idx}`;
+      tag.id = `tag-player-${pIdx}`;
       tag.className = 'player-tag';
-      tag.innerHTML = `<span class="color-dot" style="background-color: ${p.color}"></span><span>${p.name}</span>`;
+      tag.innerHTML = `<span class="color-dot" style="background-color: ${p.color}"></span><span>${p.name}${orderIdx === 0 ? ' (起筆)' : ''}</span>`;
       bar.appendChild(tag);
     });
   }
 
-  function updateActivePlayerTag(idx) {
+  function updateActivePlayerTag(pIdx) {
     document.querySelectorAll('.player-tag').forEach(el => el.classList.remove('active-turn'));
-    const target = document.getElementById(`tag-player-${idx}`);
+    const target = document.getElementById(`tag-player-${pIdx}`);
     if (target) target.classList.add('active-turn');
   }
 
@@ -382,7 +410,7 @@
     title.textContent = `輪到【${nextP.name}】繪畫`;
     title.style.color = nextP.color;
     desc.textContent = isFirstTurn 
-      ? `全員已看畢題目！請將手機交給第 1 位【${nextP.name}】，點擊開始畫出第一筆。`
+      ? `全員已看畢題目！起筆玩家為【${nextP.name}】，點擊開始畫出第一筆。`
       : `請將手機交給【${nextP.name}】，準備完成後點擊按鈕畫一筆。`;
 
     modal.classList.add('active');
@@ -397,40 +425,45 @@
     canDrawOnCanvas = true;
     document.getElementById('canvas-wrapper').classList.add('drawing-active');
 
-    const p = players[currentTurnIndex];
+    const pIdx = turnOrder[currentTurnOrderIndex];
+    const p = players[pIdx];
+    document.getElementById('turn-indicator-dot').style.display = 'inline-block';
     document.getElementById('turn-indicator-dot').style.backgroundColor = p.color;
     document.getElementById('turn-indicator-name').textContent = `${p.name} 作畫中...`;
     document.getElementById('turn-indicator-name').style.color = p.color;
     document.getElementById('round-indicator').textContent = `第 ${currentRound} / 2 輪`;
-    updateActivePlayerTag(currentTurnIndex);
+    updateActivePlayerTag(pIdx);
   }
 
   function onStrokeCompleted(points) {
     if (points.length < 2) return;
     canDrawOnCanvas = false;
 
-    const p = players[currentTurnIndex];
+    const pIdx = turnOrder[currentTurnOrderIndex];
+    const p = players[pIdx];
     allStrokes.push({ color: p.color, points: points });
     renderAllStrokes();
 
     // 換下一位出筆
-    currentTurnIndex++;
-    if (currentTurnIndex >= players.length) {
-      currentTurnIndex = 0;
+    currentTurnOrderIndex++;
+    if (currentTurnOrderIndex >= turnOrder.length) {
+      currentTurnOrderIndex = 0;
       currentRound++;
     }
 
     if (currentRound > 2) {
-      // 2 輪作畫完成，進入投票
+      // 2 輪作畫完成：更新左上狀態為「所有玩家作畫完成」
       document.getElementById('canvas-wrapper').classList.remove('drawing-active');
+      document.getElementById('turn-indicator-dot').style.display = 'none';
+      document.getElementById('turn-indicator-name').textContent = '所有玩家作畫完成';
+      document.getElementById('turn-indicator-name').style.color = 'var(--success)';
       startVotingStage();
     } else {
-      // 彈窗提示換下一人
-      showHandoverModal(currentTurnIndex);
+      showHandoverModal(turnOrder[currentTurnOrderIndex]);
     }
   }
 
-  // --- 畫布初始化與相對座標繪製 ---
+  // --- 畫布初始化與繪製 ---
   function initCanvas() {
     if (canvas) {
       resizeCanvas();
@@ -463,7 +496,8 @@
       currentPath.push(pos);
       
       const b = canvas.getBoundingClientRect();
-      ctx.strokeStyle = players[currentTurnIndex].color;
+      const pIdx = turnOrder[currentTurnOrderIndex];
+      ctx.strokeStyle = players[pIdx].color;
       const prev = currentPath[currentPath.length - 2];
       ctx.beginPath();
       ctx.moveTo(prev.x * b.width, prev.y * b.height);
@@ -477,7 +511,6 @@
       onStrokeCompleted(currentPath);
     });
 
-    // 滑鼠相容
     canvas.addEventListener('mousedown', (e) => {
       if (!canDrawOnCanvas) return;
       isDrawing = true;
@@ -488,7 +521,8 @@
       const pos = getCanvasPos(e);
       currentPath.push(pos);
       const b = canvas.getBoundingClientRect();
-      ctx.strokeStyle = players[currentTurnIndex].color;
+      const pIdx = turnOrder[currentTurnOrderIndex];
+      ctx.strokeStyle = players[pIdx].color;
       const prev = currentPath[currentPath.length - 2];
       ctx.beginPath();
       ctx.moveTo(prev.x * b.width, prev.y * b.height);
@@ -530,7 +564,7 @@
     });
   }
 
-  // ================= 階段 3：投票階段（畫板持續置頂） =================
+  // ================= 階段 3：投票階段（畫板持續置頂，免彈窗） =================
   function startVotingStage() {
     currentVoterIndex = 0;
     votes = {};
@@ -540,7 +574,9 @@
 
   function updateVotingUI() {
     const voter = players[currentVoterIndex];
-    document.getElementById('voting-voter-title').textContent = `請【${voter.name}】點選你懷疑的間諜：`;
+    const voterTitle = document.getElementById('voting-current-voter-name');
+    voterTitle.textContent = `【${voter.name}】`;
+    voterTitle.style.color = voter.color;
     updateActivePlayerTag(currentVoterIndex);
 
     const container = document.getElementById('vote-options');
@@ -569,14 +605,14 @@
     currentVoterIndex++;
 
     if (currentVoterIndex < players.length) {
-      alert(`已完成！請將手機交給【${players[currentVoterIndex].name}】進行投票。`);
+      // 不需要彈出對話框，直接切換到下一位玩家
       updateVotingUI();
     } else {
       tallyResults();
     }
   };
 
-  // ================= 階段 4：結算與間諜盲猜（畫板持續置頂） =================
+  // ================= 階段 4：結算與盲猜（顯示回合得分與總積分） =================
   function tallyResults() {
     document.getElementById('voting-panel').style.display = 'none';
     document.getElementById('result-panel').style.display = 'block';
@@ -595,6 +631,24 @@
     const isSpyCaught = mostVoted.some(idx => spyIndices.includes(idx));
     const spyNames = spyIndices.map(i => players[i].name).join('、');
 
+    // 平民投對 +1
+    Object.entries(votes).forEach(([v, t]) => {
+      const voterIdx = parseInt(v, 10);
+      if (!spyIndices.includes(voterIdx) && spyIndices.includes(t)) {
+        earnedScores[voterIdx] = (earnedScores[voterIdx] || 0) + 1;
+        totalScores[voterIdx] += 1;
+      }
+    });
+
+    // 間諜逃脫計分
+    const escapeScore = (config.spyType === 'blank') ? 3 : 2;
+    if (!isSpyCaught) {
+      spyIndices.forEach(sIdx => {
+        earnedScores[sIdx] = (earnedScores[sIdx] || 0) + escapeScore;
+        totalScores[sIdx] += escapeScore;
+      });
+    }
+
     let voteDetails = '<b>🗳 投票統計：</b><br>';
     Object.entries(votes).forEach(([v, t]) => {
       voteDetails += `${players[v].name} 投給了 👉 <span style="color:${players[t].color}">${players[t].name}</span><br>`;
@@ -607,10 +661,12 @@
       spyDetails += `<span style="color:var(--success); font-weight:bold;">平民成功揪出間諜！請間諜看著上方畫板進行逆轉猜題！</span>`;
       setupReverseGuess(true);
     } else {
-      spyDetails += `<span style="color:var(--danger); font-weight:bold;">間諜隱匿成功逃脫！</span>`;
+      spyDetails += `<span style="color:var(--danger); font-weight:bold;">間諜隱匿成功逃脫！獲得 +${escapeScore} 分</span>`;
       setupReverseGuess(false);
     }
     document.getElementById('result-spy-details').innerHTML = spyDetails;
+
+    renderScoreBoards();
   }
 
   function setupReverseGuess(caught) {
@@ -630,12 +686,12 @@
     if (config.spyType === 'blank') {
       btns.innerHTML = `
         <button class="btn btn-secondary" style="flex:1" onclick="showCategoryHint()">未猜中 (查看類別提示)</button>
-        <button class="btn btn-success" style="flex:1" onclick="revealTopic('盲猜猜中 (+2分)')">盲猜猜中 (+2分)</button>
+        <button class="btn btn-success" style="flex:1" onclick="onGuessComplete(2, '盲猜猜中 (+2分)')">盲猜猜中 (+2分)</button>
       `;
     } else {
       btns.innerHTML = `
-        <button class="btn btn-secondary" style="flex:1" onclick="revealTopic('未猜中')">未猜中</button>
-        <button class="btn btn-success" style="flex:1" onclick="revealTopic('猜中了 (+1分)')">猜中了 (+1分)</button>
+        <button class="btn btn-secondary" style="flex:1" onclick="onGuessComplete(0, '未猜中')">未猜中</button>
+        <button class="btn btn-success" style="flex:1" onclick="onGuessComplete(1, '猜中了 (+1分)')">猜中了 (+1分)</button>
       `;
     }
   }
@@ -644,9 +700,20 @@
     document.getElementById('hint-category-box').style.display = 'block';
     document.getElementById('hint-category-content').innerHTML = formatBopomofo(categoryRuby);
     document.getElementById('guess-buttons').innerHTML = `
-      <button class="btn btn-secondary" style="flex:1" onclick="revealTopic('提示後未猜中')">仍未猜中</button>
-      <button class="btn btn-success" style="flex:1" onclick="revealTopic('提示後猜中 (+1分)')">提示後猜中 (+1分)</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="onGuessComplete(0, '提示後未猜中')">仍未猜中</button>
+      <button class="btn btn-success" style="flex:1" onclick="onGuessComplete(1, '提示後猜中 (+1分)')">提示後猜中 (+1分)</button>
     `;
+  };
+
+  window.onGuessComplete = function(addScore, note) {
+    if (addScore > 0) {
+      spyIndices.forEach(sIdx => {
+        earnedScores[sIdx] = (earnedScores[sIdx] || 0) + addScore;
+        totalScores[sIdx] += addScore;
+      });
+    }
+    revealTopic(note);
+    renderScoreBoards();
   };
 
   window.revealTopic = function(resultNote = '') {
@@ -658,11 +725,49 @@
     document.getElementById('result-topic-details').innerHTML = html;
   };
 
+  function renderScoreBoards() {
+    // 1. 本回合得分
+    let roundHtml = '<ul style="list-style: none; padding-left: 0;">';
+    players.forEach((p, idx) => {
+      const earned = earnedScores[idx] || 0;
+      roundHtml += `
+        <li style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span>${p.name}：</span>
+          <span style="font-weight: bold; color: ${earned > 0 ? 'var(--success)' : 'var(--text-muted)'};">
+            +${earned} 分
+          </span>
+        </li>
+      `;
+    });
+    roundHtml += '</ul>';
+    document.getElementById('result-round-scores').innerHTML = roundHtml;
+
+    // 2. 總積分榜
+    const scoreContainer = document.getElementById('result-scoreboard');
+    scoreContainer.innerHTML = '';
+    const sorted = [...players.map((p, idx) => ({ ...p, score: totalScores[idx] }))];
+    sorted.sort((a, b) => b.score - a.score);
+
+    sorted.forEach((p, rank) => {
+      const row = document.createElement('div');
+      row.className = 'score-row';
+      row.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 0.85rem; width: 20px; color: var(--text-muted);">${rank + 1}.</span>
+          <div class="color-dot" style="background-color: ${p.color}"></div>
+          <span>${p.name}</span>
+        </div>
+        <span class="score-badge">${p.score} 分</span>
+      `;
+      scoreContainer.appendChild(row);
+    });
+  }
+
   window.startNewGame = function() {
+    currentRoundGame++;
     initGame();
   };
 
-  // 頁面加載完成後啟動遊戲
   window.addEventListener('DOMContentLoaded', initGame);
 </script>
 
