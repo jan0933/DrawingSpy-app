@@ -140,7 +140,7 @@
         <span id="turn-indicator-dot" class="color-dot"></span>
         <span id="turn-indicator-name" style="font-weight: bold; font-size: 1rem;">玩家 1 作畫中</span>
       </div>
-      <span style="font-size: 0.82rem; color: #fbbf24; font-weight: bold;">每人限一筆畫</span>
+      <span id="turn-rule-tag" style="font-size: 0.82rem; color: #fbbf24; font-weight: bold;">每人限一筆畫</span>
     </div>
 
     <!-- 玩家代表色條 -->
@@ -151,7 +151,8 @@
       <canvas id="local-canvas"></canvas>
     </div>
 
-    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
+    <!-- 畫板下方進度提示區 -->
+    <div id="drawing-progress-info" style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
       <span>全體依序輪流進行 2 輪</span>
       <span id="round-indicator" style="font-weight: bold; color: var(--accent);">第 1 / 2 輪</span>
     </div>
@@ -163,7 +164,7 @@
         請<span id="voting-current-voter-name" style="font-weight: bold;">【玩家 1】</span>點選你懷疑的間諜：
       </p>
       <div id="vote-options"></div>
-      <button id="btn-submit-vote" class="btn" disabled>確認投票</button>
+      <button id="btn-submit-vote" class="btn" disabled>確認投票並傳給下一位</button>
     </div>
 
     <!-- 結算與盲猜面板 -->
@@ -202,7 +203,7 @@
 <!-- ================= 換手對話彈窗 ================= -->
 <div class="modal-overlay" id="handover-modal">
   <div class="modal-card">
-    <p style="font-size: 0.85rem; color: var(--text-muted);">本筆作畫已完成！</p>
+    <p id="modal-handover-subtitle" style="font-size: 0.85rem; color: var(--text-muted);">本筆作畫已完成！</p>
     <h2 id="modal-next-player-title" style="font-size: 1.5rem; margin: 8px 0; color: var(--accent);">換【玩家 2】繪畫</h2>
     <p id="modal-next-player-desc" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">請將手機交給該位玩家，準備完成後點選按鈕開始作畫。</p>
     <button id="btn-modal-start-draw" class="btn btn-success" style="margin-top: 0;">🎨 開始繪畫</button>
@@ -304,6 +305,10 @@
     earnedScores = {};
     players.forEach((_, idx) => { earnedScores[idx] = 0; });
 
+    // 重設提示列與進度資訊的顯示
+    document.getElementById('turn-rule-tag').style.display = 'inline-block';
+    document.getElementById('drawing-progress-info').style.display = 'flex';
+
     document.getElementById('step-reveal').style.display = 'block';
     document.getElementById('drawing-section').style.display = 'none';
     document.getElementById('voting-panel').style.display = 'none';
@@ -369,7 +374,6 @@
     if (currentViewingPlayer < players.length) {
       setupRevealStep();
     } else {
-      // 全員看完題目，正式切換至畫板畫面
       document.getElementById('step-reveal').style.display = 'none';
       document.getElementById('drawing-section').style.display = 'flex';
       renderPlayersBar();
@@ -404,9 +408,11 @@
 
     const nextP = players[playerIndex];
     const modal = document.getElementById('handover-modal');
+    const subtitle = document.getElementById('modal-handover-subtitle');
     const title = document.getElementById('modal-next-player-title');
     const desc = document.getElementById('modal-next-player-desc');
 
+    subtitle.textContent = isFirstTurn ? '由起始玩家開始作畫！' : '本筆作畫已完成！';
     title.textContent = `輪到【${nextP.name}】繪畫`;
     title.style.color = nextP.color;
     desc.textContent = isFirstTurn 
@@ -452,11 +458,14 @@
     }
 
     if (currentRound > 2) {
-      // 2 輪作畫完成：更新左上狀態為「所有玩家作畫完成」
       document.getElementById('canvas-wrapper').classList.remove('drawing-active');
       document.getElementById('turn-indicator-dot').style.display = 'none';
       document.getElementById('turn-indicator-name').textContent = '所有玩家作畫完成';
       document.getElementById('turn-indicator-name').style.color = 'var(--success)';
+      
+      document.getElementById('turn-rule-tag').style.display = 'none';
+      document.getElementById('drawing-progress-info').style.display = 'none';
+
       startVotingStage();
     } else {
       showHandoverModal(turnOrder[currentTurnOrderIndex]);
@@ -564,7 +573,7 @@
     });
   }
 
-  // ================= 階段 3：投票階段（畫板持續置頂，免彈窗） =================
+  // ================= 階段 3：投票階段（畫板持續置頂，最後一位玩家按鈕文案特殊處理） =================
   function startVotingStage() {
     currentVoterIndex = 0;
     votes = {};
@@ -579,10 +588,14 @@
     voterTitle.style.color = voter.color;
     updateActivePlayerTag(currentVoterIndex);
 
+    const isLastVoter = (currentVoterIndex === players.length - 1);
+    const submitBtn = document.getElementById('btn-submit-vote');
+    submitBtn.textContent = isLastVoter ? '確認投票並觀看投票結果' : '確認投票並傳給下一位';
+
     const container = document.getElementById('vote-options');
     container.innerHTML = '';
     selectedVoteTarget = null;
-    document.getElementById('btn-submit-vote').disabled = true;
+    submitBtn.disabled = true;
 
     players.forEach((p, idx) => {
       if (idx === currentVoterIndex) return;
@@ -593,7 +606,7 @@
         document.querySelectorAll('.vote-item').forEach(el => el.classList.remove('selected'));
         item.classList.add('selected');
         selectedVoteTarget = idx;
-        document.getElementById('btn-submit-vote').disabled = false;
+        submitBtn.disabled = false;
       };
       container.appendChild(item);
     });
@@ -605,7 +618,6 @@
     currentVoterIndex++;
 
     if (currentVoterIndex < players.length) {
-      // 不需要彈出對話框，直接切換到下一位玩家
       updateVotingUI();
     } else {
       tallyResults();
