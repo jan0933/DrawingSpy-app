@@ -166,7 +166,7 @@
       <button id="btn-submit-vote" class="btn" disabled>確認投票並傳給下一位</button>
     </div>
 
-    <!-- 結算面板（開票後直接決定結果） -->
+    <!-- 結算面板 -->
     <div class="card" id="result-panel" style="display: none;">
       <h2 style="color: var(--accent); margin-bottom: 10px;">📊 結算與揭曉</h2>
       
@@ -728,26 +728,27 @@
     const eliminatedIndices = sortedVoteList.slice(0, allowedVotesCount).map(item => item.id);
     eliminatedIndices.forEach(id => { isAlive[id] = false; });
 
-    // 3. 指認計分：嚴格限制只有「平民」投中一個間諜或白板，每中 1 位獲得 +1 分
+    // 3. 【核心修正】：只有平民投票給「確實在本輪死亡淘汰」的間諜或白板，每投死 1 位才獲得 +1 分
     Object.entries(votes).forEach(([vStr, tList]) => {
       const v = parseInt(vStr, 10);
       if (playerRoles[v] === 'civilian') {
-        let hitCount = 0;
+        let deadEnemyHitCount = 0;
         tList.forEach(t => {
-          if (playerRoles[t] === 'spy' || playerRoles[t] === 'blank') {
-            hitCount++;
+          // 必須身分是間諜或白板，而且他在本輪「被處決淘汰（死亡）」
+          if ((playerRoles[t] === 'spy' || playerRoles[t] === 'blank') && eliminatedIndices.includes(t)) {
+            deadEnemyHitCount++;
           }
         });
 
-        if (hitCount > 0) {
-          earnedScores[v] = (earnedScores[v] || 0) + hitCount;
-          totalScores[v] += hitCount;
-          scoreReasons[v].push(`平民投票命中臥底 (+1分 × ${hitCount})`);
+        if (deadEnemyHitCount > 0) {
+          earnedScores[v] = (earnedScores[v] || 0) + deadEnemyHitCount;
+          totalScores[v] += deadEnemyHitCount;
+          scoreReasons[v].push(`平民成功投死臥底 (+1分 × ${deadEnemyHitCount})`);
         }
       }
     });
 
-    // 4. 勝負評判：間諜與白板是否全數在最高票名單中遭到淘汰
+    // 4. 勝負評判：間諜與白板是否全數在最高票淘汰名單中
     const allEnemiesEliminated = players.every((_, idx) => {
       if (playerRoles[idx] === 'spy' || playerRoles[idx] === 'blank') {
         return !isAlive[idx];
@@ -759,7 +760,6 @@
 
     // 5. 陣營勝利加分
     if (isCivilianWin) {
-      // 平民獲勝：最後存活的玩家（平民）額外 +1 分
       players.forEach((_, idx) => {
         if (playerRoles[idx] === 'civilian' && isAlive[idx]) {
           earnedScores[idx] = (earnedScores[idx] || 0) + 1;
@@ -768,7 +768,6 @@
         }
       });
     } else {
-      // 臥底獲勝：存活的間諜 +2 分，存活的白板 +3 分
       players.forEach((_, idx) => {
         if (playerRoles[idx] === 'spy' && isAlive[idx]) {
           earnedScores[idx] = (earnedScores[idx] || 0) + 2;
@@ -787,7 +786,7 @@
     if (isCivilianWin) {
       summaryBox.innerHTML = `
         <h3 style="color:var(--success); margin-bottom:4px;">🎉 平民陣營獲勝！</h3>
-        <p style="font-size:0.88rem;">所有間諜與白板全數被投出淘汰！投中臥底的平民各獲 <b>+1 分</b>，最後存活的平民再獲 <b>+1 分</b>！</p>
+        <p style="font-size:0.88rem;">所有間諜與白板全數被投出淘汰！成功投死臥底的平民各獲 <b>+1 分</b>，最後存活的平民再獲 <b>+1 分</b>！</p>
       `;
     } else {
       summaryBox.innerHTML = `
