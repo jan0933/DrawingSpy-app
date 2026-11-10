@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>誰是間諜助手 - 單機傳閱模式</title>
+  <title>誰是間諜</title>
   <style>
     :root {
       --bg: #121826;
@@ -17,262 +17,40 @@
       --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+    body { background-color: var(--bg); color: var(--text); font-family: var(--font-family); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 16px; }
+    .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 16px; }
+    header { text-align: center; margin-bottom: 4px; }
+    h1 { font-size: 1.8rem; font-weight: 800; color: var(--accent); letter-spacing: 1.5px; }
+    p.subtitle { font-size: 0.88rem; color: var(--text-muted); margin-top: 4px; }
 
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: var(--font-family);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 16px;
-    }
+    .card { background: var(--card-bg); border-radius: 14px; padding: 20px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+    .form-group { margin-bottom: 14px; text-align: left; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    .form-row .form-group { margin-bottom: 0; }
 
-    .container {
-      width: 100%;
-      max-width: 480px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+    label { display: block; font-size: 0.9rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    select, input[type="text"] { width: 100%; padding: 12px 10px; border-radius: 8px; border: 1px solid var(--border); background: #0f172a; color: var(--text); font-size: 0.95rem; outline: none; }
+    select { cursor: pointer; }
 
-    header {
-      text-align: center;
-      margin-bottom: 4px;
-    }
+    .nickname-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+    .nickname-item { display: flex; align-items: center; gap: 10px; background: #0f172a; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); }
+    .color-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+    .nickname-label { font-size: 0.9rem; font-weight: bold; width: 55px; flex-shrink: 0; color: var(--text); }
+    .nickname-input { flex: 1; padding: 8px 10px !important; font-size: 0.9rem !important; margin: 0 !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; }
 
-    h1 {
-      font-size: 1.6rem;
-      font-weight: 800;
-      color: var(--accent);
-      letter-spacing: 1px;
-    }
+    .btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 14px; font-size: 1.05rem; font-weight: 700; border-radius: 10px; border: none; background: var(--accent); color: #0f172a; cursor: pointer; margin-top: 14px; box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3); transition: all 0.2s ease; }
+    .btn:active { transform: scale(0.98); }
 
-    p.subtitle {
-      font-size: 0.88rem;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
+    .link-section { text-align: center; margin-top: 2px; }
+    .link-btn { background: none; border: none; color: var(--accent); font-size: 0.95rem; font-weight: 600; cursor: pointer; text-decoration: underline; display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; }
 
-    .mode-switch-group {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 2px;
-    }
-
-    .mode-btn {
-      flex: 1;
-      padding: 13px 8px;
-      font-size: 0.95rem;
-      font-weight: 700;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .mode-btn.active {
-      background: var(--accent);
-      color: #0f172a;
-      border-color: var(--accent);
-      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);
-    }
-
-    .mode-btn.inactive {
-      background: #0f172a;
-      color: var(--text);
-      border-color: var(--border);
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: 14px;
-      padding: 20px;
-      border: 1px solid var(--border);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    }
-
-    .form-group {
-      margin-bottom: 14px;
-      text-align: left;
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .form-row .form-group {
-      margin-bottom: 0;
-    }
-
-    label {
-      display: block;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 6px;
-    }
-
-    select, input[type="text"] {
-      width: 100%;
-      padding: 12px 10px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: #0f172a;
-      color: var(--text);
-      font-size: 0.95rem;
-      outline: none;
-    }
-
-    select {
-      cursor: pointer;
-    }
-
-    /* 暱稱清單專用排版 */
-    .nickname-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 6px;
-    }
-
-    .nickname-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #0f172a;
-      padding: 6px 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-
-    .color-dot {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .nickname-label {
-      font-size: 0.9rem;
-      font-weight: bold;
-      width: 55px;
-      flex-shrink: 0;
-      color: var(--text);
-    }
-
-    .nickname-input {
-      flex: 1;
-      padding: 8px 10px !important;
-      font-size: 0.9rem !important;
-      margin: 0 !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      padding: 14px;
-      font-size: 1.05rem;
-      font-weight: 700;
-      border-radius: 10px;
-      border: none;
-      background: var(--accent);
-      color: #0f172a;
-      cursor: pointer;
-      margin-top: 14px;
-      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3);
-      transition: all 0.2s ease;
-    }
-
-    .btn:active {
-      transform: scale(0.98);
-    }
-
-    .link-section {
-      text-align: center;
-      margin-top: 2px;
-    }
-
-    .link-btn {
-      background: none;
-      border: none;
-      color: var(--accent);
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: underline;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 12px;
-    }
-
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(4px);
-      z-index: 999;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-
-    .modal-overlay.active {
-      display: flex;
-    }
-
-    .modal-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px 20px;
-      max-width: 340px;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-    }
-
-    #qr-wrapper {
-      background: #ffffff;
-      padding: 12px;
-      border-radius: 10px;
-      display: inline-block;
-      margin: 14px 0 10px 0;
-    }
-
-    .url-text {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      word-break: break-all;
-      background: #0f172a;
-      padding: 8px 10px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      margin-bottom: 12px;
-    }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); z-index: 999; justify-content: center; align-items: center; padding: 20px; }
+    .modal-overlay.active { display: flex; }
+    .modal-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 24px 20px; max-width: 340px; width: 100%; text-align: center; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); }
+    #qr-wrapper { background: #ffffff; padding: 12px; border-radius: 10px; display: inline-block; margin: 14px 0 10px 0; }
+    .url-text { font-size: 0.8rem; color: var(--text-muted); word-break: break-all; background: #0f172a; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 12px; }
   </style>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
@@ -280,26 +58,21 @@
 <div class="container">
 
   <header>
-    <h1>誰是間諜助手</h1>
-    <p class="subtitle">設定人數與規則・支援紙筆或手機共畫</p>
+    <h1>誰是間諜</h1>
+    <p class="subtitle">派對必備・支援口說描述與手機畫畫</p>
   </header>
 
-  <div class="mode-switch-group">
-    <button type="button" class="mode-btn active">📱 單機傳閱模式</button>
-    <button type="button" class="mode-btn inactive" onclick="window.location.href='online.html'">🌐 線上連線模式</button>
-  </div>
-
   <div class="card">
-    <!-- 遊玩模式下拉選單 -->
+    <!-- 遊玩模式：改為 口說模式 / 畫畫模式 -->
     <div class="form-group">
-      <label for="select-play-mode">🎨 遊玩模式</label>
+      <label for="select-play-mode">🎮 遊玩模式</label>
       <select id="select-play-mode">
-        <option value="paper">📝 紙筆模式（手機看題，紙上作畫）</option>
-        <option value="device">🎨 手機畫板模式（共用手機輪流畫）</option>
+        <option value="talk" selected>🗣️ 口說模式（經典誰是臥底・輪流發言）</option>
+        <option value="draw">🎨 畫畫模式（手機共用畫板・輪流畫一筆）</option>
       </select>
     </div>
 
-    <!-- 第一排並排：玩家人數 ＋ 間諜數量 -->
+    <!-- 第一排：人數與間諜數 -->
     <div class="form-row">
       <div class="form-group">
         <label for="select-player-count">👥 玩家人數</label>
@@ -323,7 +96,7 @@
       </div>
     </div>
 
-    <!-- 第二排並排：題目難度 ＋ 間諜身分設定 -->
+    <!-- 第二排：難度與身分 -->
     <div class="form-row">
       <div class="form-group">
         <label for="select-difficulty">📚 題目難度</label>
@@ -336,24 +109,23 @@
       <div class="form-group">
         <label for="select-spy-type">🎭 間諜身分設定</label>
         <select id="select-spy-type">
-          <option value="blank" selected>白板模式</option>
-          <option value="hint">標準間諜</option>
+          <option value="hint" selected>標準間諜（相似詞對決）</option>
+          <option value="blank">白板模式（間諜完全無詞）</option>
         </select>
       </div>
     </div>
 
     <!-- 玩家暱稱輸入區塊 -->
     <div class="form-group" style="margin-bottom: 0;">
-      <label>✏️ 玩家暱稱設定 <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">(未填寫將維持預設名稱)</span></label>
+      <label>✏️ 玩家暱稱設定 <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">(選填，預設為玩家1、2...)</span></label>
       <div class="nickname-list" id="nickname-inputs-container"></div>
     </div>
 
     <button id="btn-start-game" class="btn">🚀 開始遊戲</button>
   </div>
 
-  <!-- 下方遊戲連結超連結 -->
   <div class="link-section">
-    <button type="button" class="link-btn" id="btn-open-modal">🔗 遊戲連結 (分享QR Code)</button>
+    <button type="button" class="link-btn" id="btn-open-modal">🔗 分享遊戲 QR Code</button>
   </div>
 
 </div>
@@ -363,11 +135,8 @@
   <div class="modal-card">
     <h3 style="color: var(--accent); font-size: 1.15rem;">掃描開啟遊戲</h3>
     <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">好友使用相機掃描即可加入</p>
-    
     <div id="qr-wrapper"></div>
-    
     <div class="url-text" id="target-url-text">https://jan0933.github.io/DrawingSpy-app/</div>
-    
     <div style="display: flex; gap: 8px;">
       <button type="button" class="btn" style="flex: 1; padding: 10px; margin-top: 0; font-size: 0.9rem;" id="btn-copy-url">複製連結</button>
       <button type="button" class="btn" style="flex: 1; padding: 10px; margin-top: 0; font-size: 0.9rem; background: #334155; color: var(--text);" id="btn-close-modal">關閉</button>
@@ -379,25 +148,19 @@
   const GAME_URL = 'https://jan0933.github.io/DrawingSpy-app/';
   const COLOR_PALETTE = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
-  // 1. 動態渲染玩家暱稱輸入框
   function renderNicknameInputs() {
     const pCount = parseInt(document.getElementById('select-player-count').value, 10);
     const container = document.getElementById('nickname-inputs-container');
-    
-    // 保留目前已經輸入的暫存值
     const existingInputs = container.querySelectorAll('.nickname-input');
     const tempVals = [];
     existingInputs.forEach(inp => tempVals.push(inp.value));
 
     container.innerHTML = '';
-
     for (let i = 0; i < pCount; i++) {
       const color = COLOR_PALETTE[i % COLOR_PALETTE.length];
       const item = document.createElement('div');
       item.className = 'nickname-item';
-
       const prevVal = tempVals[i] || '';
-
       item.innerHTML = `
         <span class="color-dot" style="background-color: ${color};"></span>
         <span class="nickname-label">玩家 ${i + 1}</span>
@@ -407,15 +170,12 @@
     }
   }
 
-  // 2. 間諜數量防呆調整
   function adjustSpyOptions() {
     const pCount = parseInt(document.getElementById('select-player-count').value, 10);
     const spySelect = document.getElementById('select-spy-count');
     const currentVal = parseInt(spySelect.value, 10);
-
     const maxSpies = Math.max(1, Math.floor((pCount - 1) / 2));
     spySelect.innerHTML = '';
-
     for (let i = 1; i <= Math.min(3, maxSpies); i++) {
       const opt = document.createElement('option');
       opt.value = i;
@@ -423,10 +183,7 @@
       if (i === currentVal) opt.selected = true;
       spySelect.appendChild(opt);
     }
-
-    if (!spySelect.value) {
-      spySelect.value = '1';
-    }
+    if (!spySelect.value) spySelect.value = '1';
   }
 
   document.getElementById('select-player-count').addEventListener('change', () => {
@@ -434,7 +191,6 @@
     renderNicknameInputs();
   });
 
-  // 3. 還原先前設定與暱稱（若有記錄）
   const savedConfig = JSON.parse(sessionStorage.getItem('spy_game_config'));
   if (savedConfig) {
     if (savedConfig.playMode) document.getElementById('select-play-mode').value = savedConfig.playMode;
@@ -443,19 +199,13 @@
     if (savedConfig.spyCount) document.getElementById('select-spy-count').value = savedConfig.spyCount;
     if (savedConfig.difficulty) document.getElementById('select-difficulty').value = savedConfig.difficulty;
     if (savedConfig.spyType) document.getElementById('select-spy-type').value = savedConfig.spyType;
-    
     renderNicknameInputs();
-
-    // 回填先前的玩家暱稱
     if (savedConfig.players && Array.isArray(savedConfig.players)) {
       savedConfig.players.forEach((p, idx) => {
         const inp = document.getElementById(`nickname-input-${idx}`);
         if (inp && p.name) {
-          // 若名稱為 "玩家 1 (小明)"，反向萃取出 "小明"
           const match = p.name.match(/\((.*?)\)/);
-          if (match) {
-            inp.value = match[1];
-          }
+          if (match) inp.value = match[1];
         }
       });
     }
@@ -464,7 +214,6 @@
     renderNicknameInputs();
   }
 
-  // 4. 開始遊戲按鈕事件
   document.getElementById('btn-start-game').onclick = () => {
     const playMode = document.getElementById('select-play-mode').value;
     const playerCount = parseInt(document.getElementById('select-player-count').value, 10);
@@ -472,71 +221,41 @@
     const difficulty = document.getElementById('select-difficulty').value;
     const spyType = document.getElementById('select-spy-type').value;
 
-    // 格式化各玩家名稱：有暱稱則為「玩家 X (暱稱)」，無暱稱則維持「玩家 X」
     const players = [];
     for (let i = 0; i < playerCount; i++) {
       const inp = document.getElementById(`nickname-input-${i}`);
       const rawNick = inp ? inp.value.trim() : '';
       const finalName = rawNick ? `玩家 ${i + 1} (${rawNick})` : `玩家 ${i + 1}`;
-
-      players.push({
-        id: i,
-        name: finalName,
-        color: COLOR_PALETTE[i % COLOR_PALETTE.length]
-      });
+      players.push({ id: i, name: finalName, color: COLOR_PALETTE[i % COLOR_PALETTE.length] });
     }
 
-    // 存入 sessionStorage 供 game.html 與 local_draw.html 使用
     sessionStorage.setItem('spy_game_config', JSON.stringify({
-      playMode,
-      playerCount,
-      spyCount,
-      difficulty,
-      spyType,
-      players
+      playMode, playerCount, spyCount, difficulty, spyType, players
     }));
 
-    if (playMode === 'paper') {
-      window.location.href = 'game.html';
+    if (playMode === 'talk') {
+      window.location.href = 'talk_game.html';
     } else {
       window.location.href = 'local_draw.html';
     }
   };
 
-  // 5. QR Code Modal 控制
   let qrGenerated = false;
   const modal = document.getElementById('qr-modal');
-
   document.getElementById('btn-open-modal').onclick = () => {
     modal.classList.add('active');
     if (!qrGenerated) {
       new QRCode(document.getElementById('qr-wrapper'), {
-        text: GAME_URL,
-        width: 160,
-        height: 160,
-        colorDark: "#000000",
-        colorLight: "#ffffff"
+        text: GAME_URL, width: 160, height: 160, colorDark: "#000000", colorLight: "#ffffff"
       });
       qrGenerated = true;
     }
   };
-
-  document.getElementById('btn-close-modal').onclick = () => {
-    modal.classList.remove('active');
-  };
-
-  modal.onclick = (e) => {
-    if (e.target === modal) modal.classList.remove('active');
-  };
-
+  document.getElementById('btn-close-modal').onclick = () => modal.classList.remove('active');
+  modal.onclick = (e) => { if (e.target === modal) modal.classList.remove('active'); };
   document.getElementById('btn-copy-url').onclick = () => {
-    navigator.clipboard.writeText(GAME_URL).then(() => {
-      alert('已成功複製遊戲連結！');
-    }).catch(() => {
-      alert('請手動複製連結：' + GAME_URL);
-    });
+    navigator.clipboard.writeText(GAME_URL).then(() => alert('已成功複製遊戲連結！'));
   };
 </script>
-
 </body>
 </html>
