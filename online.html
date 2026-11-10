@@ -805,7 +805,6 @@
     }
     if (spyCount === 0 && blankCount === 0) spyCount = 1;
 
-    // 分配身分
     const shuffledPids = [...playerIds].sort(() => Math.random() - 0.5);
     const spyIds = shuffledPids.slice(0, spyCount);
     const blankIds = shuffledPids.slice(spyCount, spyCount + blankCount);
@@ -1205,7 +1204,7 @@
     finalizeGameHost(finalEliminated, pkTieHappened, tiedCandidates, roomData.firstRoundVotes || {}, votes);
   }
 
-  // 房主最終計分結算
+  // 房主最終計分結算（統一為「間諜陣營獲勝！」）
   function finalizeGameHost(eliminatedIds, pkTieHappened, tiedCandidates, round1Votes, pkVotes) {
     const players = { ...roomData.players };
     const roles = roomData.roles || {};
@@ -1298,7 +1297,7 @@
     const roles = roomData.roles || {};
     const eliminatedIds = res.eliminatedIds || [];
 
-    // Banner
+    // Banner（統一顯示為「間諜陣營獲勝！」）
     const summaryBox = document.getElementById('res-summary-box');
     if (res.isCivilianWin) {
       summaryBox.innerHTML = `
@@ -1307,7 +1306,7 @@
       `;
     } else {
       summaryBox.innerHTML = `
-        <h3 style="color:var(--danger); margin-bottom:4px;">😈 間諜與白板獲勝！</h3>
+        <h3 style="color:var(--danger); margin-bottom:4px;">😈 間諜陣營獲勝！</h3>
         <p style="font-size:0.88rem;">臥底成功隱匿或存活！存活間諜獲 <b>+2 分</b>，存活白板獲 <b>+3 分</b>！</p>
       `;
     }
