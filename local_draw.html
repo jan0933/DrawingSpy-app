@@ -288,7 +288,7 @@
   let turnOrder = [];
   let currentTurnOrderIndex = 0;
   let currentRound = 1;
-  let allStrokes = [];
+  allStrokes = [];
 
   let canvas, ctx;
   let isDrawing = false;
@@ -852,7 +852,7 @@
         const confNames = confirmedEliminated.map(id => players[id].name).join('、');
         text += `<br>（${confNames} 已因絕對高票確定淘汰）`;
       }
-      text += `<br><br><span style="color:#fbbf24;">⚠️ 若 PK 投票再次平票，剩餘 ${pkNeededSlots} 個名額將判定無人淘汰（平安夜）！</span>`;
+      text += `<br><br><span style="color:#fbbf24;">⚠️ 第一輪平票投票作廢！只有在 PK 投票中投對處死臥底的平民才可得 1 分；若 PK 再次平票則該名額無人淘汰！</span>`;
 
       desc.innerHTML = text;
       modal.classList.add('active');
@@ -911,28 +911,46 @@
 
     eliminatedIndices.forEach(id => { isAlive[id] = false; });
 
-    // 只有平民投票給「確實在本輪死亡淘汰」的間諜或白板，每投死 1 位 +1 分
-    const allVotesToCheck = [firstRoundVotes, isPkVoting ? votes : {}];
+    // 【核心規則】：平民只有在「最終決定生死的那次有效投票」中投對被處決的間諜/白板，每投死 1 位才得 1 分
+    players.forEach((p, v) => {
+      if (playerRoles[v] === 'civilian') {
+        let deadEnemyHitCount = 0;
 
-    allVotesToCheck.forEach((voteMap, vRoundIdx) => {
-      Object.entries(voteMap).forEach(([vStr, tList]) => {
-        const v = parseInt(vStr, 10);
-        if (playerRoles[v] === 'civilian') {
-          let deadEnemyHitCount = 0;
-          tList.forEach(t => {
-            if ((playerRoles[t] === 'spy' || playerRoles[t] === 'blank') && eliminatedIndices.includes(t)) {
-              deadEnemyHitCount++;
-            }
-          });
-
-          if (deadEnemyHitCount > 0) {
-            earnedScores[v] = (earnedScores[v] || 0) + deadEnemyHitCount;
-            totalScores[v] += deadEnemyHitCount;
-            const roundText = (vRoundIdx === 1) ? '（PK輪）' : '';
-            scoreReasons[v].push(`平民成功投死間諜或白板${roundText} (+1分 × ${deadEnemyHitCount})`);
+        // 若該輪發生了 PK，則第 1 輪平票進入 PK 的票作廢不計分，以 PK 票結算 PK 處決名額，以第 1 輪結算絕對高票名額
+        if (isPkVoting) {
+          // 1. 審查在第 1 輪就絕對高票直接處決的名單 (confirmedEliminated)
+          if (firstRoundVotes[v]) {
+            firstRoundVotes[v].forEach(t => {
+              if ((playerRoles[t] === 'spy' || playerRoles[t] === 'blank') && confirmedEliminated.includes(t)) {
+                deadEnemyHitCount++;
+              }
+            });
+          }
+          // 2. 審查在 PK 投票中勝出處決的名單 (eliminatedIndices 中扣除 confirmedEliminated 的部分)
+          if (votes[v]) {
+            votes[v].forEach(t => {
+              if ((playerRoles[t] === 'spy' || playerRoles[t] === 'blank') && eliminatedIndices.includes(t) && !confirmedEliminated.includes(t)) {
+                deadEnemyHitCount++;
+              }
+            });
+          }
+        } else {
+          // 沒有 PK，以唯一正式投票 (firstRoundVotes) 為準
+          if (firstRoundVotes[v]) {
+            firstRoundVotes[v].forEach(t => {
+              if ((playerRoles[t] === 'spy' || playerRoles[t] === 'blank') && eliminatedIndices.includes(t)) {
+                deadEnemyHitCount++;
+              }
+            });
           }
         }
-      });
+
+        if (deadEnemyHitCount > 0) {
+          earnedScores[v] = (earnedScores[v] || 0) + deadEnemyHitCount;
+          totalScores[v] += deadEnemyHitCount;
+          scoreReasons[v].push(`平民成功投死間諜或白板 (+1分 × ${deadEnemyHitCount})`);
+        }
+      }
     });
 
     const allEnemiesEliminated = players.every((_, idx) => {
@@ -966,7 +984,6 @@
       });
     }
 
-    // 陣營勝利 Banner
     const summaryBox = document.getElementById('result-summary-box');
     if (isCivilianWin) {
       summaryBox.innerHTML = `
@@ -1024,7 +1041,6 @@
     }
     document.getElementById('result-votes-details').innerHTML = voteDetails;
 
-    // 判定是否有被處決的間諜或白板需要猜題
     deadEnemiesToGuess = eliminatedIndices.filter(id => playerRoles[id] === 'spy' || playerRoles[id] === 'blank');
 
     if (deadEnemiesToGuess.length > 0) {
@@ -1041,7 +1057,6 @@
     }
   }
 
-  // 渲染當前進行逆轉猜題的臥底介面
   function renderCurrentGuesserUI() {
     const pIdx = deadEnemiesToGuess[currentGuesserIndex];
     const p = players[pIdx];
@@ -1056,7 +1071,6 @@
     titleEl.style.color = p.color;
 
     if (role === 'spy') {
-      // 間諜猜題：已知類別，看畫作口頭猜題
       descEl.innerHTML = '請看著上方畫作口頭猜出題目。若猜中可獲得 <b>+1 分</b>：';
       hintBox.style.display = 'none';
       btnsContainer.innerHTML = `
@@ -1064,7 +1078,6 @@
         <button class="btn btn-success" style="flex:1;" onclick="applyGuessResult(${pIdx}, 1, '間諜猜中題目 (+1分)')">猜中了 (+1分)</button>
       `;
     } else {
-      // 白板猜題：兩段式
       if (currentBlankPhase === 1) {
         descEl.innerHTML = '【第一階段盲猜】請看著上方畫作直接盲猜題目。猜中獲 <b>+2 分</b>；未猜中可查看類別提示：';
         hintBox.style.display = 'none';
@@ -1102,19 +1115,16 @@
     if (currentGuesserIndex < deadEnemiesToGuess.length) {
       renderCurrentGuesserUI();
     } else {
-      // 所有淘汰臥底猜題結束，進入最終題目與排行榜公布
       document.getElementById('reverse-guess-section').style.display = 'none';
       revealFinalResults();
     }
   };
 
-  // 揭曉題目、類別與最終排行榜
   function revealFinalResults() {
     document.getElementById('topic-section-wrapper').style.display = 'block';
     document.getElementById('scores-section-wrapper').style.display = 'block';
     document.getElementById('scoreboard-section-wrapper').style.display = 'block';
 
-    // 3. 題目公布（始終揭曉題目與類別）
     let topicHtml = `
       <div style="display:flex; align-items:center; gap:8px;">
         <span style="color:var(--text-muted); font-size:0.95rem;">本局題目：</span>
@@ -1127,7 +1137,6 @@
     `;
     document.getElementById('result-topic-details').innerHTML = topicHtml;
 
-    // 4. 得分明細
     let roundHtml = '<ul style="list-style:none; padding-left:0;">';
     players.forEach((p, idx) => {
       const earned = earnedScores[idx] || 0;
@@ -1149,7 +1158,6 @@
     roundHtml += '</ul>';
     document.getElementById('result-round-scores').innerHTML = roundHtml;
 
-    // 5. 總積分榜
     const scoreContainer = document.getElementById('result-scoreboard');
     scoreContainer.innerHTML = '';
     const sorted = [...players.map((p, idx) => ({ ...p, score: totalScores[idx] }))].sort((a, b) => b.score - a.score);
