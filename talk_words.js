@@ -1,8 +1,12 @@
 // 誰是間諜 - 口說模式（誰是臥底）專用雙詞題庫
+// 規則：長度不超過 5 字、數字與英文字母不標注音
 // 格式：[平民詞 Ruby, 間諜詞 Ruby, 類別, 難度 (normal / hard)]
 
 const TALK_WORD_BANK = [
-  // ================= 1. 水果點心與基礎日常 (30 組) =================
+  // =========================================================================
+  // 普通難度題庫 (normal)
+  // =========================================================================
+  // --- 1. 水果點心與基礎日常 ---
   ["<ruby>蘋<rt>ㄆㄧㄥˊ</rt>果<rt>ㄍㄨㄛˇ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>梨<rt>ㄌㄧˊ</rt></ruby>", "水果", "normal"],
   ["<ruby>西<rt>ㄒㄧ</rt>瓜<rt>ㄍㄨㄚ</rt></ruby>", "<ruby>哈<rt>ㄏㄚ</rt>密<rt>ㄇㄧˋ</rt>瓜<rt>ㄍㄨㄚ</rt></ruby>", "水果", "normal"],
   ["<ruby>草<rt>ㄘㄠˇ</rt>莓<rt>ㄇㄟˊ</rt></ruby>", "<ruby>櫻<rt>ㄧㄥ</rt>桃<rt>ㄊㄠˊ</rt></ruby>", "水果", "normal"],
@@ -34,7 +38,7 @@ const TALK_WORD_BANK = [
   ["<ruby>海<rt>ㄏㄞˇ</rt>豚<rt>ㄊㄨㄣˊ</rt></ruby>", "<ruby>鯨<rt>ㄐㄧㄥ</rt>魚<rt>ㄩˊ</rt></ruby>", "動物", "normal"],
   ["<ruby>熊<rt>ㄒㄩㄥˊ</rt>貓<rt>ㄇㄠ</rt></ruby>", "<ruby>無<rt>ㄨˊ</rt>尾<rt>ㄨㄟˇ</rt>熊<rt>ㄒㄩㄥˊ</rt></ruby>", "動物", "normal"],
 
-  // ================= 2. 經典食物小吃 (32 組) =================
+  // --- 2. 經典食物小吃 ---
   ["<ruby>水<rt>ㄕㄨㄟˇ</rt>餃<rt>ㄐㄧㄠˇ</rt></ruby>", "<ruby>鍋<rt>ㄍㄨㄛ</rt>貼<rt>ㄊㄧㄝ</rt></ruby>", "食物", "normal"],
   ["<ruby>小<rt>ㄒㄧㄠˇ</rt>籠<rt>ㄌㄨㄥˊ</rt>包<rt>ㄅㄠ</rt></ruby>", "<ruby>湯<rt>ㄊㄤ</rt>包<rt>ㄅㄠ</rt></ruby>", "食物", "normal"],
   ["<ruby>滷<rt>ㄌㄨˇ</rt>肉<rt>ㄖㄡˋ</rt>飯<rt>ㄈㄢˋ</rt></ruby>", "<ruby>雞<rt>ㄐㄧ</rt>肉<rt>ㄖㄡˋ</rt>飯<rt>ㄈㄢˋ</rt></ruby>", "食物", "normal"],
@@ -68,7 +72,7 @@ const TALK_WORD_BANK = [
   ["<ruby>章<rt>ㄓㄤ</rt>魚<rt>ㄩˊ</rt>燒<rt>ㄕㄠ</rt></ruby>", "<ruby>大<rt>ㄉㄚˋ</rt>阪<rt>ㄅㄢˇ</rt>燒<rt>ㄕㄠ</rt></ruby>", "食物", "normal"],
   ["<ruby>油<rt>ㄧㄡˊ</rt>條<rt>ㄊㄧㄠˊ</rt></ruby>", "<ruby>吉<rt>ㄐㄧˊ</rt>拿<rt>ㄋㄚˊ</rt>棒<rt>ㄅㄤˋ</rt></ruby>", "食物", "normal"],
 
-  // ================= 3. 手搖與飲品 (20 組) =================
+  // --- 3. 手搖與飲品 ---
   ["<ruby>珍<rt>ㄓㄣ</rt>珠<rt>ㄓㄨ</rt>奶<rt>ㄋㄞˇ</rt>茶<rt>ㄔㄚˊ</rt></ruby>", "<ruby>波<rt>ㄅㄛ</rt>霸<rt>ㄅㄚˋ</rt>奶<rt>ㄋㄞˇ</rt>茶<rt>ㄔㄚˊ</rt></ruby>", "飲品", "normal"],
   ["<ruby>紅<rt>ㄏㄨㄥˊ</rt>茶<rt>ㄔㄚˊ</rt></ruby>", "<ruby>綠<rt>ㄌㄩˋ</rt>茶<rt>ㄔㄚˊ</rt></ruby>", "飲品", "normal"],
   ["<ruby>咖<rt>ㄎㄚ</rt>啡<rt>ㄈㄟ</rt></ruby>", "<ruby>奶<rt>ㄋㄞˇ</rt>茶<rt>ㄔㄚˊ</rt></ruby>", "飲品", "normal"],
@@ -90,7 +94,7 @@ const TALK_WORD_BANK = [
   ["<ruby>冰<rt>ㄅㄧㄥ</rt>沙<rt>ㄕㄚ</rt></ruby>", "<ruby>奶<rt>ㄋㄞˇ</rt>昔<rt>ㄒㄧˊ</rt></ruby>", "飲品", "normal"],
   ["<ruby>紅<rt>ㄏㄨㄥˊ</rt>豆<rt>ㄉㄡˋ</rt>湯<rt>ㄊㄤ</rt></ruby>", "<ruby>綠<rt>ㄌㄩˋ</rt>豆<rt>ㄉㄡˋ</rt>湯<rt>ㄊㄤ</rt></ruby>", "甜湯", "normal"],
 
-  // ================= 4. 生活居家用品 (30 組) =================
+  // --- 4. 生活居家與用品 ---
   ["<ruby>洗<rt>ㄒㄧˇ</rt>髮<rt>ㄈㄚˇ</rt>精<rt>ㄐㄧㄥ</rt></ruby>", "<ruby>沐<rt>ㄇㄨˋ</rt>浴<rt>ㄩˋ</rt>乳<rt>ㄖㄨˇ</rt></ruby>", "用品", "normal"],
   ["<ruby>衛<rt>ㄨㄟˋ</rt>生<rt>ㄕㄥ</rt>紙<rt>ㄓˇ</rt></ruby>", "<ruby>濕<rt>ㄕ</rt>紙<rt>ㄓˇ</rt>巾<rt>ㄐㄧㄣ</rt></ruby>", "用品", "normal"],
   ["<ruby>吹<rt>ㄔㄨㄟ</rt>風<rt>ㄈㄥ</rt>機<rt>ㄐㄧ</rt></ruby>", "<ruby>電<rt>ㄉㄧㄢˋ</rt>風<rt>ㄈㄥ</rt>扇<rt>ㄕㄢˋ</rt></ruby>", "家電", "normal"],
@@ -99,7 +103,7 @@ const TALK_WORD_BANK = [
   ["<ruby>微<rt>ㄨㄟˊ</rt>波<rt>ㄅㄛ</rt>爐<rt>ㄌㄨˊ</rt></ruby>", "<ruby>烤<rt>ㄎㄠˇ</rt>箱<rt>ㄒㄧㄤ</rt></ruby>", "家電", "normal"],
   ["<ruby>電<rt>ㄉㄧㄢˋ</rt>鍋<rt>ㄍㄨㄛ</rt></ruby>", "<ruby>快<rt>ㄎㄨㄞˋ</rt>煮<rt>ㄓㄨˇ</rt>壺<rt>ㄏㄨˊ</rt></ruby>", "家電", "normal"],
   ["<ruby>掃<rt>ㄙㄠˇ</rt>把<rt>ㄅㄚˇ</rt></ruby>", "<ruby>拖<rt>ㄊㄨㄛ</rt>把<rt>ㄅㄚˇ</rt></ruby>", "家事", "normal"],
-  ["<ruby>吸<rt>ㄒㄧ</rt>塵<rt>ㄔㄣˊ</rt>器<rt>ㄑㄧˋ</rt></ruby>", "<ruby>掃<rt>ㄙㄠˇ</rt>地<rt>ㄉㄧˋ</rt>機<rt>ㄐㄧ</rt>器<rt>ㄑㄧˋ</rt>人<rt>ㄖㄣˊ</rt></ruby>", "家電", "normal"],
+  ["<ruby>吸<rt>ㄒㄧ</rt>塵<rt>ㄔㄣˊ</rt>器<rt>ㄑㄧˋ</rt></ruby>", "<ruby>掃<rt>ㄙㄠˇ</rt>地<rt>ㄉㄧˋ</rt>機<rt>ㄐㄧ</rt></ruby>", "家電", "normal"],
   ["<ruby>檯<rt>ㄊㄞˊ</rt>燈<rt>ㄉㄥ</rt></ruby>", "<ruby>手<rt>ㄕㄡˇ</rt>電<rt>ㄉㄧㄢˋ</rt>筒<rt>ㄊㄨㄥˇ</rt></ruby>", "用品", "normal"],
   ["<ruby>手<rt>ㄕㄡˇ</rt>錶<rt>ㄅㄧㄠˇ</rt></ruby>", "<ruby>鬧<rt>ㄋㄠˋ</rt>鐘<rt>ㄓㄨㄥ</rt></ruby>", "生活", "normal"],
   ["<ruby>口<rt>ㄎㄡˇ</rt>罩<rt>ㄓㄠˋ</rt></ruby>", "<ruby>面<rt>ㄇㄧㄢˋ</rt>膜<rt>ㄇㄛˊ</rt></ruby>", "生活", "normal"],
@@ -108,7 +112,7 @@ const TALK_WORD_BANK = [
   ["<ruby>皮<rt>ㄆㄧˊ</rt>帶<rt>ㄉㄞˋ</rt></ruby>", "<ruby>領<rt>ㄌㄧㄥˇ</rt>帶<rt>ㄉㄞˋ</rt></ruby>", "穿戴", "normal"],
   ["<ruby>耳<rt>ㄦˇ</rt>環<rt>ㄏㄨㄢˊ</rt></ruby>", "<ruby>項<rt>ㄒㄧㄤˋ</rt>鍊<rt>ㄌㄧㄢˋ</rt></ruby>", "飾品", "normal"],
   ["<ruby>戒<rt>ㄐㄧㄝˋ</rt>指<rt>ㄓˇ</rt></ruby>", "<ruby>手<rt>ㄕㄡˇ</rt>環<rt>ㄏㄨㄢˊ</rt></ruby>", "飾品", "normal"],
-  ["<ruby>錢<rt>ㄑㄧㄢˊ</rt>包<rt>ㄅㄠ</rt></ruby>", "<ruby>悠<rt>ㄧㄡ</rt>遊<rt>ㄧㄡˊ</rt>卡<rt>ㄎㄚˇ</rt>夾<rt>ㄐㄧㄚˊ</rt></ruby>", "生活", "normal"],
+  ["<ruby>錢<rt>ㄑㄧㄢˊ</rt>包<rt>ㄅㄠ</rt></ruby>", "<ruby>卡<rt>ㄎㄚˇ</rt>夾<rt>ㄐㄧㄚˊ</rt></ruby>", "生活", "normal"],
   ["<ruby>鑰<rt>ㄧㄠˋ</rt>匙<rt>˙ㄕ</rt></ruby>", "<ruby>門<rt>ㄇㄣˊ</rt>禁<rt>ㄐㄧㄣˋ</rt>卡<rt>ㄎㄚˇ</rt></ruby>", "生活", "normal"],
   ["<ruby>手<rt>ㄕㄡˇ</rt>機<rt>ㄐㄧ</rt></ruby>", "<ruby>平<rt>ㄆㄧㄥˊ</rt>板<rt>ㄅㄢˇ</rt></ruby>", "電子", "normal"],
   ["<ruby>耳<rt>ㄦˇ</rt>機<rt>ㄐㄧ</rt></ruby>", "<ruby>喇<rt>ㄌㄚˇ</rt>叭<rt>ㄅㄚ</rt></ruby>", "電子", "normal"],
@@ -122,7 +126,7 @@ const TALK_WORD_BANK = [
   ["<ruby>護<rt>ㄏㄨˋ</rt>手<rt>ㄕㄡˇ</rt>霜<rt>ㄕㄨㄤ</rt></ruby>", "<ruby>身<rt>ㄕㄣ</rt>體<rt>ㄊㄧˇ</rt>乳<rt>ㄖㄨˇ</rt></ruby>", "保養", "normal"],
   ["<ruby>刮<rt>ㄍㄨㄚ</rt>鬍<rt>ㄏㄨˊ</rt>刀<rt>ㄉㄠ</rt></ruby>", "<ruby>除<rt>ㄔㄨˊ</rt>毛<rt>ㄇㄠˊ</rt>刀<rt>ㄉㄠ</rt></ruby>", "用品", "normal"],
 
-  // ================= 5. 動物生態 (28 組) =================
+  // --- 5. 動物生態 ---
   ["<ruby>企<rt>ㄑㄧˋ</rt>鵝<rt>ㄜˊ</rt></ruby>", "<ruby>北<rt>ㄅㄟˇ</rt>極<rt>ㄐㄧˊ</rt>熊<rt>ㄒㄩㄥˊ</rt></ruby>", "動物", "normal"],
   ["<ruby>長<rt>ㄔㄤˊ</rt>頸<rt>ㄐㄧㄥˇ</rt>鹿<rt>ㄌㄨˋ</rt></ruby>", "<ruby>斑<rt>ㄅㄢ</rt>馬<rt>ㄇㄚˇ</rt></ruby>", "動物", "normal"],
   ["<ruby>大<rt>ㄉㄚˋ</rt>象<rt>ㄒㄧㄤˋ</rt></ruby>", "<ruby>河<rt>ㄏㄜˊ</rt>馬<rt>ㄇㄚˇ</rt></ruby>", "動物", "normal"],
@@ -152,20 +156,20 @@ const TALK_WORD_BANK = [
   ["<ruby>浣<rt>ㄏㄨㄢˇ</rt>熊<rt>ㄒㄩㄥˊ</rt></ruby>", "<ruby>狸<rt>ㄌㄧˊ</rt>貓<rt>ㄇㄠ</rt></ruby>", "動物", "normal"],
   ["<ruby>柴<rt>ㄔㄞˊ</rt>犬<rt>ㄑㄩㄢˇ</rt></ruby>", "<ruby>柯<rt>ㄎㄜ</rt>基<rt>ㄐㄧ</rt></ruby>", "動物", "normal"],
 
-  // ================= 6. 地點場所 (26 組) =================
+  // --- 6. 地點場所 ---
   ["<ruby>學<rt>ㄒㄩㄝˊ</rt>校<rt>ㄒㄧㄠˋ</rt></ruby>", "<ruby>補<rt>ㄅㄨˇ</rt>習<rt>ㄒㄧˊ</rt>班<rt>ㄅㄢ</rt></ruby>", "場所", "normal"],
   ["<ruby>醫<rt>ㄧ</rt>院<rt>ㄩㄢˋ</rt></ruby>", "<ruby>診<rt>ㄓㄣˇ</rt>所<rt>ㄙㄨㄛˇ</rt></ruby>", "場所", "normal"],
   ["<ruby>圖<rt>ㄊㄨˊ</rt>書<rt>ㄕㄨ</rt>館<rt>ㄍㄨㄢˇ</rt></ruby>", "<ruby>書<rt>ㄕㄨ</rt>店<rt>ㄉㄧㄢˋ</rt></ruby>", "場所", "normal"],
-  ["<ruby>電<rt>ㄉㄧㄢˋ</rt>影<rt>ㄧㄥˇ</rt>院<rt>ㄩㄢˋ</rt></ruby>", "<ruby>Ｋ<rt>ㄎㄟ</rt>Ｔ<rt>ㄊㄧ</rt>Ｖ<rt>微</rt></ruby>", "場所", "normal"],
+  ["<ruby>電<rt>ㄉㄧㄢˋ</rt>影<rt>ㄧㄥˇ</rt>院<rt>ㄩㄢˋ</rt></ruby>", "KTV", "場所", "normal"],
   ["<ruby>夜<rt>ㄧㄝˋ</rt>市<rt>ㄕˋ</rt></ruby>", "<ruby>菜<rt>ㄘㄞˋ</rt>市<rt>ㄕˋ</rt>場<rt>ㄔㄤˇ</rt></ruby>", "場所", "normal"],
-  ["<ruby>便<rt>ㄅㄧㄢˋ</rt>利<rt>ㄌㄧˋ</rt>商<rt>ㄕㄤ</rt>店<rt>ㄉㄧㄢˋ</rt></ruby>", "<ruby>超<rt>ㄔㄠ</rt>市<rt>ㄕˋ</rt></ruby>", "場所", "normal"],
-  ["<ruby>百<rt>ㄅㄞˇ</rt>貨<rt>ㄏㄨㄛˋ</rt>公<rt>ㄍㄨㄥ</rt>司<rt>ㄙ</rt></ruby>", "<ruby>暢<rt>ㄔㄤˋ</rt>貨<rt>ㄏㄨㄛˋ</rt>中<rt>ㄓㄨㄥ</rt>心<rt>ㄒㄧㄣ</rt></ruby>", "場所", "normal"],
+  ["<ruby>便<rt>ㄅㄧㄢˋ</rt>利<rt>ㄌㄧˋ</rt>店<rt>ㄉㄧㄢˋ</rt></ruby>", "<ruby>超<rt>ㄔㄠ</rt>市<rt>ㄕˋ</rt></ruby>", "場所", "normal"],
+  ["<ruby>百<rt>ㄅㄞˇ</rt>貨<rt>ㄏㄨㄛˋ</rt>公<rt>ㄍㄨㄥ</rt>司<rt>ㄙ</rt></ruby>", "<ruby>暢<rt>ㄔㄤˋ</rt>貨<rt>ㄏㄨㄛˋ</rt>場<rt>ㄔㄤˇ</rt></ruby>", "場所", "normal"],
   ["<ruby>動<rt>ㄉㄨㄥˋ</rt>物<rt>ㄨˋ</rt>園<rt>ㄩㄢˊ</rt></ruby>", "<ruby>水<rt>ㄕㄨㄟˇ</rt>族<rt>ㄗㄨˊ</rt>館<rt>ㄍㄨㄢˇ</rt></ruby>", "場所", "normal"],
   ["<ruby>遊<rt>ㄧㄡˊ</rt>樂<rt>ㄌㄜˋ</rt>園<rt>ㄩㄢˊ</rt></ruby>", "<ruby>公<rt>ㄍㄨㄥ</rt>園<rt>ㄩㄢˊ</rt></ruby>", "場所", "normal"],
   ["<ruby>海<rt>ㄏㄞˇ</rt>邊<rt>ㄅㄧㄢ</rt></ruby>", "<ruby>游<rt>ㄧㄡˊ</rt>泳<rt>ㄩㄥˇ</rt>池<rt>ㄔˊ</rt></ruby>", "場所", "normal"],
   ["<ruby>露<rt>ㄌㄨˋ</rt>營<rt>ㄧㄥˊ</rt>區<rt>ㄑㄩ</rt></ruby>", "<ruby>民<rt>ㄇㄧㄣˊ</rt>宿<rt>ㄙㄨˋ</rt></ruby>", "場所", "normal"],
   ["<ruby>機<rt>ㄐㄧ</rt>場<rt>ㄔㄤˇ</rt></ruby>", "<ruby>火<rt>ㄏㄨㄛˇ</rt>車<rt>ㄔㄜ</rt>站<rt>ㄓㄢˋ</rt></ruby>", "場所", "normal"],
-  ["<ruby>健<rt>ㄐㄧㄢˋ</rt>身<rt>ㄕㄣ</rt>房<rt>ㄈㄤˊ</rt></ruby>", "<ruby>瑜<rt>ㄩˊ</rt>珈<rt>ㄐㄧㄚ</rt>教<rt>ㄐㄧㄠˋ</rt>室<rt>ㄕˋ</rt></ruby>", "場所", "normal"],
+  ["<ruby>健<rt>ㄐㄧㄢˋ</rt>身<rt>ㄕㄣ</rt>房<rt>ㄈㄤˊ</rt></ruby>", "<ruby>瑜<rt>ㄩˊ</rt>珈<rt>ㄐㄧㄚ</rt>室<rt>ㄕˋ</rt></ruby>", "場所", "normal"],
   ["<ruby>咖<rt>ㄎㄚ</rt>啡<rt>ㄈㄟ</rt>廳<rt>ㄊㄧㄥ</rt></ruby>", "<ruby>早<rt>ㄗㄠˇ</rt>餐<rt>ㄘㄢ</rt>店<rt>ㄉㄧㄢˋ</rt></ruby>", "場所", "normal"],
   ["<ruby>酒<rt>ㄐㄧㄡˇ</rt>吧<rt>ㄅㄚ</rt></ruby>", "<ruby>夜<rt>ㄧㄝˋ</rt>店<rt>ㄉㄧㄢˋ</rt></ruby>", "場所", "normal"],
   ["<ruby>廟<rt>ㄇㄧㄠˋ</rt></ruby>", "<ruby>教<rt>ㄐㄧㄠˋ</rt>堂<rt>ㄊㄤˊ</rt></ruby>", "場所", "normal"],
@@ -176,18 +180,16 @@ const TALK_WORD_BANK = [
   ["<ruby>廚<rt>ㄔㄨˊ</rt>房<rt>ㄈㄤˊ</rt></ruby>", "<ruby>餐<rt>ㄘㄢ</rt>廳<rt>ㄊㄧㄥ</rt></ruby>", "場所", "normal"],
   ["<ruby>頂<rt>ㄉㄧㄥˇ</rt>樓<rt>ㄌㄡˊ</rt></ruby>", "<ruby>陽<rt>ㄧㄤˊ</rt>台<rt>ㄊㄞˊ</rt></ruby>", "場所", "normal"],
   ["<ruby>溫<rt>ㄨㄣ</rt>泉<rt>ㄑㄩㄢˊ</rt></ruby>", "<ruby>三<rt>ㄙㄢ</rt>溫<rt>ㄨㄣ</rt>暖<rt>ㄋㄨㄢˇ</rt></ruby>", "場所", "normal"],
-  ["<ruby>監<rt>ㄐㄧㄢ</rt>獄<rt>ㄩˋ</rt></ruby>", "<ruby>宿<rt>ㄙㄨˋ</rt>舍<rt>ㄕㄜˋ</rt></ruby>", "場所", "hard"],
   ["<ruby>網<rt>ㄨㄤˇ</rt>咖<rt>ㄎㄚ</rt></ruby>", "<ruby>遊<rt>ㄧㄡˊ</rt>樂<rt>ㄌㄜˋ</rt>場<rt>ㄔㄤˇ</rt></ruby>", "場所", "normal"],
   ["<ruby>婚<rt>ㄏㄨㄣ</rt>宴<rt>ㄧㄢˋ</rt>會<rt>ㄏㄨㄟˋ</rt>館<rt>ㄍㄨㄢˇ</rt></ruby>", "<ruby>飯<rt>ㄈㄢˋ</rt>店<rt>ㄉㄧㄢˋ</rt></ruby>", "場所", "normal"],
 
-  // ================= 7. 職業身分 (25 組) =================
+  // --- 7. 職業身分 ---
   ["<ruby>醫<rt>ㄧ</rt>生<rt>ㄕㄥ</rt></ruby>", "<ruby>護<rt>ㄏㄨˋ</rt>理<rt>ㄌㄧˇ</rt>師<rt>ㄕ</rt></ruby>", "職業", "normal"],
   ["<ruby>老<rt>ㄌㄠˇ</rt>師<rt>ㄕ</rt></ruby>", "<ruby>教<rt>ㄐㄧㄠˋ</rt>授<rt>ㄕㄡˋ</rt></ruby>", "職業", "normal"],
   ["<ruby>警<rt>ㄐㄧㄥˇ</rt>察<rt>ㄔㄚˊ</rt></ruby>", "<ruby>保<rt>ㄅㄠˇ</rt>全<rt>ㄑㄩㄢˊ</rt></ruby>", "職業", "normal"],
   ["<ruby>消<rt>ㄒㄧㄠ</rt>防<rt>ㄈㄤˊ</rt>員<rt>ㄩㄢˊ</rt></ruby>", "<ruby>救<rt>ㄐㄧㄡˋ</rt>生<rt>ㄕㄥ</rt>員<rt>ㄩㄢˊ</rt></ruby>", "職業", "normal"],
-  ["<ruby>廚<rt>ㄔㄨˊ</rt>師<rt>ㄕ</rt></ruby>", "<ruby>麵<rt>ㄇㄧㄢˋ</rt>包<rt>ㄅㄠ</rt>師<rt>ㄕ</rt>傅<rt>ㄈㄨˋ</rt></ruby>", "職業", "normal"],
-  ["<ruby>律<rt>ㄌㄩˋ</rt>師<rt>ㄕ</rt></ruby>", "<ruby>法<rt>ㄈㄚˇ</rt>官<rt>ㄍㄨㄢ</rt></ruby>", "職業", "hard"],
-  ["<ruby>會<rt>ㄏㄨㄟˋ</rt>計<rt>ㄐㄧˋ</rt>師<rt>ㄕ</rt></ruby>", "<ruby>銀<rt>ㄧㄣˊ</rt>行<rt>ㄏㄤˊ</rt>行<rt>ㄏㄤˊ</rt>員<rt>ㄩㄢˊ</rt></ruby>", "職業", "normal"],
+  ["<ruby>廚<rt>ㄔㄨˊ</rt>師<rt>ㄕ</rt></ruby>", "<ruby>麵<rt>ㄇㄧㄢˋ</rt>包<rt>ㄅㄠ</rt>師<rt>ㄕ</rt></ruby>", "職業", "normal"],
+  ["<ruby>會<rt>ㄏㄨㄟˋ</rt>計<rt>ㄐㄧˋ</rt>師<rt>ㄕ</rt></ruby>", "<ruby>行<rt>ㄏㄤˊ</rt>員<rt>ㄩㄢˊ</rt></ruby>", "職業", "normal"],
   ["<ruby>工<rt>ㄍㄨㄥ</rt>程<rt>ㄔㄥˊ</rt>師<rt>ㄕ</rt></ruby>", "<ruby>設<rt>ㄕㄜˋ</rt>計<rt>ㄐㄧˋ</rt>師<rt>ㄕ</rt></ruby>", "職業", "normal"],
   ["<ruby>歌<rt>ㄍㄜ</rt>手<rt>ㄕㄡˇ</rt></ruby>", "<ruby>演<rt>ㄧㄢˇ</rt>員<rt>ㄩㄢˊ</rt></ruby>", "職業", "normal"],
   ["<ruby>主<rt>ㄓㄨˇ</rt>持<rt>ㄔˊ</rt>人<rt>ㄖㄣˊ</rt></ruby>", "<ruby>記<rt>ㄐㄧˋ</rt>者<rt>ㄓㄜˇ</rt></ruby>", "職業", "normal"],
@@ -199,24 +201,22 @@ const TALK_WORD_BANK = [
   ["<ruby>牙<rt>ㄧㄚˊ</rt>醫<rt>ㄧ</rt></ruby>", "<ruby>獸<rt>ㄕㄡˋ</rt>醫<rt>ㄧ</rt></ruby>", "職業", "normal"],
   ["<ruby>農<rt>ㄋㄨㄥˊ</rt>夫<rt>ㄈㄨ</rt></ruby>", "<ruby>漁<rt>ㄩˊ</rt>夫<rt>ㄈㄨ</rt></ruby>", "職業", "normal"],
   ["<ruby>軍<rt>ㄐㄩㄣ</rt>人<rt>ㄖㄣˊ</rt></ruby>", "<ruby>警<rt>ㄐㄧㄥˇ</rt>察<rt>ㄔㄚˊ</rt></ruby>", "職業", "normal"],
-  ["<ruby>房<rt>ㄈㄤˊ</rt>仲<rt>ㄓㄨㄥˋ</rt></ruby>", "<ruby>保<rt>ㄅㄠˇ</rt>險<rt>ㄒㄧㄢˇ</rt>業<rt>ㄧㄝˋ</rt>務<rt>ㄨˋ</rt></ruby>", "職業", "normal"],
+  ["<ruby>房<rt>ㄈㄤˊ</rt>仲<rt>ㄓㄨㄥˋ</rt></ruby>", "<ruby>業<rt>ㄧㄝˋ</rt>務<rt>ㄨˋ</rt>員<rt>ㄩㄢˊ</rt></ruby>", "職業", "normal"],
   ["<ruby>健<rt>ㄐㄧㄢˋ</rt>身<rt>ㄕㄣ</rt>教<rt>ㄐㄧㄠˋ</rt>練<rt>ㄌㄧㄢˋ</rt></ruby>", "<ruby>體<rt>ㄊㄧˇ</rt>育<rt>ㄩˋ</rt>老<rt>ㄌㄠˇ</rt>師<rt>ㄕ</rt></ruby>", "職業", "normal"],
   ["<ruby>攝<rt>ㄕㄜˋ</rt>影<rt>ㄧㄥˇ</rt>師<rt>ㄕ</rt></ruby>", "<ruby>導<rt>ㄉㄠˇ</rt>演<rt>ㄧㄢˇ</rt></ruby>", "職業", "normal"],
-  ["<ruby>作<rt>ㄗㄨㄛˋ</rt>家<rt>ㄐㄧㄚ</rt></ruby>", "<ruby>編<rt>ㄅㄧㄢ</rt>輯<rt>ㄐㄧˊ</rt></ruby>", "職業", "hard"],
   ["<ruby>魔<rt>ㄇㄛˊ</rt>術<rt>ㄕㄨˋ</rt>師<rt>ㄕ</rt></ruby>", "<ruby>小<rt>ㄒㄧㄠˇ</rt>丑<rt>ㄔㄡˇ</rt></ruby>", "職業", "normal"],
-  ["<ruby>總<rt>ㄗㄨㄥˇ</rt>經<rt>ㄐㄧㄥ</rt>理<rt>ㄌㄧˇ</rt></ruby>", "<ruby>董<rt>ㄉㄨㄥˇ</rt>事<rt>ㄕˋ</rt>長<rt>ㄓㄤˇ</rt></ruby>", "職業", "hard"],
   ["<ruby>業<rt>ㄧㄝˋ</rt>務<rt>ㄨˋ</rt></ruby>", "<ruby>客<rt>ㄎㄜˋ</rt>服<rt>ㄈㄨˊ</rt></ruby>", "職業", "normal"],
 
-  // ================= 8. 台灣在地共鳴 (28 組) =================
-  ["<ruby>統<rt>ㄊㄨㄥˇ</rt>一<rt>ㄧ</rt>超<rt>ㄔㄠ</rt>商<rt>ㄕㄤ</rt></ruby>", "<ruby>全<rt>ㄑㄩㄢˊ</rt>家<rt>ㄐㄧㄚ</rt></ruby>", "台灣", "normal"],
+  // --- 8. 台灣在地共鳴 ---
+  ["7-11", "<ruby>全<rt>ㄑㄩㄢˊ</rt>家<rt>ㄐㄧㄚ</rt></ruby>", "台灣", "normal"],
   ["<ruby>悠<rt>ㄧㄡ</rt>遊<rt>ㄧㄡˊ</rt>卡<rt>ㄎㄚˇ</rt></ruby>", "<ruby>一<rt>ㄧ</rt>卡<rt>ㄎㄚˇ</rt>通<rt>ㄊㄨㄥ</rt></ruby>", "台灣", "normal"],
-  ["<ruby>台<rt>ㄊㄞˊ</rt>北<rt>ㄅㄟˇ</rt>１<rt>ㄧ</rt>０<rt>ㄌㄧㄥˊ</rt>１<rt>ㄧ</rt></ruby>", "<ruby>高<rt>ㄍㄠ</rt>雄<rt>ㄒㄩㄥˊ</rt>８<rt>ㄅㄚ</rt>５<rt>ㄨˇ</rt>大<rt>ㄉㄚˋ</rt>樓<rt>ㄌㄡˊ</rt></ruby>", "台灣", "normal"],
+  ["<ruby>台<rt>ㄊㄞˊ</rt>北<rt>ㄅㄟˇ</rt></ruby>101", "<ruby>高<rt>ㄍㄠ</rt>雄<rt>ㄒㄩㄥˊ</rt></ruby>85<ruby>大<rt>ㄉㄚˋ</rt>樓<rt>ㄌㄡˊ</rt></ruby>", "台灣", "normal"],
   ["<ruby>九<rt>ㄐㄧㄡˇ</rt>份<rt>ㄈㄣˋ</rt></ruby>", "<ruby>淡<rt>ㄉㄢˋ</rt>水<rt>ㄕㄨㄟˇ</rt></ruby>", "台灣", "normal"],
   ["<ruby>墾<rt>ㄎㄣˇ</rt>丁<rt>ㄉㄧㄥ</rt></ruby>", "<ruby>綠<rt>ㄌㄩˋ</rt>島<rt>ㄉㄠˇ</rt></ruby>", "台灣", "normal"],
   ["<ruby>日<rt>ㄖˋ</rt>月<rt>ㄩㄝˋ</rt>潭<rt>ㄊㄢˊ</rt></ruby>", "<ruby>阿<rt>ㄚ</rt>里<rt>ㄌㄧˇ</rt>山<rt>ㄕㄢ</rt></ruby>", "台灣", "normal"],
   ["<ruby>士<rt>ㄕˋ</rt>林<rt>ㄌㄧㄣˊ</rt>夜<rt>ㄧㄝˋ</rt>市<rt>ㄕˋ</rt></ruby>", "<ruby>饒<rt>ㄖㄠˊ</rt>河<rt>ㄏㄜˊ</rt>夜<rt>ㄧㄝˋ</rt>市<rt>ㄕˋ</rt></ruby>", "台灣", "normal"],
   ["<ruby>高<rt>ㄍㄠ</rt>鐵<rt>ㄊㄧㄝˇ</rt></ruby>", "<ruby>台<rt>ㄊㄞˊ</rt>鐵<rt>ㄊㄧㄝˇ</rt></ruby>", "台灣", "normal"],
-  ["<ruby>微<rt>ㄨㄟˊ</rt>笑<rt>ㄒㄧㄠˋ</rt>單<rt>ㄉㄢ</rt>車<rt>ㄔㄜ</rt></ruby>", "<ruby>共<rt>ㄍㄨㄥˋ</rt>享<rt>ㄒㄧㄤˇ</rt>機<rt>ㄐㄧ</rt>車<rt>ㄔㄜ</rt></ruby>", "台灣", "normal"],
+  ["YouBike", "<ruby>共<rt>ㄍㄨㄥˋ</rt>享<rt>ㄒㄧㄤˇ</rt>機<rt>ㄐㄧ</rt>車<rt>ㄔㄜ</rt></ruby>", "台灣", "normal"],
   ["<ruby>統<rt>ㄊㄨㄥˇ</rt>一<rt>ㄧ</rt>發<rt>ㄈㄚ</rt>票<rt>ㄆㄧㄠˋ</rt></ruby>", "<ruby>刮<rt>ㄍㄨㄚ</rt>刮<rt>ㄍㄨㄚ</rt>樂<rt>ㄌㄜˋ</rt></ruby>", "台灣", "normal"],
   ["<ruby>健<rt>ㄐㄧㄢˋ</rt>保<rt>ㄅㄠˇ</rt>卡<rt>ㄎㄚˇ</rt></ruby>", "<ruby>身<rt>ㄕㄣ</rt>分<rt>ㄈㄣˋ</rt>證<rt>ㄓㄥˋ</rt></ruby>", "台灣", "normal"],
   ["<ruby>颱<rt>ㄊㄞˊ</rt>風<rt>ㄈㄥ</rt>假<rt>ㄐㄧㄚˋ</rt></ruby>", "<ruby>國<rt>ㄍㄨㄛˊ</rt>定<rt>ㄉㄧㄥˋ</rt>連<rt>ㄌㄧㄢˊ</rt>假<rt>ㄐㄧㄚˋ</rt></ruby>", "台灣", "normal"],
@@ -224,10 +224,9 @@ const TALK_WORD_BANK = [
   ["<ruby>中<rt>ㄓㄨㄥ</rt>秋<rt>ㄑㄧㄡ</rt>烤<rt>ㄎㄠˇ</rt>肉<rt>ㄖㄡˋ</rt></ruby>", "<ruby>端<rt>ㄉㄨㄢ</rt>午<rt>ㄨˇ</rt>划<rt>ㄏㄨㄚˊ</rt>龍<rt>ㄌㄨㄥˊ</rt>舟<rt>ㄓㄡ</rt></ruby>", "習俗", "normal"],
   ["<ruby>媽<rt>ㄇㄚ</rt>祖<rt>ㄗㄨˇ</rt>遶<rt>ㄖㄠˋ</rt>境<rt>ㄐㄧㄥˋ</rt></ruby>", "<ruby>元<rt>ㄩㄢˊ</rt>宵<rt>ㄒㄧㄠ</rt>燈<rt>ㄉㄥ</rt>會<rt>ㄏㄨㄟˋ</rt></ruby>", "習俗", "normal"],
   ["<ruby>八<rt>ㄅㄚ</rt>點<rt>ㄉㄧㄢˇ</rt>檔<rt>ㄉㄤˇ</rt></ruby>", "<ruby>偶<rt>ㄡˇ</rt>像<rt>ㄒㄧㄤˋ</rt>劇<rt>ㄐㄩˋ</rt></ruby>", "娛樂", "normal"],
-  ["<ruby>台<rt>ㄊㄞˊ</rt>灣<rt>ㄨㄢ</rt>啤<rt>ㄆㄧˊ</rt>酒<rt>ㄐㄧㄡˇ</rt></ruby>", "<ruby>金<rt>ㄐㄧㄣ</rt>牌<rt>ㄆㄞˊ</rt>啤<rt>ㄆㄧˊ</rt>酒<rt>ㄐㄧㄡˇ</rt></ruby>", "台灣", "hard"],
   ["<ruby>乖<rt>ㄍㄨㄞ</rt>乖<rt>ㄍㄨㄞ</rt></ruby>", "<ruby>可<rt>ㄎㄜˇ</rt>樂<rt>ㄌㄜˋ</rt>果<rt>ㄍㄨㄛˇ</rt></ruby>", "零食", "normal"],
-  ["<ruby>夾<rt>ㄐㄧㄚˊ</rt>娃<rt>ㄨㄚˊ</rt>娃<rt>˙ㄨㄚ</rt>機<rt>ㄐㄧ</rt></ruby>", "<ruby>扭<rt>ㄋㄧㄡˇ</rt>蛋<rt>ㄉㄢˋ</rt>機<rt>ㄐㄧ</rt></ruby>", "娛樂", "normal"],
-  ["<ruby>優<rt>ㄧㄡ</rt>步<rt>ㄅㄨˋ</rt>外<rt>ㄨㄞˋ</rt>送<rt>ㄙㄨㄥˋ</rt></ruby>", "<ruby>熊<rt>ㄒㄩㄥˊ</rt>貓<rt>ㄇㄠ</rt>外<rt>ㄨㄞˋ</rt>送<rt>ㄙㄨㄥˋ</rt></ruby>", "生活", "normal"],
+  ["<ruby>娃<rt>ㄨㄚˊ</rt>娃<rt>˙ㄨㄚ</rt>機<rt>ㄐㄧ</rt></ruby>", "<ruby>扭<rt>ㄋㄧㄡˇ</rt>蛋<rt>ㄉㄢˋ</rt>機<rt>ㄐㄧ</rt></ruby>", "娛樂", "normal"],
+  ["Uber Eats", "foodpanda", "生活", "normal"],
   ["<ruby>好<rt>ㄏㄠˇ</rt>市<rt>ㄕˋ</rt>多<rt>ㄉㄨㄛ</rt></ruby>", "<ruby>家<rt>ㄐㄧㄚ</rt>樂<rt>ㄌㄜˋ</rt>福<rt>ㄈㄨˊ</rt></ruby>", "賣場", "normal"],
   ["<ruby>紅<rt>ㄏㄨㄥˊ</rt>包<rt>ㄅㄠ</rt></ruby>", "<ruby>喜<rt>ㄒㄧˇ</rt>帖<rt>ㄊㄧㄝˇ</rt></ruby>", "文化", "normal"],
   ["<ruby>尾<rt>ㄨㄟˇ</rt>牙<rt>ㄧㄚˊ</rt></ruby>", "<ruby>春<rt>ㄔㄨㄣ</rt>酒<rt>ㄐㄧㄡˇ</rt></ruby>", "職場", "normal"],
@@ -235,9 +234,9 @@ const TALK_WORD_BANK = [
   ["<ruby>台<rt>ㄊㄞˊ</rt>語<rt>ㄩˇ</rt></ruby>", "<ruby>客<rt>ㄎㄜˋ</rt>語<rt>ㄩˇ</rt></ruby>", "語言", "normal"],
   ["<ruby>麥<rt>ㄇㄞˋ</rt>當<rt>ㄉㄤ</rt>勞<rt>ㄌㄠˊ</rt></ruby>", "<ruby>摩<rt>ㄇㄛˊ</rt>斯<rt>ㄙ</rt>漢<rt>ㄏㄢˋ</rt>堡<rt>ㄅㄠˇ</rt></ruby>", "速食", "normal"],
   ["<ruby>誠<rt>ㄔㄥˊ</rt>品<rt>ㄆㄧㄣˇ</rt></ruby>", "<ruby>金<rt>ㄐㄧㄣ</rt>石<rt>ㄕˊ</rt>堂<rt>ㄊㄤˊ</rt></ruby>", "書店", "normal"],
-  ["<ruby>垃<rt>ㄌㄜˋ</rt>圾<rt>ㄙㄜˋ</rt>車<rt>ㄔㄜ</rt></ruby>", "<ruby>資<rt>ㄗ</rt>源<rt>ㄩㄢˊ</rt>回<rt>ㄏㄨㄟˊ</rt>收<rt>ㄕㄡ</rt>車<rt>ㄔㄜ</rt></ruby>", "生活", "normal"],
+  ["<ruby>垃<rt>ㄌㄜˋ</rt>圾<rt>ㄙㄜˋ</rt>車<rt>ㄔㄜ</rt></ruby>", "<ruby>回<rt>ㄏㄨㄟˊ</rt>收<rt>ㄕㄡ</rt>車<rt>ㄔㄜ</rt></ruby>", "生活", "normal"],
 
-  // ================= 9. 經典人物角色 (26 組) =================
+  // --- 9. 經典人物角色 ---
   ["<ruby>蜘<rt>ㄓ</rt>蛛<rt>ㄓㄨ</rt>人<rt>ㄖㄣˊ</rt></ruby>", "<ruby>蝙<rt>ㄅㄧㄢ</rt>蝠<rt>ㄈㄨˊ</rt>俠<rt>ㄒㄧㄚˊ</rt></ruby>", "英雄", "normal"],
   ["<ruby>鋼<rt>ㄍㄤ</rt>鐵<rt>ㄊㄧㄝˇ</rt>人<rt>ㄖㄣˊ</rt></ruby>", "<ruby>美<rt>ㄇㄟˇ</rt>國<rt>ㄍㄨㄛˊ</rt>隊<rt>ㄉㄨㄟˋ</rt>長<rt>ㄓㄤˇ</rt></ruby>", "英雄", "normal"],
   ["<ruby>白<rt>ㄅㄞˊ</rt>雪<rt>ㄒㄩㄝˇ</rt>公<rt>ㄍㄨㄥ</rt>主<rt>ㄓㄨˇ</rt></ruby>", "<ruby>灰<rt>ㄏㄨㄟ</rt>姑<rt>ㄍㄨ</rt>娘<rt>ㄋㄧㄤˊ</rt></ruby>", "童話", "normal"],
@@ -265,15 +264,11 @@ const TALK_WORD_BANK = [
   ["<ruby>國<rt>ㄍㄨㄛˊ</rt>王<rt>ㄨㄤˊ</rt></ruby>", "<ruby>皇<rt>ㄏㄨㄤˊ</rt>后<rt>ㄏㄡˋ</rt></ruby>", "角色", "normal"],
   ["<ruby>鬼<rt>ㄍㄨㄟˇ</rt></ruby>", "<ruby>殭<rt>ㄐㄧㄤ</rt>屍<rt>ㄕ</rt></ruby>", "奇幻", "normal"],
 
-  // ================= 10. 感情心事與搞笑日常 (30 組) =================
-  ["<ruby>初<rt>ㄔㄨ</rt>戀<rt>ㄌㄧㄢˋ</rt></ruby>", "<ruby>暗<rt>ㄢˋ</rt>戀<rt>ㄌㄧㄢˋ</rt></ruby>", "感情", "hard"],
-  ["<ruby>曖<rt>ㄞˋ</rt>昧<rt>ㄇㄟˋ</rt></ruby>", "<ruby>熱<rt>ㄖㄜˋ</rt>戀<rt>ㄌㄧㄢˋ</rt></ruby>", "感情", "hard"],
+  // --- 10. 搞笑日常與生活狀態 ---
   ["<ruby>告<rt>ㄍㄠˋ</rt>白<rt>ㄅㄞˊ</rt></ruby>", "<ruby>求<rt>ㄑㄧㄡˊ</rt>婚<rt>ㄏㄨㄣ</rt></ruby>", "感情", "normal"],
   ["<ruby>約<rt>ㄩㄝ</rt>會<rt>ㄏㄨㄟˋ</rt></ruby>", "<ruby>相<rt>ㄒㄧㄤ</rt>親<rt>ㄑㄧㄣ</rt></ruby>", "社交", "normal"],
   ["<ruby>男<rt>ㄋㄢˊ</rt>朋<rt>ㄆㄥˊ</rt>友<rt>ㄧㄡˇ</rt></ruby>", "<ruby>老<rt>ㄌㄠˇ</rt>公<rt>ㄍㄨㄥ</rt></ruby>", "關係", "normal"],
-  ["<ruby>前<rt>ㄑㄧㄢˊ</rt>任<rt>ㄖㄣˋ</rt></ruby>", "<ruby>備<rt>ㄅㄟˋ</rt>胎<rt>ㄊㄞ</rt></ruby>", "感情", "hard"],
   ["<ruby>分<rt>ㄈㄣ</rt>手<rt>ㄕㄡˇ</rt></ruby>", "<ruby>離<rt>ㄌㄧˊ</rt>婚<rt>ㄏㄨㄣ</rt></ruby>", "感情", "normal"],
-  ["<ruby>吃<rt>ㄔ</rt>醋<rt>ㄘㄨˋ</rt></ruby>", "<ruby>鬧<rt>ㄋㄠˋ</rt>脾<rt>ㄆㄧˊ</rt>氣<rt>ㄑㄧˋ</rt></ruby>", "情緒", "hard"],
   ["<ruby>情<rt>ㄑㄧㄥˊ</rt>人<rt>ㄖㄣˊ</rt>節<rt>ㄐㄧㄝˊ</rt></ruby>", "<ruby>七<rt>ㄑㄧ</rt>夕<rt>ㄒㄧˋ</rt></ruby>", "節日", "normal"],
   ["<ruby>牽<rt>ㄑㄧㄢ</rt>手<rt>ㄕㄡˇ</rt></ruby>", "<ruby>擁<rt>ㄩㄥˇ</rt>抱<rt>ㄅㄠˋ</rt></ruby>", "動作", "normal"],
   ["<ruby>放<rt>ㄈㄤˋ</rt>閃<rt>ㄕㄢˇ</rt></ruby>", "<ruby>發<rt>ㄈㄚ</rt>限<rt>ㄒㄧㄢˋ</rt>動<rt>ㄉㄨㄥˋ</rt></ruby>", "社交", "normal"],
@@ -287,41 +282,127 @@ const TALK_WORD_BANK = [
   ["<ruby>便<rt>ㄅㄧㄢˋ</rt>祕<rt>ㄇㄧˋ</rt></ruby>", "<ruby>拉<rt>ㄌㄚ</rt>肚<rt>ㄉㄨˋ</rt>子<rt>˙ㄗ</rt></ruby>", "生理", "normal"],
   ["<ruby>放<rt>ㄈㄤˋ</rt>鳥<rt>ㄋㄧㄠˇ</rt></ruby>", "<ruby>遲<rt>ㄔˊ</rt>到<rt>ㄉㄠˋ</rt></ruby>", "日常", "normal"],
   ["<ruby>減<rt>ㄐㄧㄢˇ</rt>肥<rt>ㄈㄟˊ</rt></ruby>", "<ruby>健<rt>ㄐㄧㄢˋ</rt>身<rt>ㄕㄣ</rt></ruby>", "日常", "normal"],
-  ["<ruby>星<rt>ㄒㄧㄥ</rt>期<rt>ㄑㄧ</rt>一<rt>ㄧ</rt></ruby>", "<ruby>月<rt>ㄩㄝˋ</rt>底<rt>ㄉㄧˇ</rt></ruby>", "日常", "hard"],
   ["<ruby>加<rt>ㄐㄧㄚ</rt>班<rt>ㄅㄢ</rt></ruby>", "<ruby>補<rt>ㄅㄨˇ</rt>班<rt>ㄅㄢ</rt></ruby>", "職場", "normal"],
   ["<ruby>老<rt>ㄌㄠˇ</rt>闆<rt>ㄅㄢˇ</rt></ruby>", "<ruby>奧<rt>ㄠˋ</rt>客<rt>ㄎㄜˋ</rt></ruby>", "職場", "normal"],
   ["<ruby>媽<rt>ㄇㄚ</rt>媽<rt>˙ㄇㄚ</rt></ruby>", "<ruby>教<rt>ㄐㄧㄠˋ</rt>官<rt>ㄍㄨㄢ</rt></ruby>", "人物", "normal"],
   ["<ruby>喝<rt>ㄏㄜ</rt>醉<rt>ㄗㄨㄟˋ</rt></ruby>", "<ruby>暈<rt>ㄩㄣ</rt>車<rt>ㄔㄜ</rt></ruby>", "生理", "normal"],
   ["<ruby>自<rt>ㄗˋ</rt>拍<rt>ㄆㄞ</rt></ruby>", "<ruby>修<rt>ㄒㄧㄡ</rt>圖<rt>ㄊㄨˊ</rt></ruby>", "社交", "normal"],
+
+  // =========================================================================
+  // 高難度題庫 (hard) - 嚴格限制 <= 5 字、數字無注音、高度抽象交疊 (共 105 組)
+  // =========================================================================
+  // --- 1. 心靈感受與心理狀態 (24 組) ---
+  ["<ruby>初<rt>ㄔㄨ</rt>戀<rt>ㄌㄧㄢˋ</rt></ruby>", "<ruby>暗<rt>ㄢˋ</rt>戀<rt>ㄌㄧㄢˋ</rt></ruby>", "感情", "hard"],
+  ["<ruby>曖<rt>ㄞˋ</rt>昧<rt>ㄇㄟˋ</rt></ruby>", "<ruby>熱<rt>ㄖㄜˋ</rt>戀<rt>ㄌㄧㄢˋ</rt></ruby>", "感情", "hard"],
+  ["<ruby>前<rt>ㄑㄧㄢˊ</rt>任<rt>ㄖㄣˋ</rt></ruby>", "<ruby>備<rt>ㄅㄟˋ</rt>胎<rt>ㄊㄞ</rt></ruby>", "感情", "hard"],
+  ["<ruby>吃<rt>ㄔ</rt>醋<rt>ㄘㄨˋ</rt></ruby>", "<ruby>鬧<rt>ㄋㄠˋ</rt>脾<rt>ㄆㄧˊ</rt>氣<rt>ㄑㄧˋ</rt></ruby>", "情緒", "hard"],
+  ["<ruby>寂<rt>ㄐㄧˊ</rt>寞<rt>ㄇㄛˋ</rt></ruby>", "<ruby>孤<rt>ㄍㄨ</rt>單<rt>ㄉㄢ</rt></ruby>", "心理", "hard"],
+  ["<ruby>嫉<rt>ㄐㄧˊ</rt>妒<rt>ㄉㄨˋ</rt></ruby>", "<ruby>羨<rt>ㄒㄧㄢˋ</rt>慕<rt>ㄇㄨˋ</rt></ruby>", "心理", "hard"],
+  ["<ruby>勇<rt>ㄩㄥˇ</rt>氣<rt>ㄑㄧˋ</rt></ruby>", "<ruby>衝<rt>ㄔㄨㄥ</rt>動<rt>ㄉㄨㄥˋ</rt></ruby>", "心理", "hard"],
+  ["<ruby>誠<rt>ㄔㄥˊ</rt>實<rt>ㄕˊ</rt></ruby>", "<ruby>坦<rt>ㄊㄢˇ</rt>白<rt>ㄅㄞˊ</rt></ruby>", "心理", "hard"],
+  ["<ruby>謊<rt>ㄏㄨㄤˇ</rt>言<rt>ㄧㄢˊ</rt></ruby>", "<ruby>祕<rt>ㄇㄧˋ</rt>密<rt>ㄇㄧˋ</rt></ruby>", "心理", "hard"],
+  ["<ruby>等<rt>ㄉㄥˇ</rt>待<rt>ㄉㄞˋ</rt></ruby>", "<ruby>期<rt>ㄑㄧˊ</rt>待<rt>ㄉㄞˋ</rt></ruby>", "心理", "hard"],
+  ["<ruby>委<rt>ㄨㄟˇ</rt>屈<rt>ㄑㄩ</rt></ruby>", "<ruby>不<rt>ㄅㄨˋ</rt>甘<rt>ㄍㄢ</rt></ruby>", "心靈", "hard"],
+  ["<ruby>妥<rt>ㄊㄨㄛˇ</rt>協<rt>ㄒㄧㄝˊ</rt></ruby>", "<ruby>認<rt>ㄖㄣˋ</rt>輸<rt>ㄕㄨ</rt></ruby>", "心靈", "hard"],
+  ["<ruby>自<rt>ㄗˋ</rt>尊<rt>ㄗㄨㄣ</rt></ruby>", "<ruby>面<rt>ㄇㄧㄢˋ</rt>子<rt>˙ㄗ</rt></ruby>", "心靈", "hard"],
+  ["<ruby>驕<rt>ㄐㄧㄠ</rt>傲<rt>ㄠˋ</rt></ruby>", "<ruby>自<rt>ㄗˋ</rt>負<rt>ㄈㄨˋ</rt></ruby>", "心靈", "hard"],
+  ["<ruby>後<rt>ㄏㄡˋ</rt>悔<rt>ㄏㄨㄟˇ</rt></ruby>", "<ruby>遺<rt>ㄧˊ</rt>憾<rt>ㄏㄢˋ</rt></ruby>", "心靈", "hard"],
+  ["<ruby>同<rt>ㄊㄨㄥˊ</rt>情<rt>ㄑㄧㄥˊ</rt></ruby>", "<ruby>憐<rt>ㄌㄧㄢˊ</rt>憫<rt>ㄇㄧㄣˇ</rt></ruby>", "心靈", "hard"],
+  ["<ruby>心<rt>ㄒㄧㄣ</rt>動<rt>ㄉㄨㄥˋ</rt></ruby>", "<ruby>感<rt>ㄍㄢˇ</rt>動<rt>ㄉㄨㄥˋ</rt></ruby>", "心靈", "hard"],
+  ["<ruby>放<rt>ㄈㄤˋ</rt>手<rt>ㄕㄡˇ</rt></ruby>", "<ruby>放<rt>ㄈㄤˋ</rt>棄<rt>ㄑㄧˋ</rt></ruby>", "心靈", "hard"],
+  ["<ruby>迷<rt>ㄇㄧˊ</rt>茫<rt>ㄇㄤˊ</rt></ruby>", "<ruby>焦<rt>ㄐㄧㄠ</rt>慮<rt>ㄌㄩˋ</rt></ruby>", "心靈", "hard"],
+  ["<ruby>冷<rt>ㄌㄥˇ</rt>淡<rt>ㄉㄢˋ</rt></ruby>", "<ruby>敷<rt>ㄈㄨ</rt>衍<rt>ㄧㄢˇ</rt></ruby>", "社交", "hard"],
+  ["<ruby>討<rt>ㄊㄠˇ</rt>好<rt>ㄏㄠˇ</rt></ruby>", "<ruby>禮<rt>ㄌㄧˇ</rt>貌<rt>ㄇㄠˋ</rt></ruby>", "社交", "hard"],
+  ["<ruby>冷<rt>ㄌㄥˇ</rt>血<rt>ㄒㄧㄝˇ</rt></ruby>", "<ruby>理<rt>ㄌㄧˇ</rt>性<rt>ㄒㄧㄥˋ</rt></ruby>", "心靈", "hard"],
+  ["<ruby>默<rt>ㄇㄛˋ</rt>契<rt>ㄑㄧˋ</rt></ruby>", "<ruby>習<rt>ㄒㄧˊ</rt>慣<rt>ㄍㄨㄢˋ</rt></ruby>", "心理", "hard"],
+  ["<ruby>信<rt>ㄒㄧㄣˋ</rt>任<rt>ㄖㄣˋ</rt></ruby>", "<ruby>依<rt>ㄧ</rt>賴<rt>ㄌㄞˋ</rt></ruby>", "感情", "hard"],
+
+  // --- 2. 哲學思維與抽象概念 (20 組) ---
+  ["<ruby>夢<rt>ㄇㄥˋ</rt>想<rt>ㄒㄧㄤˇ</rt></ruby>", "<ruby>理<rt>ㄌㄧˇ</rt>想<rt>ㄒㄧㄤˇ</rt></ruby>", "思維", "hard"],
+  ["<ruby>回<rt>ㄏㄨㄟˊ</rt>憶<rt>ㄧˋ</rt></ruby>", "<ruby>記<rt>ㄐㄧˋ</rt>憶<rt>ㄧˋ</rt></ruby>", "思維", "hard"],
+  ["<ruby>緣<rt>ㄩㄢˊ</rt>分<rt>ㄈㄣˋ</rt></ruby>", "<ruby>命<rt>ㄇㄧㄥˋ</rt>運<rt>ㄩㄣˋ</rt></ruby>", "哲學", "hard"],
+  ["<ruby>運<rt>ㄩㄣˋ</rt>氣<rt>ㄑㄧˋ</rt></ruby>", "<ruby>實<rt>ㄕˊ</rt>力<rt>ㄌㄧˋ</rt></ruby>", "哲學", "hard"],
+  ["<ruby>計<rt>ㄐㄧˋ</rt>畫<rt>ㄏㄨㄚˋ</rt></ruby>", "<ruby>目<rt>ㄇㄨˋ</rt>標<rt>ㄅㄧㄠ</rt></ruby>", "思維", "hard"],
+  ["<ruby>靈<rt>ㄌㄧㄥˊ</rt>感<rt>ㄍㄢˇ</rt></ruby>", "<ruby>直<rt>ㄓˊ</rt>覺<rt>ㄐㄩㄝˊ</rt></ruby>", "思維", "hard"],
+  ["<ruby>本<rt>ㄅㄣˇ</rt>能<rt>ㄋㄥˊ</rt></ruby>", "<ruby>直<rt>ㄓˊ</rt>覺<rt>ㄐㄩㄝˊ</rt></ruby>", "概念", "hard"],
+  ["<ruby>動<rt>ㄉㄨㄥˋ</rt>機<rt>ㄐㄧ</rt></ruby>", "<ruby>藉<rt>ㄐㄧㄝˋ</rt>口<rt>ㄎㄡˇ</rt></ruby>", "概念", "hard"],
+  ["<ruby>真<rt>ㄓㄣ</rt>理<rt>ㄌㄧˇ</rt></ruby>", "<ruby>常<rt>ㄔㄤˊ</rt>識<rt>ㄕˋ</rt></ruby>", "概念", "hard"],
+  ["<ruby>自<rt>ㄗˋ</rt>由<rt>ㄧㄡˊ</rt></ruby>", "<ruby>任<rt>ㄖㄣˋ</rt>性<rt>ㄒㄧㄥˋ</rt></ruby>", "思維", "hard"],
+  ["<ruby>原<rt>ㄩㄢˊ</rt>則<rt>ㄗㄜˊ</rt></ruby>", "<ruby>底<rt>ㄉㄧˇ</rt>線<rt>ㄒㄧㄢˋ</rt></ruby>", "哲學", "hard"],
+  ["<ruby>沉<rt>ㄔㄣˊ</rt>默<rt>ㄇㄛˋ</rt></ruby>", "<ruby>冷<rt>ㄌㄥˇ</rt>戰<rt>ㄓㄢˋ</rt></ruby>", "狀態", "hard"],
+  ["<ruby>浪<rt>ㄌㄤˋ</rt>漫<rt>ㄇㄢˋ</rt></ruby>", "<ruby>浪<rt>ㄌㄤˋ</rt>費<rt>ㄈㄟˋ</rt></ruby>", "概念", "hard"],
+  ["<ruby>懷<rt>ㄏㄨㄞˊ</rt>舊<rt>ㄐㄧㄡˋ</rt></ruby>", "<ruby>復<rt>ㄈㄨˋ</rt>古<rt>ㄍㄨˇ</rt></ruby>", "概念", "hard"],
+  ["<ruby>時<rt>ㄕˊ</rt>間<rt>ㄐㄧㄢ</rt></ruby>", "<ruby>金<rt>ㄐㄧㄣ</rt>錢<rt>ㄑㄧㄢˊ</rt></ruby>", "概念", "hard"],
+  ["<ruby>巧<rt>ㄑㄧㄠˇ</rt>合<rt>ㄏㄜˊ</rt></ruby>", "<ruby>必<rt>ㄅㄧˋ</rt>然<rt>ㄖㄢˊ</rt></ruby>", "哲學", "hard"],
+  ["<ruby>起<rt>ㄑㄧˇ</rt>點<rt>ㄉㄧㄢˇ</rt></ruby>", "<ruby>終<rt>ㄓㄨㄥ</rt>點<rt>ㄉㄧㄢˇ</rt></ruby>", "概念", "hard"],
+  ["<ruby>現<rt>ㄒㄧㄢˋ</rt>實<rt>ㄕˊ</rt></ruby>", "<ruby>殘<rt>ㄘㄢˊ</rt>酷<rt>ㄎㄨˋ</rt></ruby>", "概念", "hard"],
+  ["<ruby>包<rt>ㄅㄠ</rt>容<rt>ㄖㄨㄥˊ</rt></ruby>", "<ruby>縱<rt>ㄗㄨㄥˋ</rt>容<rt>ㄖㄨㄥˊ</rt></ruby>", "思維", "hard"],
+  ["<ruby>知<rt>ㄓ</rt>音<rt>ㄧㄣ</rt></ruby>", "<ruby>知<rt>ㄓ</rt>己<rt>ㄐㄧˇ</rt></ruby>", "心靈", "hard"],
+
+  // --- 3. 物理、自然與光學重疊 (18 組) ---
+  ["<ruby>鏡<rt>ㄐㄧㄥˋ</rt>子<rt>˙ㄗ</rt></ruby>", "<ruby>玻<rt>ㄅㄛ</rt>璃<rt>ㄌㄧˊ</rt></ruby>", "概念", "hard"],
+  ["<ruby>反<rt>ㄈㄢˇ</rt>射<rt>ㄕㄜˋ</rt></ruby>", "<ruby>折<rt>ㄓㄜˊ</rt>射<rt>ㄕㄜˋ</rt></ruby>", "科學", "hard"],
+  ["<ruby>雲<rt>ㄩㄣˊ</rt></ruby>", "<ruby>霧<rt>ㄨˋ</rt></ruby>", "自然", "hard"],
+  ["<ruby>霜<rt>ㄕㄨㄤ</rt></ruby>", "<ruby>雪<rt>ㄒㄩㄝˇ</rt></ruby>", "自然", "hard"],
+  ["<ruby>冰<rt>ㄅㄧㄥ</rt>雹<rt>ㄅㄠˊ</rt></ruby>", "<ruby>落<rt>ㄌㄨㄛˋ</rt>石<rt>ㄕˊ</rt></ruby>", "自然", "hard"],
+  ["<ruby>影<rt>ㄧㄥˇ</rt>子<rt>˙ㄗ</rt></ruby>", "<ruby>倒<rt>ㄉㄠˋ</rt>影<rt>ㄧㄥˇ</rt></ruby>", "自然", "hard"],
+  ["<ruby>打<rt>ㄉㄚˇ</rt>雷<rt>ㄌㄟˊ</rt></ruby>", "<ruby>閃<rt>ㄕㄢˇ</rt>電<rt>ㄉㄧㄢˋ</rt></ruby>", "自然", "hard"],
+  ["<ruby>地<rt>ㄉㄧˋ</rt>震<rt>ㄓㄣˋ</rt></ruby>", "<ruby>颱<rt>ㄊㄞˊ</rt>風<rt>ㄈㄥ</rt></ruby>", "自然", "hard"],
+  ["<ruby>回<rt>ㄏㄨㄟˊ</rt>音<rt>ㄧㄣ</rt></ruby>", "<ruby>共<rt>ㄍㄨㄥˋ</rt>鳴<rt>ㄇㄧㄥˊ</rt></ruby>", "科學", "hard"],
+  ["<ruby>漩<rt>ㄒㄩㄢˊ</rt>渦<rt>ㄨㄛ</rt></ruby>", "<ruby>黑<rt>ㄏㄟ</rt>洞<rt>ㄉㄨㄥˋ</rt></ruby>", "自然", "hard"],
+  ["<ruby>朝<rt>ㄓㄠ</rt>霞<rt>ㄒㄧㄚˊ</rt></ruby>", "<ruby>晚<rt>ㄨㄢˇ</rt>霞<rt>ㄒㄧㄚˊ</rt></ruby>", "自然", "hard"],
+  ["<ruby>流<rt>ㄌㄧㄡˊ</rt>星<rt>ㄒㄧㄥ</rt></ruby>", "<ruby>極<rt>ㄐㄧˊ</rt>光<rt>ㄍㄨㄤ</rt></ruby>", "天文", "hard"],
+  ["<ruby>日<rt>ㄖˋ</rt>食<rt>ㄕˊ</rt></ruby>", "<ruby>月<rt>ㄩㄝˋ</rt>食<rt>ㄕˊ</rt></ruby>", "天文", "hard"],
+  ["<ruby>沙<rt>ㄕㄚ</rt>漠<rt>ㄇㄛˋ</rt></ruby>", "<ruby>荒<rt>ㄏㄨㄤ</rt>原<rt>ㄩㄢˊ</rt></ruby>", "地理", "hard"],
+  ["<ruby>懸<rt>ㄒㄩㄢˊ</rt>崖<rt>ㄧㄞˊ</rt></ruby>", "<ruby>深<rt>ㄕㄣ</rt>淵<rt>ㄩㄢ</rt></ruby>", "地理", "hard"],
+  ["<ruby>暴<rt>ㄅㄠˋ</rt>風<rt>ㄈㄥ</rt>雨<rt>ㄩˇ</rt></ruby>", "<ruby>海<rt>ㄏㄞˇ</rt>嘯<rt>ㄒㄧㄠˋ</rt></ruby>", "自然", "hard"],
+  ["<ruby>重<rt>ㄓㄨㄥˋ</rt>力<rt>ㄌㄧˋ</rt></ruby>", "<ruby>磁<rt>ㄘˊ</rt>力<rt>ㄌㄧˋ</rt></ruby>", "科學", "hard"],
+  ["<ruby>真<rt>ㄓㄣ</rt>空<rt>ㄎㄨㄥ</rt></ruby>", "<ruby>深<rt>ㄕㄣ</rt>海<rt>ㄏㄞˇ</rt></ruby>", "環境", "hard"],
+
+  // --- 4. 社交、生活狀態與身分階層 (25 組) ---
+  ["<ruby>監<rt>ㄐㄧㄢ</rt>獄<rt>ㄩˋ</rt></ruby>", "<ruby>宿<rt>ㄙㄨˋ</rt>舍<rt>ㄕㄜˋ</rt></ruby>", "場所", "hard"],
+  ["<ruby>律<rt>ㄌㄩˋ</rt>師<rt>ㄕ</rt></ruby>", "<ruby>法<rt>ㄈㄚˇ</rt>官<rt>ㄍㄨㄢ</rt></ruby>", "職業", "hard"],
+  ["<ruby>作<rt>ㄗㄨㄛˋ</rt>家<rt>ㄐㄧㄚ</rt></ruby>", "<ruby>編<rt>ㄅㄧㄢ</rt>輯<rt>ㄐㄧˊ</rt></ruby>", "職業", "hard"],
+  ["<ruby>總<rt>ㄗㄨㄥˇ</rt>經<rt>ㄐㄧㄥ</rt>理<rt>ㄌㄧˇ</rt></ruby>", "<ruby>董<rt>ㄉㄨㄥˇ</rt>事<rt>ㄕˋ</rt>長<rt>ㄓㄤˇ</rt></ruby>", "職業", "hard"],
+  ["<ruby>星<rt>ㄒㄧㄥ</rt>期<rt>ㄑㄧ</rt>一<rt>ㄧ</rt></ruby>", "<ruby>月<rt>ㄩㄝˋ</rt>底<rt>ㄉㄧˇ</rt></ruby>", "日常", "hard"],
   ["<ruby>社<rt>ㄕㄜˋ</rt>畜<rt>ㄔㄨˋ</rt></ruby>", "<ruby>工<rt>ㄍㄨㄥ</rt>具<rt>ㄐㄩˋ</rt>人<rt>ㄖㄣˊ</rt></ruby>", "稱呼", "hard"],
   ["<ruby>宿<rt>ㄙㄨˋ</rt>醉<rt>ㄗㄨㄟˋ</rt></ruby>", "<ruby>起<rt>ㄑㄧˇ</rt>床<rt>ㄔㄨㄤˊ</rt>氣<rt>ㄑㄧˋ</rt></ruby>", "狀態", "hard"],
   ["<ruby>素<rt>ㄙㄨˋ</rt>顏<rt>ㄧㄢˊ</rt></ruby>", "<ruby>沒<rt>ㄇㄟˊ</rt>睡<rt>ㄕㄨㄟˋ</rt>飽<rt>ㄅㄠˇ</rt></ruby>", "狀態", "hard"],
-
-  // ================= 11. 抽象燒腦思維 (26 組・高難度) =================
-  ["<ruby>鏡<rt>ㄐㄧㄥˋ</rt>子<rt>˙ㄗ</rt></ruby>", "<ruby>玻<rt>ㄅㄛ</rt>璃<rt>ㄌㄧˊ</rt></ruby>", "概念", "hard"],
-  ["<ruby>反<rt>ㄈㄢˇ</rt>射<rt>ㄕㄜˋ</rt></ruby>", "<ruby>折<rt>ㄓㄜˊ</rt>射<rt>ㄕㄜˋ</rt></ruby>", "科學", "hard"],
-  ["<ruby>夢<rt>ㄇㄥˋ</rt>想<rt>ㄒㄧㄤˇ</rt></ruby>", "<ruby>理<rt>ㄌㄧˇ</rt>想<rt>ㄒㄧㄤˇ</rt></ruby>", "心靈", "hard"],
-  ["<ruby>回<rt>ㄏㄨㄟˊ</rt>憶<rt>ㄧˋ</rt></ruby>", "<ruby>記<rt>ㄐㄧˋ</rt>憶<rt>ㄧˋ</rt></ruby>", "心靈", "hard"],
-  ["<ruby>嫉<rt>ㄐㄧˊ</rt>妒<rt>ㄉㄨˋ</rt></ruby>", "<ruby>羨<rt>ㄒㄧㄢˋ</rt>慕<rt>ㄇㄨˋ</rt></ruby>", "心理", "hard"],
-  ["<ruby>勇<rt>ㄩㄥˇ</rt>氣<rt>ㄑㄧˋ</rt></ruby>", "<ruby>衝<rt>ㄔㄨㄥ</rt>動<rt>ㄉㄨㄥˋ</rt></ruby>", "心理", "hard"],
-  ["<ruby>浪<rt>ㄌㄤˋ</rt>漫<rt>ㄇㄢˋ</rt></ruby>", "<ruby>浪<rt>ㄌㄤˋ</rt>費<rt>ㄈㄟˋ</rt></ruby>", "概念", "hard"],
-  ["<ruby>寂<rt>ㄐㄧˊ</rt>寞<rt>ㄇㄛˋ</rt></ruby>", "<ruby>孤<rt>ㄍㄨ</rt>單<rt>ㄉㄢ</rt></ruby>", "心理", "hard"],
-  ["<ruby>緣<rt>ㄩㄢˊ</rt>分<rt>ㄈㄣˋ</rt></ruby>", "<ruby>命<rt>ㄇㄧㄥˋ</rt>運<rt>ㄩㄣˋ</rt></ruby>", "哲學", "hard"],
-  ["<ruby>運<rt>ㄩㄣˋ</rt>氣<rt>ㄑㄧˋ</rt></ruby>", "<ruby>實<rt>ㄕˊ</rt>力<rt>ㄌㄧˋ</rt></ruby>", "哲學", "hard"],
-  ["<ruby>誠<rt>ㄔㄥˊ</rt>實<rt>ㄕˊ</rt></ruby>", "<ruby>坦<rt>ㄊㄢˇ</rt>白<rt>ㄅㄞˊ</rt></ruby>", "心理", "hard"],
-  ["<ruby>謊<rt>ㄏㄨㄤˇ</rt>言<rt>ㄧㄢˊ</rt></ruby>", "<ruby>祕<rt>ㄇㄧˋ</rt>密<rt>ㄇㄧˋ</rt></ruby>", "心理", "hard"],
   ["<ruby>感<rt>ㄍㄢˇ</rt>冒<rt>ㄇㄠˋ</rt></ruby>", "<ruby>過<rt>ㄍㄨㄛˋ</rt>敏<rt>ㄇㄧㄣˇ</rt></ruby>", "健康", "hard"],
-  ["<ruby>雲<rt>ㄩㄣˊ</rt></ruby>", "<ruby>霧<rt>ㄨˋ</rt></ruby>", "自然", "hard"],
-  ["<ruby>影<rt>ㄧㄥˇ</rt>子<rt>˙ㄗ</rt></ruby>", "<ruby>倒<rt>ㄉㄠˋ</rt>影<rt>ㄧㄥˇ</rt></ruby>", "自然", "hard"],
   ["<ruby>早<rt>ㄗㄠˇ</rt>餐<rt>ㄘㄢ</rt></ruby>", "<ruby>早<rt>ㄗㄠˇ</rt>午<rt>ㄨˇ</rt>餐<rt>ㄘㄢ</rt></ruby>", "生活", "hard"],
   ["<ruby>午<rt>ㄨˇ</rt>睡<rt>ㄕㄨㄟˋ</rt></ruby>", "<ruby>發<rt>ㄈㄚ</rt>呆<rt>ㄉㄞ</rt></ruby>", "狀態", "hard"],
-  ["<ruby>等<rt>ㄉㄥˇ</rt>待<rt>ㄉㄞˋ</rt></ruby>", "<ruby>期<rt>ㄑㄧˊ</rt>待<rt>ㄉㄞˋ</rt></ruby>", "心理", "hard"],
-  ["<ruby>計<rt>ㄐㄧˋ</rt>畫<rt>ㄏㄨㄚˋ</rt></ruby>", "<ruby>目<rt>ㄇㄨˋ</rt>標<rt>ㄅㄧㄠ</rt></ruby>", "思維", "hard"],
-  ["<ruby>靈<rt>ㄌㄧㄥˊ</rt>感<rt>ㄍㄢˇ</rt></ruby>", "<ruby>直<rt>ㄓˊ</rt>覺<rt>ㄐㄩㄝˊ</rt></ruby>", "思維", "hard"],
-  ["<ruby>懷<rt>ㄏㄨㄞˊ</rt>舊<rt>ㄐㄧㄡˋ</rt></ruby>", "<ruby>復<rt>ㄈㄨˋ</rt>古<rt>ㄍㄨˇ</rt></ruby>", "概念", "hard"],
   ["<ruby>自<rt>ㄗˋ</rt>由<rt>ㄧㄡˊ</rt></ruby>", "<ruby>放<rt>ㄈㄤˋ</rt>假<rt>ㄐㄧㄚˋ</rt></ruby>", "生活", "hard"],
-  ["<ruby>時<rt>ㄕˊ</rt>間<rt>ㄐㄧㄢ</rt></ruby>", "<ruby>金<rt>ㄐㄧㄣ</rt>錢<rt>ㄑㄧㄢˊ</rt></ruby>", "概念", "hard"],
   ["<ruby>演<rt>ㄧㄢˇ</rt>唱<rt>ㄔㄤˋ</rt>會<rt>ㄏㄨㄟˋ</rt></ruby>", "<ruby>音<rt>ㄧㄣ</rt>樂<rt>ㄧㄝˋ</rt>祭<rt>ㄐㄧˋ</rt></ruby>", "活動", "hard"],
-  ["<ruby>打<rt>ㄉㄚˇ</rt>雷<rt>ㄌㄟˊ</rt></ruby>", "<ruby>閃<rt>ㄕㄢˇ</rt>電<rt>ㄉㄧㄢˋ</rt></ruby>", "自然", "hard"],
-  ["<ruby>地<rt>ㄉㄧˋ</rt>震<rt>ㄓㄣˋ</rt></ruby>", "<ruby>颱<rt>ㄊㄞˊ</rt>風<rt>ㄈㄥ</rt></ruby>", "自然", "hard"]
+  ["<ruby>台<rt>ㄊㄞˊ</rt>灣<rt>ㄨㄢ</rt>啤<rt>ㄆㄧˊ</rt>酒<rt>ㄐㄧㄡˇ</rt></ruby>", "<ruby>金<rt>ㄐㄧㄣ</rt>牌<rt>ㄆㄞˊ</rt>啤<rt>ㄆㄧˊ</rt>酒<rt>ㄐㄧㄡˇ</rt></ruby>", "台灣", "hard"],
+  ["<ruby>空<rt>ㄎㄨㄥ</rt>窗<rt>ㄔㄨㄤ</rt>期<rt>ㄑㄧˊ</rt></ruby>", "<ruby>單<rt>ㄉㄢ</rt>身<rt>ㄕㄣ</rt></ruby>", "狀態", "hard"],
+  ["<ruby>富<rt>ㄈㄨˋ</rt>二<rt>ㄦˋ</rt>代<rt>ㄉㄞˋ</rt></ruby>", "<ruby>暴<rt>ㄅㄠˋ</rt>發<rt>ㄈㄚ</rt>戶<rt>ㄏㄨˋ</rt></ruby>", "稱呼", "hard"],
+  ["<ruby>留<rt>ㄌㄧㄡˊ</rt>學<rt>ㄒㄩㄝˊ</rt></ruby>", "<ruby>移<rt>ㄧˊ</rt>民<rt>ㄇㄧㄣˊ</rt></ruby>", "生活", "hard"],
+  ["<ruby>租<rt>ㄗㄨ</rt>屋<rt>ㄨ</rt></ruby>", "<ruby>買<rt>ㄇㄞˇ</rt>房<rt>ㄈㄤˊ</rt></ruby>", "生活", "hard"],
+  ["<ruby>離<rt>ㄌㄧˊ</rt>職<rt>ㄓˊ</rt></ruby>", "<ruby>退<rt>ㄊㄨㄟˋ</rt>休<rt>ㄒㄧㄡ</rt></ruby>", "職場", "hard"],
+  ["<ruby>跳<rt>ㄊㄧㄠˋ</rt>槽<rt>ㄘㄠˊ</rt></ruby>", "<ruby>升<rt>ㄕㄥ</rt>遷<rt>ㄑㄧㄢ</rt></ruby>", "職場", "hard"],
+  ["<ruby>迷<rt>ㄇㄧˊ</rt>信<rt>ㄒㄧㄣˋ</rt></ruby>", "<ruby>信<rt>ㄒㄧㄣˋ</rt>仰<rt>ㄧㄤˇ</rt></ruby>", "文化", "hard"],
+  ["<ruby>天<rt>ㄊㄧㄢ</rt>才<rt>ㄘㄞˊ</rt></ruby>", "<ruby>瘋<rt>ㄈㄥ</rt>子<rt>˙ㄗ</rt></ruby>", "稱呼", "hard"],
+  ["<ruby>同<rt>ㄊㄨㄥˊ</rt>學<rt>ㄒㄩㄝˊ</rt>會<rt>ㄏㄨㄟˋ</rt></ruby>", "<ruby>喝<rt>ㄏㄜ</rt>春<rt>ㄔㄨㄣ</rt>酒<rt>ㄐㄧㄡˇ</rt></ruby>", "活動", "hard"],
+  ["<ruby>內<rt>ㄋㄟˋ</rt>向<rt>ㄒㄧㄤˋ</rt></ruby>", "<ruby>自<rt>ㄗˋ</rt>閉<rt>ㄅㄧˋ</rt></ruby>", "性格", "hard"],
+  ["<ruby>熱<rt>ㄖㄜˋ</rt>心<rt>ㄒㄧㄣ</rt></ruby>", "<ruby>雞<rt>ㄐㄧ</rt>婆<rt>ㄆㄛˊ</rt></ruby>", "性格", "hard"],
+
+  // --- 5. 具體物件之細微文化／功能差異 (18 組) ---
+  ["<ruby>古<rt>ㄍㄨˇ</rt>董<rt>ㄉㄨㄥˇ</rt></ruby>", "<ruby>廢<rt>ㄈㄟˋ</rt>品<rt>ㄆㄧㄣˇ</rt></ruby>", "物品", "hard"],
+  ["<ruby>正<rt>ㄓㄥˋ</rt>品<rt>ㄆㄧㄣˇ</rt></ruby>", "<ruby>高<rt>ㄍㄠ</rt>仿<rt>ㄈㄤˇ</rt></ruby>", "物品", "hard"],
+  ["<ruby>迷<rt>ㄇㄧˊ</rt>宮<rt>ㄍㄨㄥ</rt></ruby>", "<ruby>牢<rt>ㄌㄠˊ</rt>籠<rt>ㄌㄨㄥˊ</rt></ruby>", "場所", "hard"],
+  ["<ruby>小<rt>ㄒㄧㄠˇ</rt>說<rt>ㄕㄨㄛ</rt></ruby>", "<ruby>劇<rt>ㄐㄩˋ</rt>本<rt>ㄅㄣˇ</rt></ruby>", "文藝", "hard"],
+  ["<ruby>日<rt>ㄖˋ</rt>記<rt>ㄐㄧˋ</rt></ruby>", "<ruby>自<rt>ㄗˋ</rt>傳<rt>ㄓㄨㄢˋ</rt></ruby>", "文藝", "hard"],
+  ["<ruby>童<rt>ㄊㄨㄥˊ</rt>話<rt>ㄏㄨㄚˋ</rt></ruby>", "<ruby>寓<rt>ㄩˋ</rt>言<rt>ㄧㄢˊ</rt></ruby>", "文學", "hard"],
+  ["<ruby>標<rt>ㄅㄧㄠ</rt>本<rt>ㄅㄣˇ</rt></ruby>", "<ruby>化<rt>ㄏㄨㄚˋ</rt>石<rt>ㄕˊ</rt></ruby>", "物品", "hard"],
+  ["<ruby>假<rt>ㄐㄧㄚˇ</rt>面<rt>ㄇㄧㄢˋ</rt></ruby>", "<ruby>偽<rt>ㄨㄟˇ</rt>裝<rt>ㄓㄨㄤ</rt></ruby>", "行為", "hard"],
+  ["<ruby>密<rt>ㄇㄧˋ</rt>碼<rt>ㄇㄚˇ</rt></ruby>", "<ruby>暗<rt>ㄢˋ</rt>號<rt>ㄏㄠˋ</rt></ruby>", "概念", "hard"],
+  ["<ruby>線<rt>ㄒㄧㄢˋ</rt>索<rt>ㄙㄨㄛˇ</rt></ruby>", "<ruby>證<rt>ㄓㄥˋ</rt>據<rt>ㄐㄩˋ</rt></ruby>", "概念", "hard"],
+  ["<ruby>魔<rt>ㄇㄛˊ</rt>術<rt>ㄕㄨˋ</rt></ruby>", "<ruby>騙<rt>ㄆㄧㄢˋ</rt>局<rt>ㄐㄩˊ</rt></ruby>", "概念", "hard"],
+  ["<ruby>偶<rt>ㄡˇ</rt>像<rt>ㄒㄧㄤˋ</rt></ruby>", "<ruby>榜<rt>ㄅㄤˇ</rt>樣<rt>ㄧㄤˋ</rt></ruby>", "人際", "hard"],
+  ["<ruby>合<rt>ㄏㄜˊ</rt>約<rt>ㄩㄝ</rt></ruby>", "<ruby>承<rt>ㄔㄥˊ</rt>諾<rt>ㄋㄨㄛˋ</rt></ruby>", "社會", "hard"],
+  ["<ruby>懲<rt>ㄔㄥˊ</rt>罰<rt>ㄈㄚˊ</rt></ruby>", "<ruby>教<rt>ㄐㄧㄠˋ</rt>訓<rt>ㄒㄩㄣˋ</rt></ruby>", "概念", "hard"],
+  ["<ruby>冒<rt>ㄇㄠˋ</rt>險<rt>ㄒㄧㄢˇ</rt></ruby>", "<ruby>玩<rt>ㄨㄢˊ</rt>命<rt>ㄇㄧㄥˋ</rt></ruby>", "行為", "hard"],
+  ["<ruby>遺<rt>ㄧˊ</rt>產<rt>ㄔㄢˇ</rt></ruby>", "<ruby>債<rt>ㄓㄞˋ</rt>務<rt>ㄨˋ</rt></ruby>", "經濟", "hard"],
+  ["<ruby>拍<rt>ㄆㄞ</rt>賣<rt>ㄇㄞˋ</rt></ruby>", "<ruby>變<rt>ㄅㄧㄢˋ</rt>賣<rt>ㄇㄞˋ</rt></ruby>", "經濟", "hard"],
+  ["<ruby>賭<rt>ㄉㄨˇ</rt>博<rt>ㄅㄛˊ</rt></ruby>", "<ruby>投<rt>ㄊㄡˊ</rt>資<rt>ㄗ</rt></ruby>", "經濟", "hard"]
 ];
