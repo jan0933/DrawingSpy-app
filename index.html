@@ -3,12 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>誰是間諜助手 - 設定遊戲</title>
+  <title>誰是間諜助手 - 單機傳閱模式</title>
   <style>
     :root {
       --bg: #121826;
       --card-bg: #1e293b;
       --accent: #38bdf8;
+      --danger: #f43f5e;
+      --success: #10b981;
       --text: #f8fafc;
       --text-muted: #94a3b8;
       --border: #334155;
@@ -20,6 +22,7 @@
       margin: 0;
       padding: 0;
       -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
     body {
@@ -59,7 +62,6 @@
       margin-top: 4px;
     }
 
-    /* 頂部一致的模式切換欄 */
     .mode-switch-group {
       display: flex;
       gap: 10px;
@@ -95,34 +97,32 @@
       border-color: var(--border);
     }
 
-    .mode-btn:active {
-      transform: scale(0.98);
-    }
-
     .card {
       background: var(--card-bg);
       border-radius: 14px;
-      padding: 18px;
+      padding: 20px;
       border: 1px solid var(--border);
       box-shadow: 0 4px 12px rgba(0,0,0,0.25);
     }
 
+    .form-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
     label {
       display: block;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       font-weight: 600;
-      color: var(--text-muted);
+      color: var(--text);
       margin-bottom: 6px;
     }
 
-    .input-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    select, input[type="text"] {
+    select {
       width: 100%;
       padding: 12px 14px;
       border-radius: 8px;
@@ -131,58 +131,16 @@
       color: var(--text);
       font-size: 1rem;
       outline: none;
-    }
-
-    select:focus, input:focus {
-      border-color: var(--accent);
-    }
-
-    .player-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 250px;
-      overflow-y: auto;
-      margin: 10px 0;
-      padding-right: 4px;
-    }
-
-    .player-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #0f172a;
-      padding: 4px 10px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-
-    .player-label {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      white-space: nowrap;
-      min-width: 55px;
-    }
-
-    .color-dot {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .player-row input[type="text"] {
-      background: transparent;
-      border: none;
-      padding: 8px 6px;
+      cursor: pointer;
     }
 
     .btn {
-      display: block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       width: 100%;
       padding: 14px;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       border-radius: 10px;
       border: none;
@@ -190,163 +148,127 @@
       color: #0f172a;
       cursor: pointer;
       margin-top: 10px;
-      text-align: center;
-      text-decoration: none;
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3);
+      transition: all 0.2s ease;
     }
 
     .btn:active {
-      background: #0284c7;
       transform: scale(0.98);
+    }
+
+    .rules-card {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+      text-align: left;
+    }
+
+    .rules-card b {
+      color: var(--text);
     }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <!-- 統一頂部標題區 -->
+
   <header>
     <h1>誰是間諜助手</h1>
-    <p class="subtitle">紙筆畫畫模式・設定人數與規則</p>
+    <p class="subtitle">設定人數與規則・支援紙筆或手機共畫</p>
   </header>
 
-  <!-- 統一模式切換欄（此頁左邊亮燈） -->
   <div class="mode-switch-group">
     <button type="button" class="mode-btn active">📱 單機傳閱模式</button>
     <button type="button" class="mode-btn inactive" onclick="window.location.href='online.html'">🌐 線上連線模式</button>
   </div>
 
-  <!-- 下方單機專屬卡片欄位 -->
   <div class="card">
-    <div style="margin-bottom: 12px;">
-      <label>題目難度</label>
-      <select id="game-difficulty">
-        <option value="normal" selected>普通難度</option>
-        <option value="hard">高難度</option>
+    <!-- 遊玩模式下拉選單 -->
+    <div class="form-group">
+      <label for="select-play-mode">🎨 遊玩模式</label>
+      <select id="select-play-mode">
+        <option value="paper">📝 紙筆模式（手機看題，紙上作畫）</option>
+        <option value="device">🎨 手機畫板模式（共用手機輪流畫）</option>
       </select>
     </div>
 
-    <div style="margin-bottom: 12px;">
-      <label>間諜模式</label>
-      <select id="spy-type">
-        <option value="blank" selected>白板模式（完全無提示）</option>
-        <option value="hint">標準間諜（僅顯示題目大類別）</option>
+    <!-- 玩家人數 -->
+    <div class="form-group">
+      <label for="select-player-count">👥 玩家人數</label>
+      <select id="select-player-count">
+        <option value="3">3 位玩家</option>
+        <option value="4" selected>4 位玩家</option>
+        <option value="5">5 位玩家</option>
+        <option value="6">6 位玩家</option>
+        <option value="7">7 位玩家</option>
+        <option value="8">8 位玩家</option>
       </select>
     </div>
 
-    <div class="input-row">
-      <div style="flex: 1;">
-        <label>遊玩人數</label>
-        <select id="player-count">
-          <option value="3">3 人</option>
-          <option value="4" selected>4 人</option>
-          <option value="5">5 人</option>
-          <option value="6">6 人</option>
-          <option value="7">7 人</option>
-          <option value="8">8 人</option>
-        </select>
-      </div>
-
-      <div style="flex: 1;">
-        <label>間諜數量</label>
-        <select id="spy-count">
-          <option value="1" selected>1 人</option>
-          <option value="2">2 人</option>
-        </select>
-      </div>
+    <!-- 題目難度 -->
+    <div class="form-group">
+      <label for="select-difficulty">📚 題目難度</label>
+      <select id="select-difficulty">
+        <option value="normal" selected>普通難度（具體物品、食物、動物）</option>
+        <option value="hard">高難度（概念情緒、自然奇景、成語）</option>
+      </select>
     </div>
 
-    <label>玩家暱稱設定</label>
-    <div id="player-inputs" class="player-list"></div>
+    <!-- 間諜提示方式 -->
+    <div class="form-group">
+      <label for="select-spy-type">🕵️ 間諜身分設定</label>
+      <select id="select-spy-type">
+        <option value="blank" selected>白板模式（間諜完全無題目，猜題得+2分）</option>
+        <option value="hint">標準間諜（間諜可看題目大類別，猜題得+1分）</option>
+      </select>
+    </div>
 
-    <button id="btn-start" class="btn" type="button" onclick="handleStartGame()">開始遊戲</button>
+    <button id="btn-start-game" class="btn">🚀 開始遊戲</button>
   </div>
+
+  <div class="rules-card">
+    <p><b>📖 模式說明：</b></p>
+    <p>• <b>紙筆模式</b>：手機僅作身分確認與看題傳閱，所有人拿出實體筆紙輪流畫一筆。</p>
+    <p>• <b>手機畫板模式</b>：完全不用紙筆！每位玩家輪流拿同一支手機在螢幕上畫一筆，兩輪畫畢後直接在畫板下方投票與結算揭曉。</p>
+  </div>
+
 </div>
 
 <script>
-  const COLOR_PALETTE = [
-    '#f43f5e', '#3b82f6', '#10b981', '#f59e0b',
-    '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'
-  ];
-
-  const elCount = document.getElementById('player-count');
-  const elSpyCount = document.getElementById('spy-count');
-  const elPlayerInputs = document.getElementById('player-inputs');
-  const elSpyType = document.getElementById('spy-type');
-  const elDifficulty = document.getElementById('game-difficulty');
-
-  function updateSpyOptions(playerCount) {
-    const maxSpy = Math.max(1, Math.floor(playerCount / 3));
-    const currentVal = parseInt(elSpyCount.value, 10);
-    elSpyCount.innerHTML = '';
-    for (let i = 1; i <= maxSpy; i++) {
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = `${i} 人`;
-      if (i === currentVal || (currentVal > maxSpy && i === maxSpy)) {
-        opt.selected = true;
-      }
-      elSpyCount.appendChild(opt);
-    }
+  // 載入先前的設定（若有存過）
+  const savedConfig = JSON.parse(sessionStorage.getItem('spy_game_config'));
+  if (savedConfig) {
+    if (savedConfig.playMode) document.getElementById('select-play-mode').value = savedConfig.playMode;
+    if (savedConfig.playerCount) document.getElementById('select-player-count').value = savedConfig.playerCount;
+    if (savedConfig.difficulty) document.getElementById('select-difficulty').value = savedConfig.difficulty;
+    if (savedConfig.spyType) document.getElementById('select-spy-type').value = savedConfig.spyType;
   }
 
-  function renderPlayerInputs() {
-    const count = parseInt(elCount.value, 10) || 4;
-    const existingNicknames = Array.from(elPlayerInputs.querySelectorAll('input')).map(input => input.value);
-    
-    elPlayerInputs.innerHTML = '';
-    for (let i = 0; i < count; i++) {
-      const color = COLOR_PALETTE[i % COLOR_PALETTE.length];
-      const defaultNick = existingNicknames[i] || '';
-      const row = document.createElement('div');
-      row.className = 'player-row';
-      row.innerHTML = `
-        <div class="color-dot" style="background-color: ${color}"></div>
-        <span class="player-label">玩家 ${i + 1}</span>
-        <input type="text" class="nickname-input" placeholder="可輸入暱稱" value="${defaultNick}" />
-      `;
-      elPlayerInputs.appendChild(row);
-    }
-  }
+  document.getElementById('btn-start-game').onclick = () => {
+    const playMode = document.getElementById('select-play-mode').value;
+    const playerCount = parseInt(document.getElementById('select-player-count').value, 10);
+    const difficulty = document.getElementById('select-difficulty').value;
+    const spyType = document.getElementById('select-spy-type').value;
 
-  elCount.addEventListener('change', () => {
-    const count = parseInt(elCount.value, 10);
-    updateSpyOptions(count);
-    renderPlayerInputs();
-  });
+    // 將設定儲存至 sessionStorage 供下一頁讀取
+    sessionStorage.setItem('spy_game_config', JSON.stringify({
+      playMode,
+      playerCount,
+      difficulty,
+      spyType
+    }));
 
-  updateSpyOptions(4);
-  renderPlayerInputs();
-
-  function handleStartGame() {
-    try {
-      const inputs = elPlayerInputs.querySelectorAll('.nickname-input');
-      const playerCount = parseInt(elCount.value, 10) || 4;
-      const players = [];
-
-      for (let idx = 0; idx < playerCount; idx++) {
-        const input = inputs[idx];
-        const rawNick = input ? input.value.trim() : '';
-        const displayName = rawNick ? `玩家 ${idx + 1}（${rawNick}）` : `玩家 ${idx + 1}`;
-        players.push({
-          name: displayName,
-          color: COLOR_PALETTE[idx % COLOR_PALETTE.length]
-        });
-      }
-
-      const sessionData = {
-        players: players,
-        spyCount: parseInt(elSpyCount.value, 10) || 1,
-        mode: 'draw',
-        spyType: elSpyType.value || 'blank',
-        difficulty: elDifficulty.value || 'normal'
-      };
-
-      sessionStorage.setItem('spyGameConfig', JSON.stringify(sessionData));
+    // 依模式跳轉
+    if (playMode === 'paper') {
       window.location.href = 'game.html';
-    } catch (e) {
-      alert('發生錯誤：' + e.message);
+    } else {
+      window.location.href = 'local_draw.html';
     }
-  }
+  };
 </script>
 
 </body>
