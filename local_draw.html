@@ -20,18 +20,41 @@
     body { background-color: var(--bg); color: var(--text); font-family: var(--font-family); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 16px; }
     .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 14px; }
     .card { background: var(--card-bg); border-radius: 14px; padding: 16px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.25); text-align: center; }
-    .btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px; font-size: 1rem; font-weight: 600; border-radius: 10px; border: none; background: var(--accent); color: #0f172a; cursor: pointer; margin-top: 8px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 14px; font-size: 1rem; font-weight: 600; border-radius: 10px; border: none; background: var(--accent); color: #0f172a; cursor: pointer; margin-top: 8px; transition: transform 0.1s ease; }
+    .btn:active { transform: scale(0.98); }
     .btn-success { background: var(--success); color: #fff; }
     .btn-secondary { background: #334155; color: var(--text); }
     
+    .round-badge { display: inline-block; align-self: center; background: #0f172a; border: 1px solid var(--accent); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; }
+
+    /* 紙筆模式同款看題點擊卡 */
+    .reveal-box {
+      min-height: 240px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border: 2px dashed var(--accent);
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      background: rgba(56, 189, 248, 0.03);
+    }
+    .reveal-box.unlocked {
+      border-style: solid;
+      background: rgba(56, 189, 248, 0.1);
+    }
+
     /* 注音排版 */
-    .tag-word-wrap { display: inline-flex; flex-direction: row; justify-content: center; align-items: center; flex-wrap: wrap; gap: 8px; }
-    ruby { display: inline-flex; flex-direction: row; align-items: center; font-size: 1.8rem; font-weight: 800; color: #fbbf24; line-height: 1; }
+    .tag-word-wrap { display: inline-flex; flex-direction: row; justify-content: center; align-items: center; flex-wrap: wrap; margin: 14px 0 8px 0; gap: 8px; }
+    ruby { display: inline-flex; flex-direction: row; align-items: center; font-size: 2rem; font-weight: 800; color: #fbbf24; line-height: 1; }
     rt { display: inline-flex !important; flex-direction: row !important; align-items: center !important; font-size: 0.42em; color: #93c5fd; font-weight: 600; margin-left: 2px; }
     .zhuyin-col { display: flex; flex-direction: column; align-items: center; }
     .tone-light-dot { font-size: 0.75em; line-height: 0.6; margin-bottom: 1px; }
     .zhuyin-symbols { display: flex; flex-direction: column; align-items: center; line-height: 1; }
     .zhuyin-tone-side { font-size: 0.85em; line-height: 1; align-self: flex-end; padding-bottom: 2px; margin-left: 1px; }
+    .tag-identity { font-size: 0.95rem; font-weight: 700; color: var(--text-muted); }
 
     /* 畫板容器 */
     .canvas-container { position: relative; width: 100%; background: #ffffff; border-radius: 12px; overflow: hidden; border: 3px solid var(--border); touch-action: none; }
@@ -39,7 +62,7 @@
     #local-canvas { display: block; width: 100%; height: 320px; cursor: crosshair; }
 
     /* 顏色標籤與清單 */
-    .color-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    .color-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
     .players-bar { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; background: #0f172a; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); }
     .player-tag { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.05); font-size: 0.78rem; }
     .player-tag.active-turn { background: rgba(56, 189, 248, 0.2); border: 1px solid var(--accent); font-weight: bold; }
@@ -47,6 +70,30 @@
     .vote-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: #0f172a; border: 1px solid var(--border); cursor: pointer; margin-bottom: 6px; text-align: left; }
     .vote-item.selected { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); }
     .info-box { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 0.88rem; line-height: 1.6; margin-bottom: 8px; text-align: left; }
+
+    /* 換手全螢幕對話框 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(6px);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 20px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    }
   </style>
 
   <script src="words.js"></script>
@@ -56,85 +103,143 @@
 
 <div class="container">
 
-  <!-- 頂部身分/狀態顯示卡片 -->
-  <div class="card" id="stage-status-card">
-    <div id="status-title" style="font-size: 0.9rem; color: var(--text-muted); font-weight: bold;">--</div>
-    <div id="status-subtitle" style="font-size: 1.25rem; font-weight: 800; color: var(--accent); margin: 6px 0;">--</div>
-    <div id="word-box" style="display: none; margin: 8px 0;"></div>
-    <p id="status-desc" style="font-size: 0.8rem; color: var(--text-muted);"></p>
-    <button id="btn-status-action" class="btn">確認</button>
-  </div>
+  <!-- ================= 階段 1：傳閱看題（畫板完全不出現） ================= -->
+  <section id="step-reveal" class="card" style="display: block;">
+    <span class="round-badge" id="badge-round-reveal">第 1 回合</span>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">請將手機交給</p>
+    <h2 id="reveal-player-name" style="font-size: 1.6rem; color: var(--accent); margin: 6px 0 16px 0;">玩家 1</h2>
 
-  <!-- 玩家輪流顏色標籤列 -->
-  <div class="players-bar" id="game-color-bar"></div>
-
-  <!-- 畫板區（全階段保持顯示） -->
-  <div id="canvas-wrapper" class="canvas-container">
-    <canvas id="local-canvas"></canvas>
-  </div>
-
-  <div id="drawing-progress-info" style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
-    <span>全體輪流畫 2 輪</span>
-    <span id="round-indicator" style="font-weight: bold; color: var(--accent);">準備中</span>
-  </div>
-
-  <!-- 投票面板（輪流畫完後出現） -->
-  <div class="card" id="voting-panel" style="display: none;">
-    <h3 style="color: var(--accent); margin-bottom: 6px;">🗳 請依上方畫作進行投票</h3>
-    <p id="voting-voter-title" style="font-size: 0.85rem; color: #fbbf24; margin-bottom: 10px;">請玩家 1 選擇你懷疑的間諜：</p>
-    <div id="vote-options"></div>
-    <button id="btn-submit-vote" class="btn" disabled>送出投票</button>
-  </div>
-
-  <!-- 結算與盲猜面板 -->
-  <div class="card" id="result-panel" style="display: none;">
-    <h2 style="color: var(--accent); margin-bottom: 10px;">📊 結算與揭曉</h2>
-    <div class="info-box" id="result-votes-details"></div>
-    <div class="info-box" id="result-spy-details"></div>
-    
-    <!-- 間諜逆轉猜題區 -->
-    <div id="reverse-guess-box" style="display: none; background: #0f172a; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px dashed var(--accent);">
-      <div style="color: #fbbf24; font-weight: bold; margin-bottom: 4px;">🎯 間諜看著上方畫板盲猜題目</div>
-      <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">間諜口頭猜出題目若正確可逆轉得分：</p>
-      <div id="hint-category-box" style="display: none; padding: 6px; background: rgba(56, 189, 248, 0.1); border-radius: 6px; margin-bottom: 6px;">
-        <span style="font-size: 0.8rem; color: var(--text-muted);">類別提示：</span>
-        <div class="tag-word-wrap" id="hint-category-content"></div>
+    <div id="reveal-box" class="reveal-box">
+      <div id="reveal-hint">
+        <p style="font-size: 1.1rem; font-weight: 600;">點擊此處查看題目</p>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">（其他人請先避開視野）</p>
       </div>
-      <div id="guess-buttons" style="display: flex; gap: 8px;"></div>
+      <div id="reveal-content" style="display: none;">
+        <div class="tag-identity" id="role-text">平民</div>
+        <div class="tag-word-wrap" id="word-container">
+          <span id="word-text">題目</span>
+        </div>
+        <p id="rule-tip" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;"></p>
+      </div>
     </div>
 
-    <div class="info-box" id="result-topic-details"></div>
+    <button id="btn-next-reveal" class="btn btn-secondary" style="margin-top: 18px;" disabled>
+      我看完了，交給下一位
+    </button>
+  </section>
 
-    <button class="btn btn-success" onclick="startNewGame()">再來一局</button>
-    <button class="btn btn-secondary" onclick="window.location.href='index.html'">回單機首頁</button>
+  <!-- ================= 階段 2：畫板區（所有人看畢後才顯示，全場保留） ================= -->
+  <section id="drawing-section" style="display: none; flex-direction: column; gap: 14px;">
+    
+    <!-- 頂部即時出筆提示 -->
+    <div class="card" style="padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span id="turn-indicator-dot" class="color-dot"></span>
+        <span id="turn-indicator-name" style="font-weight: bold; font-size: 1rem;">玩家 1 作畫中</span>
+      </div>
+      <span style="font-size: 0.82rem; color: #fbbf24; font-weight: bold;">畫一筆即自動換人</span>
+    </div>
+
+    <!-- 玩家代表色條 -->
+    <div class="players-bar" id="game-color-bar"></div>
+
+    <!-- 畫板主體 -->
+    <div id="canvas-wrapper" class="canvas-container">
+      <canvas id="local-canvas"></canvas>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
+      <span>全體依序輪流進行 2 輪</span>
+      <span id="round-indicator" style="font-weight: bold; color: var(--accent);">第 1 / 2 輪</span>
+    </div>
+
+    <!-- 投票面板（輪流畫完後於畫板下方呈現） -->
+    <div class="card" id="voting-panel" style="display: none;">
+      <h3 style="color: var(--accent); margin-bottom: 6px;">🗳 請依上方畫作進行密室投票</h3>
+      <p id="voting-voter-title" style="font-size: 0.85rem; color: #fbbf24; margin-bottom: 10px;">請【玩家 1】點選你懷疑的間諜：</p>
+      <div id="vote-options"></div>
+      <button id="btn-submit-vote" class="btn" disabled>確認投票並傳給下一位</button>
+    </div>
+
+    <!-- 結算與盲猜面板 -->
+    <div class="card" id="result-panel" style="display: none;">
+      <h2 style="color: var(--accent); margin-bottom: 10px;">📊 結算與揭曉</h2>
+      <div class="info-box" id="result-votes-details"></div>
+      <div class="info-box" id="result-spy-details"></div>
+      
+      <!-- 間諜逆轉猜題區 -->
+      <div id="reverse-guess-box" style="display: none; background: #0f172a; padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px dashed var(--accent);">
+        <div style="color: #fbbf24; font-weight: bold; margin-bottom: 4px;">🎯 間諜看著上方畫板盲猜題目</div>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">間諜若能口頭猜中題目可逆轉獲得分數：</p>
+        <div id="hint-category-box" style="display: none; padding: 6px; background: rgba(56, 189, 248, 0.1); border-radius: 6px; margin-bottom: 8px;">
+          <span style="font-size: 0.8rem; color: var(--text-muted);">類別提示：</span>
+          <div class="tag-word-wrap" id="hint-category-content"></div>
+        </div>
+        <div id="guess-buttons" style="display: flex; gap: 8px;"></div>
+      </div>
+
+      <div class="info-box" id="result-topic-details"></div>
+
+      <button class="btn btn-success" onclick="startNewGame()">再來一局（保留畫布重開）</button>
+      <button class="btn btn-secondary" onclick="window.location.href='index.html'">回單機首頁</button>
+    </div>
+
+  </section>
+
+</div>
+
+<!-- ================= 換手對話彈窗 ================= -->
+<div class="modal-overlay" id="handover-modal">
+  <div class="modal-card">
+    <p style="font-size: 0.85rem; color: var(--text-muted);">本筆作畫已完成！</p>
+    <h2 id="modal-next-player-title" style="font-size: 1.5rem; margin: 8px 0; color: var(--accent);">換【玩家 2】繪畫</h2>
+    <p id="modal-next-player-desc" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">請將手機交給該位玩家，準備完成後點選按鈕開始作畫。</p>
+    <button id="btn-modal-start-draw" class="btn btn-success" style="margin-top: 0;">🎨 開始繪畫</button>
   </div>
-
 </div>
 
 <script>
   const COLOR_PALETTE = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
-  let config = JSON.parse(sessionStorage.getItem('spy_game_config')) || { playerCount: 4, difficulty: 'normal', spyType: 'blank' };
-  let players = [];
-  let spyIndex = -1;
+  // 讀取設定
+  const rawConfig = JSON.parse(sessionStorage.getItem('spy_game_config')) 
+                 || JSON.parse(sessionStorage.getItem('spyGameConfig'))
+                 || { playerCount: 4, spyCount: 1, difficulty: 'normal', spyType: 'blank' };
+
+  let config = {
+    difficulty: rawConfig.difficulty || 'normal',
+    spyType: rawConfig.spyType || 'blank',
+    spyCount: rawConfig.spyCount ? parseInt(rawConfig.spyCount, 10) : 1,
+    players: []
+  };
+
+  const pCount = parseInt(rawConfig.playerCount, 10) || 4;
+  for (let i = 0; i < pCount; i++) {
+    config.players.push({
+      id: i,
+      name: `玩家 ${i + 1}`,
+      color: COLOR_PALETTE[i % COLOR_PALETTE.length]
+    });
+  }
+
+  let players = config.players;
+  let spyIndices = [];
   let commonWord = '';
   let categoryName = '';
   let categoryRuby = '';
 
-  let gameState = 'CONFIRM_VIEW'; // CONFIRM_VIEW -> VIEWING -> DRAWING_READY -> DRAWING -> VOTING -> RESULT
   let currentViewingPlayer = 0;
   let currentTurnIndex = 0;
   let currentRound = 1;
-  let allStrokes = []; // 儲存所有筆跡
+  let allStrokes = [];
 
   let canvas, ctx;
   let isDrawing = false;
   let currentPath = [];
-  let hasDrawnThisTurn = false;
+  let canDrawOnCanvas = false;
 
-  // 投票相關變數
   let currentVoterIndex = 0;
-  let votes = {}; // { 0: targetIndex, ... }
+  let votes = {};
   let selectedVoteTarget = null;
 
   function formatBopomofo(htmlStr) {
@@ -153,12 +258,12 @@
   }
 
   function initGame() {
-    players = [];
-    for (let i = 0; i < config.playerCount; i++) {
-      players.push({ id: i, name: `玩家 ${i + 1}`, color: COLOR_PALETTE[i % COLOR_PALETTE.length] });
-    }
-    spyIndex = Math.floor(Math.random() * config.playerCount);
+    // 隨機選出間諜
+    const playerIndices = Array.from({ length: config.players.length }, (_, i) => i);
+    playerIndices.sort(() => Math.random() - 0.5);
+    spyIndices = playerIndices.slice(0, config.spyCount);
 
+    // 抽題
     const bank = (config.difficulty === 'hard' && typeof HARD_WORD_BANK !== 'undefined') ? HARD_WORD_BANK : NORMAL_WORD_BANK;
     const catDict = (config.difficulty === 'hard' && typeof HARD_CATEGORY_RUBY !== 'undefined') ? HARD_CATEGORY_RUBY : NORMAL_CATEGORY_RUBY;
     const item = bank[Math.floor(Math.random() * bank.length)];
@@ -172,10 +277,79 @@
     allStrokes = [];
     votes = {};
 
-    renderPlayersBar();
-    initCanvas();
-    updatePassViewStage();
+    document.getElementById('step-reveal').style.display = 'block';
+    document.getElementById('drawing-section').style.display = 'none';
+    document.getElementById('voting-panel').style.display = 'none';
+    document.getElementById('result-panel').style.display = 'none';
+
+    setupRevealStep();
   }
+
+  // ================= 階段 1：傳閱看題 =================
+  const elRevealBox = document.getElementById('reveal-box');
+  const elRevealHint = document.getElementById('reveal-hint');
+  const elRevealContent = document.getElementById('reveal-content');
+  const elBtnNextReveal = document.getElementById('btn-next-reveal');
+  const elPlayerName = document.getElementById('reveal-player-name');
+  const elRoleText = document.getElementById('role-text');
+  const elWordText = document.getElementById('word-text');
+  const elRuleTip = document.getElementById('rule-tip');
+
+  function setupRevealStep() {
+    const p = players[currentViewingPlayer];
+    elPlayerName.textContent = p.name;
+    elPlayerName.style.color = p.color;
+
+    elRevealBox.classList.remove('unlocked');
+    elRevealHint.style.display = 'block';
+    elRevealContent.style.display = 'none';
+    elBtnNextReveal.disabled = true;
+
+    document.getElementById('badge-round-reveal').textContent = `身分確認 (${currentViewingPlayer + 1}/${players.length})`;
+  }
+
+  elRevealBox.addEventListener('click', () => {
+    if (elRevealBox.classList.contains('unlocked')) return;
+
+    const isSpy = spyIndices.includes(currentViewingPlayer);
+    if (isSpy) {
+      if (config.spyType === 'blank') {
+        elRoleText.innerHTML = '【你是白板】';
+        elRoleText.style.color = 'var(--danger)';
+        elWordText.innerHTML = formatBopomofo('<ruby>無<rt>ㄨˊ</rt>題<rt>ㄊㄧˊ</rt>目<rt>ㄇㄨˋ</rt></ruby>');
+        elRuleTip.textContent = '⚠️ 你完全無提示！觀察他人筆畫並伺機偽裝！';
+      } else {
+        elRoleText.innerHTML = '【你是間諜】';
+        elRoleText.style.color = 'var(--danger)';
+        elWordText.innerHTML = formatBopomofo(categoryRuby);
+        elRuleTip.textContent = '⚠️ 你已知此大類別，觀察他人並偽裝自己知情！';
+      }
+    } else {
+      elRoleText.innerHTML = '【你是平民】';
+      elRoleText.style.color = 'var(--accent)';
+      elWordText.innerHTML = formatBopomofo(commonWord);
+      elRuleTip.textContent = '💡 隱密表現特徵，別畫太明顯讓間諜猜出！';
+    }
+
+    elRevealHint.style.display = 'none';
+    elRevealContent.style.display = 'block';
+    elRevealBox.classList.add('unlocked');
+    elBtnNextReveal.disabled = false;
+  });
+
+  elBtnNextReveal.addEventListener('click', () => {
+    currentViewingPlayer++;
+    if (currentViewingPlayer < players.length) {
+      setupRevealStep();
+    } else {
+      // 全員看完題目，正式切換至畫板畫面
+      document.getElementById('step-reveal').style.display = 'none';
+      document.getElementById('drawing-section').style.display = 'flex';
+      renderPlayersBar();
+      initCanvas();
+      showHandoverModal(0, true);
+    }
+  });
 
   function renderPlayersBar() {
     const bar = document.getElementById('game-color-bar');
@@ -195,121 +369,73 @@
     if (target) target.classList.add('active-turn');
   }
 
-  // --- 階段 1：傳閱看題階段 ---
-  function updatePassViewStage() {
-    const title = document.getElementById('status-title');
-    const subtitle = document.getElementById('status-subtitle');
-    const wordBox = document.getElementById('word-box');
-    const desc = document.getElementById('status-desc');
-    const btn = document.getElementById('btn-status-action');
+  // ================= 階段 2：同機輪流作畫與彈窗換手 =================
+  function showHandoverModal(playerIndex, isFirstTurn = false) {
+    canDrawOnCanvas = false;
+    document.getElementById('canvas-wrapper').classList.remove('drawing-active');
 
-    wordBox.style.display = 'none';
+    const nextP = players[playerIndex];
+    const modal = document.getElementById('handover-modal');
+    const title = document.getElementById('modal-next-player-title');
+    const desc = document.getElementById('modal-next-player-desc');
 
-    if (gameState === 'CONFIRM_VIEW') {
-      title.textContent = `身分確認 (${currentViewingPlayer + 1}/${config.playerCount})`;
-      subtitle.textContent = `請將手機交給【${players[currentViewingPlayer].name}】`;
-      desc.textContent = '確認其他人未直視螢幕後，點擊按鈕查看題目。';
-      btn.textContent = '查看我的身分與題目';
-      btn.onclick = () => {
-        gameState = 'VIEWING';
-        updatePassViewStage();
-      };
-    } else if (gameState === 'VIEWING') {
-      const isSpy = (currentViewingPlayer === spyIndex);
-      title.textContent = `【${players[currentViewingPlayer].name}】的身分卡`;
-      
-      if (isSpy) {
-        subtitle.textContent = config.spyType === 'blank' ? '你是【白板】！' : '你是【間諜】！';
-        subtitle.style.color = 'var(--danger)';
-        wordBox.innerHTML = config.spyType === 'blank' ? formatBopomofo('<ruby>無<rt>ㄨˊ</rt>題<rt>ㄊㄧˊ</rt>目<rt>ㄇㄨˋ</rt></ruby>') : formatBopomofo(categoryRuby);
-      } else {
-        subtitle.textContent = '你是【平民】！';
-        subtitle.style.color = 'var(--accent)';
-        wordBox.innerHTML = formatBopomofo(commonWord);
-      }
-      wordBox.style.display = 'block';
-      desc.textContent = '看清楚後請牢記，點擊按鈕交給下一位玩家。';
-      btn.textContent = (currentViewingPlayer + 1 < config.playerCount) ? '記住了，換下一位' : '所有人看畢，開始畫畫！';
-      
-      btn.onclick = () => {
-        currentViewingPlayer++;
-        if (currentViewingPlayer < config.playerCount) {
-          gameState = 'CONFIRM_VIEW';
-          updatePassViewStage();
-        } else {
-          startDrawingStage();
-        }
-      };
-    }
+    title.textContent = `輪到【${nextP.name}】繪畫`;
+    title.style.color = nextP.color;
+    desc.textContent = isFirstTurn 
+      ? `全員已看畢題目！請將手機交給第 1 位【${nextP.name}】，點擊開始畫出第一筆。`
+      : `請將手機交給【${nextP.name}】，準備完成後點擊按鈕畫一筆。`;
+
+    modal.classList.add('active');
   }
 
-  // --- 階段 2：同機輪流作畫階段（全體 2 輪） ---
-  function startDrawingStage() {
-    gameState = 'DRAWING_READY';
-    currentTurnIndex = 0;
-    currentRound = 1;
-    updateDrawingStatus();
-  }
+  document.getElementById('btn-modal-start-draw').onclick = () => {
+    document.getElementById('handover-modal').classList.remove('active');
+    startTurnDrawing();
+  };
 
-  function updateDrawingStatus() {
-    const title = document.getElementById('status-title');
-    const subtitle = document.getElementById('status-subtitle');
-    const wordBox = document.getElementById('word-box');
-    const desc = document.getElementById('status-desc');
-    const btn = document.getElementById('btn-status-action');
-    const canvasWrap = document.getElementById('canvas-wrapper');
+  function startTurnDrawing() {
+    canDrawOnCanvas = true;
+    document.getElementById('canvas-wrapper').classList.add('drawing-active');
 
-    wordBox.style.display = 'none';
-    const player = players[currentTurnIndex];
+    const p = players[currentTurnIndex];
+    document.getElementById('turn-indicator-dot').style.backgroundColor = p.color;
+    document.getElementById('turn-indicator-name').textContent = `${p.name} 作畫中...`;
+    document.getElementById('turn-indicator-name').style.color = p.color;
     document.getElementById('round-indicator').textContent = `第 ${currentRound} / 2 輪`;
     updateActivePlayerTag(currentTurnIndex);
-
-    if (gameState === 'DRAWING_READY') {
-      canvasWrap.classList.remove('drawing-active');
-      title.textContent = `輪流作畫階段（第 ${currentRound}/2 輪）`;
-      subtitle.textContent = `請將手機交給 👉【${player.name}】`;
-      subtitle.style.color = player.color;
-      desc.textContent = `你的代表色是此顏色。每人每次只能「畫一筆畫（起筆到提筆）」。`;
-      btn.style.display = 'inline-flex';
-      btn.textContent = `我是 ${player.name}，開始畫一筆`;
-      btn.onclick = () => {
-        gameState = 'DRAWING';
-        hasDrawnThisTurn = false;
-        updateDrawingStatus();
-      };
-    } else if (gameState === 'DRAWING') {
-      canvasWrap.classList.add('drawing-active');
-      title.textContent = `【${player.name}】作畫中`;
-      subtitle.textContent = `請在下方畫布畫出「一筆畫」`;
-      subtitle.style.color = player.color;
-      desc.textContent = `提筆後將自動完成此輪作畫，換下一位玩家！`;
-      btn.style.display = 'none';
-    }
   }
 
   function onStrokeCompleted(points) {
     if (points.length < 2) return;
+    canDrawOnCanvas = false;
+
     const p = players[currentTurnIndex];
     allStrokes.push({ color: p.color, points: points });
     renderAllStrokes();
 
-    // 換下一位
+    // 換下一位出筆
     currentTurnIndex++;
-    if (currentTurnIndex >= config.playerCount) {
+    if (currentTurnIndex >= players.length) {
       currentTurnIndex = 0;
       currentRound++;
     }
 
     if (currentRound > 2) {
+      // 2 輪作畫完成，進入投票
+      document.getElementById('canvas-wrapper').classList.remove('drawing-active');
       startVotingStage();
     } else {
-      gameState = 'DRAWING_READY';
-      updateDrawingStatus();
+      // 彈窗提示換下一人
+      showHandoverModal(currentTurnIndex);
     }
   }
 
-  // --- 畫布邏輯：支援相對座標與縮放自適應 ---
+  // --- 畫布初始化與相對座標繪製 ---
   function initCanvas() {
+    if (canvas) {
+      resizeCanvas();
+      return;
+    }
     canvas = document.getElementById('local-canvas');
     ctx = canvas.getContext('2d');
     resizeCanvas();
@@ -325,13 +451,13 @@
     }
 
     canvas.addEventListener('touchstart', (e) => {
-      if (gameState !== 'DRAWING' || hasDrawnThisTurn) return;
+      if (!canDrawOnCanvas) return;
       isDrawing = true;
       currentPath = [getCanvasPos(e)];
     }, { passive: false });
 
     canvas.addEventListener('touchmove', (e) => {
-      if (!isDrawing) return;
+      if (!isDrawing || !canDrawOnCanvas) return;
       if (e.cancelable) e.preventDefault();
       const pos = getCanvasPos(e);
       currentPath.push(pos);
@@ -348,18 +474,17 @@
     canvas.addEventListener('touchend', () => {
       if (!isDrawing) return;
       isDrawing = false;
-      hasDrawnThisTurn = true;
       onStrokeCompleted(currentPath);
     });
 
     // 滑鼠相容
     canvas.addEventListener('mousedown', (e) => {
-      if (gameState !== 'DRAWING' || hasDrawnThisTurn) return;
+      if (!canDrawOnCanvas) return;
       isDrawing = true;
       currentPath = [getCanvasPos(e)];
     });
     window.addEventListener('mousemove', (e) => {
-      if (!isDrawing) return;
+      if (!isDrawing || !canDrawOnCanvas) return;
       const pos = getCanvasPos(e);
       currentPath.push(pos);
       const b = canvas.getBoundingClientRect();
@@ -373,7 +498,6 @@
     window.addEventListener('mouseup', () => {
       if (!isDrawing) return;
       isDrawing = false;
-      hasDrawnThisTurn = true;
       onStrokeCompleted(currentPath);
     });
   }
@@ -406,13 +530,10 @@
     });
   }
 
-  // --- 階段 3：輪流同機秘密投票 ---
+  // ================= 階段 3：投票階段（畫板持續置頂） =================
   function startVotingStage() {
-    gameState = 'VOTING';
     currentVoterIndex = 0;
     votes = {};
-    document.getElementById('canvas-wrapper').classList.remove('drawing-active');
-    document.getElementById('stage-status-card').style.display = 'none';
     document.getElementById('voting-panel').style.display = 'block';
     updateVotingUI();
   }
@@ -428,7 +549,7 @@
     document.getElementById('btn-submit-vote').disabled = true;
 
     players.forEach((p, idx) => {
-      if (idx === currentVoterIndex) return; // 不能投自己
+      if (idx === currentVoterIndex) return;
       const item = document.createElement('div');
       item.className = 'vote-item';
       item.innerHTML = `<span class="color-dot" style="background-color: ${p.color}"></span><b>${p.name}</b>`;
@@ -447,15 +568,15 @@
     votes[currentVoterIndex] = selectedVoteTarget;
     currentVoterIndex++;
 
-    if (currentVoterIndex < config.playerCount) {
-      alert(`已記錄！請將手機交給【${players[currentVoterIndex].name}】進行投票。`);
+    if (currentVoterIndex < players.length) {
+      alert(`已完成！請將手機交給【${players[currentVoterIndex].name}】進行投票。`);
       updateVotingUI();
     } else {
       tallyResults();
     }
   };
 
-  // --- 階段 4：結算與間諜盲猜 ---
+  // ================= 階段 4：結算與間諜盲猜（畫板持續置頂） =================
   function tallyResults() {
     document.getElementById('voting-panel').style.display = 'none';
     document.getElementById('result-panel').style.display = 'block';
@@ -471,10 +592,9 @@
       else if (cnt === maxVotes) { mostVoted.push(parseInt(pid, 10)); }
     });
 
-    const isSpyCaught = mostVoted.includes(spyIndex);
-    const spy = players[spyIndex];
+    const isSpyCaught = mostVoted.some(idx => spyIndices.includes(idx));
+    const spyNames = spyIndices.map(i => players[i].name).join('、');
 
-    // 票數明細
     let voteDetails = '<b>🗳 投票統計：</b><br>';
     Object.entries(votes).forEach(([v, t]) => {
       voteDetails += `${players[v].name} 投給了 👉 <span style="color:${players[t].color}">${players[t].name}</span><br>`;
@@ -482,8 +602,7 @@
     voteDetails += `<b style="color:var(--accent)">最高票：${mostVoted.map(i => players[i].name).join('、')} (${maxVotes} 票)</b>`;
     document.getElementById('result-votes-details').innerHTML = voteDetails;
 
-    // 身分揭曉
-    let spyDetails = `<b>🕵️ 間諜身分：</b><span style="color:var(--danger); font-size:1.1rem; font-weight:bold;">${spy.name}</span><br>`;
+    let spyDetails = `<b>🕵️ 間諜身分：</b><span style="color:var(--danger); font-size:1.1rem; font-weight:bold;">${spyNames}</span><br>`;
     if (isSpyCaught) {
       spyDetails += `<span style="color:var(--success); font-weight:bold;">平民成功揪出間諜！請間諜看著上方畫板進行逆轉猜題！</span>`;
       setupReverseGuess(true);
@@ -540,14 +659,11 @@
   };
 
   window.startNewGame = function() {
-    document.getElementById('result-panel').style.display = 'none';
-    document.getElementById('stage-status-card').style.display = 'block';
-    gameState = 'CONFIRM_VIEW';
     initGame();
   };
 
-  // 初始化啟動
-  initGame();
+  // 頁面加載完成後啟動遊戲
+  window.addEventListener('DOMContentLoaded', initGame);
 </script>
 
 </body>
