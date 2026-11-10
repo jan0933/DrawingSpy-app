@@ -400,26 +400,31 @@
         <div id="lobby-player-list"></div>
       </div>
 
+      <!-- 房主設定面板：難度單獨一列，間諜與白板左右併排 -->
       <div id="host-controls" style="display: none; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px; text-align: left;">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-          <div>
-            <label style="font-size:0.8rem; color:var(--text-muted);">題目難度</label>
-            <select id="select-difficulty" style="margin-bottom: 0;">
-              <option value="normal" selected>普通難度</option>
-              <option value="hard">高難度</option>
-            </select>
-          </div>
-          <div>
-            <label style="font-size:0.8rem; color:var(--text-muted);">間諜人數</label>
-            <select id="select-spy-count" style="margin-bottom: 0;"></select>
-          </div>
-        </div>
+        
+        <!-- 難度單獨一列 -->
         <div style="margin-bottom: 10px;">
-          <label style="font-size:0.8rem; color:var(--text-muted);">白板人數</label>
-          <select id="select-blank-count" style="margin-bottom: 0;"></select>
+          <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; display: block;">📚 題目難度</label>
+          <select id="select-difficulty" style="margin-bottom: 0;">
+            <option value="normal" selected>普通難度</option>
+            <option value="hard">高難度</option>
+          </select>
         </div>
 
-        <button id="btn-start-game" class="btn btn-success">全員到齊，開始遊戲！</button>
+        <!-- 間諜與白板左右併排 -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+          <div>
+            <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; display: block;">🕵️ 間諜人數</label>
+            <select id="select-spy-count" style="margin-bottom: 0;"></select>
+          </div>
+          <div>
+            <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; display: block;">⬜ 白板人數</label>
+            <select id="select-blank-count" style="margin-bottom: 0;"></select>
+          </div>
+        </div>
+
+        <button id="btn-start-game" class="btn btn-success">開始遊戲！</button>
         <button id="btn-host-lobby-end" class="btn btn-secondary" style="margin-top: 8px; background: transparent; border: 1px dashed var(--danger); color: var(--danger);">結束房間回首頁</button>
       </div>
       <p id="guest-waiting-msg" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 8px;">等待房主開始遊戲中...</p>
@@ -631,6 +636,7 @@
     return Math.floor(10000 + Math.random() * 90000).toString();
   }
 
+  // 2~5 人局最多 1 臥底；6~8 人局最多 2 臥底
   function getMaxTotalRoles(playerCount) {
     if (playerCount <= 5) return 1;
     return 2;
@@ -699,12 +705,12 @@
   }
 
   document.getElementById('select-spy-count').addEventListener('change', () => {
-    const pCount = Object.keys((roomData && roomData.players) || {}).length || 4;
+    const pCount = Object.keys((roomData && roomData.players) || {}).length || 2;
     validateLobbyRoles(pCount, 'spy');
   });
 
   document.getElementById('select-blank-count').addEventListener('change', () => {
-    const pCount = Object.keys((roomData && roomData.players) || {}).length || 4;
+    const pCount = Object.keys((roomData && roomData.players) || {}).length || 2;
     validateLobbyRoles(pCount, 'blank');
   });
 
@@ -817,7 +823,8 @@
 
   function launchGameRound() {
     const playerIds = Object.keys(roomData.players || {});
-    if (playerIds.length < 3) return alert('至少需要 3 位玩家才能開始遊戲！');
+    // 放寬門檻：2 人即可開始遊戲測試
+    if (playerIds.length < 2) return alert('至少需要 2 位玩家才能開始遊戲！');
 
     const difficulty = document.getElementById('select-difficulty') ? document.getElementById('select-difficulty').value : (roomData.difficulty || 'normal');
     let spyCount = document.getElementById('select-spy-count') ? parseInt(document.getElementById('select-spy-count').value, 10) : (roomData.spyCount !== undefined ? roomData.spyCount : 1);
@@ -1297,7 +1304,6 @@
       players[pid].score = (players[pid].score || 0) + roundScoreChanges[pid];
     });
 
-    // 取得需逆轉猜題的淘汰臥底名單
     const deadEnemies = eliminatedIds.filter(id => roles[id] === 'spy' || roles[id] === 'blank');
     const hasGuess = deadEnemies.length > 0;
 
@@ -1331,7 +1337,6 @@
     const eliminatedIds = res.eliminatedIds || [];
     const guessState = roomData.guessState || { done: true };
 
-    // Banner
     const summaryBox = document.getElementById('res-summary-box');
     if (res.isCivilianWin) {
       summaryBox.innerHTML = `
@@ -1345,7 +1350,6 @@
       `;
     }
 
-    // 1. 全員身分揭曉（置頂）
     let rolesHtml = '<ul style="list-style:none; padding-left:0; margin-top:2px;">';
     Object.keys(players).forEach(pid => {
       const p = players[pid];
@@ -1364,7 +1368,6 @@
     rolesHtml += '</ul>';
     document.getElementById('res-roles-details').innerHTML = rolesHtml;
 
-    // 2. 玩家投票明細
     let voteDetails = '<b>【正式投票紀錄】</b><br>';
     Object.entries(res.round1Votes || {}).forEach(([voterId, tList]) => {
       const v = players[voterId] || { name: '玩家' };
@@ -1394,7 +1397,6 @@
     }
     document.getElementById('res-vote-details').innerHTML = voteDetails;
 
-    // 3. 淘汰臥底逆轉猜題區塊控制
     const guessSection = document.getElementById('online-guess-section');
     const topicWrapper = document.getElementById('online-topic-wrapper');
     const scoresWrapper = document.getElementById('online-scores-wrapper');
@@ -1422,8 +1424,8 @@
         descEl.innerHTML = '請看著上方畫作口頭猜出題目。若猜中可獲得 <b>+1 分</b>：';
         hintBox.style.display = 'none';
         ctrls.innerHTML = isHost ? `
-          <button class="btn btn-secondary" style="flex:1;" onclick="submitOnlineGuess(${curPid}, 0, '未猜中')">未猜中 (0分)</button>
-          <button class="btn btn-success" style="flex:1;" onclick="submitOnlineGuess(${curPid}, 1, '間諜猜中題目 (+1分)')">猜中了 (+1分)</button>
+          <button class="btn btn-secondary" style="flex:1;" onclick="submitOnlineGuess('${curPid}', 0, '未猜中')">未猜中 (0分)</button>
+          <button class="btn btn-success" style="flex:1;" onclick="submitOnlineGuess('${curPid}', 1, '間諜猜中題目 (+1分)')">猜中了 (+1分)</button>
         ` : `<p style="font-size:0.85rem; color:var(--text-muted); width:100%; text-align:center;">間諜觀察畫板口頭猜題中...</p>`;
       } else {
         if (guessState.blankPhase === 1) {
@@ -1431,15 +1433,15 @@
           hintBox.style.display = 'none';
           ctrls.innerHTML = isHost ? `
             <button class="btn btn-secondary" style="flex:1;" onclick="setOnlineBlankPhase2()">未猜中 (查看類別提示)</button>
-            <button class="btn btn-success" style="flex:1;" onclick="submitOnlineGuess(${curPid}, 2, '白板盲猜猜中 (+2分)')">盲猜猜中 (+2分)</button>
+            <button class="btn btn-success" style="flex:1;" onclick="submitOnlineGuess('${curPid}', 2, '白板盲猜猜中 (+2分)')">盲猜猜中 (+2分)</button>
           ` : `<p style="font-size:0.85rem; color:var(--text-muted); width:100%; text-align:center;">白板觀察畫板盲猜中...</p>`;
         } else {
           descEl.innerHTML = '【第二階段提示猜】已公布類別提示！請看著上方畫作再猜一次，猜中獲 <b>+1 分</b>：';
           document.getElementById('online-guess-hint-cat').innerHTML = formatBopomofo(roomData.categoryRuby);
           hintBox.style.display = 'block';
           ctrls.innerHTML = isHost ? `
-            <button class="btn btn-secondary" style="flex:1;" onclick="submitOnlineGuess(${curPid}, 0, '仍未猜中')">仍未猜中 (0分)</button>
-            <button class="btn btn-success" style="flex:1;" onclick="submitOnlineGuess(${curPid}, 1, '白板提示後猜中 (+1分)')">提示後猜中 (+1分)</button>
+            <button class="btn btn-secondary" style="flex:1;" onclick="submitOnlineGuess('${curPid}', 0, '仍未猜中')">仍未猜中 (0分)</button>
+            <button class="btn btn-success" style="flex:1;" onclick="submitOnlineGuess('${curPid}', 1, '白板提示後猜中 (+1分)')">提示後猜中 (+1分)</button>
           ` : `<p style="font-size:0.85rem; color:var(--text-muted); width:100%; text-align:center;">白板看著類別提示最後猜題中...</p>`;
         }
       }
@@ -1449,7 +1451,6 @@
       scoresWrapper.style.display = 'block';
       boardWrapper.style.display = 'block';
 
-      // 4. 題目公布（猜題完畢後必定公開題目與類別）
       document.getElementById('res-topic-details').innerHTML = `
         <div style="display: flex; align-items: center; gap: 12px; margin: 2px 0;">
           <span style="color: var(--text-muted); font-size: 0.95rem;">本局題目：</span>
@@ -1461,7 +1462,6 @@
         </div>
       `;
 
-      // 5. 得分明細
       let roundHtml = '<ul style="list-style:none; padding-left:0;">';
       Object.keys(players).forEach(pid => {
         const p = players[pid];
@@ -1484,7 +1484,6 @@
       roundHtml += '</ul>';
       document.getElementById('res-round-scores').innerHTML = roundHtml;
 
-      // 6. 總積分榜
       const scoreContainer = document.getElementById('res-scoreboard');
       scoreContainer.innerHTML = '';
       const sorted = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
