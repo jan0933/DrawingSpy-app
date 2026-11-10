@@ -119,7 +119,9 @@
       color: #0f172a;
       cursor: pointer;
       margin-top: 8px;
+      transition: transform 0.1s ease;
     }
+    .btn:active { transform: scale(0.98); }
 
     .btn-secondary { background: #334155; color: var(--text); }
     .btn-success { background: var(--success); color: #fff; }
@@ -249,13 +251,14 @@
     .vote-item {
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: space-between;
       padding: 10px 12px;
       border-radius: 8px;
       background: #0f172a;
       border: 1px solid var(--border);
       cursor: pointer;
       margin-bottom: 6px;
+      text-align: left;
     }
 
     .vote-item.selected {
@@ -271,6 +274,7 @@
       font-size: 0.88rem;
       line-height: 1.6;
       margin-bottom: 8px;
+      text-align: left;
     }
 
     .score-row {
@@ -291,12 +295,44 @@
       color: #fbbf24;
     }
 
+    .status-badge {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: bold;
+    }
+    .badge-alive { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+    .badge-eliminated { background: rgba(244, 63, 94, 0.2); color: var(--danger); }
+
     #qrcode-container {
       background: #fff;
       padding: 10px;
       border-radius: 8px;
       display: inline-block;
       margin: 8px auto;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(6px);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 20px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
     }
   </style>
 
@@ -312,7 +348,7 @@
 
   <header id="common-header">
     <h1>誰是間諜助手</h1>
-    <p class="subtitle">紙筆畫畫模式・設定人數與規則</p>
+    <p class="subtitle">連線畫畫模式・多票PK與即時計分</p>
   </header>
 
   <div class="mode-switch-group" id="top-mode-switch">
@@ -364,17 +400,25 @@
         <div id="lobby-player-list"></div>
       </div>
 
-      <div id="host-controls" style="display: none; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
-        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-          <select id="select-difficulty" style="margin-bottom: 0;">
-            <option value="normal">普通難度</option>
-            <option value="hard">高難度</option>
-          </select>
-          <select id="select-spy-type" style="margin-bottom: 0;">
-            <option value="blank">白板模式</option>
-            <option value="hint">標準間諜</option>
-          </select>
+      <div id="host-controls" style="display: none; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px; text-align: left;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+          <div>
+            <label style="font-size:0.8rem; color:var(--text-muted);">題目難度</label>
+            <select id="select-difficulty" style="margin-bottom: 0;">
+              <option value="normal" selected>普通難度</option>
+              <option value="hard">高難度</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.8rem; color:var(--text-muted);">間諜人數</label>
+            <select id="select-spy-count" style="margin-bottom: 0;"></select>
+          </div>
         </div>
+        <div style="margin-bottom: 10px;">
+          <label style="font-size:0.8rem; color:var(--text-muted);">白板人數</label>
+          <select id="select-blank-count" style="margin-bottom: 0;"></select>
+        </div>
+
         <button id="btn-start-game" class="btn btn-success">全員到齊，開始遊戲！</button>
         <button id="btn-host-lobby-end" class="btn btn-secondary" style="margin-top: 8px; background: transparent; border: 1px dashed var(--danger); color: var(--danger);">結束房間回首頁</button>
       </div>
@@ -384,7 +428,6 @@
 
   <!-- 視圖 3：共用遊戲舞台 -->
   <section id="view-game" class="view-section">
-    
     <div class="card" style="text-align: center; padding: 10px 14px;">
       <span id="game-identity-badge" style="font-size: 0.85rem; font-weight: bold; color: var(--accent);">【你的身分】</span>
       <div class="tag-word-wrap" id="game-word-display" style="margin: 6px 0;"></div>
@@ -410,12 +453,13 @@
       <span id="round-indicator" style="font-weight: bold; color: var(--accent);">第 1/2 輪</span>
     </div>
 
-    <!-- 投票面板 -->
+    <!-- 投票面板（支援多票制與 PK） -->
     <div class="card" id="in-game-voting-card" style="display: none;">
-      <h3 style="color: var(--accent); text-align: center; margin-bottom: 4px; font-size: 1.1rem;">🗳 輪流作畫結束！請投票</h3>
-      <p style="font-size: 0.82rem; color: var(--text-muted); text-align: center; margin-bottom: 10px;">
-        請依上方畫作線索，點選你認為是間諜的玩家：
+      <h3 id="voting-panel-title" style="color: var(--accent); text-align: center; margin-bottom: 4px; font-size: 1.15rem;">🗳 請進行投票</h3>
+      <p id="voting-panel-subtitle" style="font-size: 0.82rem; color: var(--text-muted); text-align: center; margin-bottom: 8px;">
+        開票後即刻決定本局勝負
       </p>
+      <div id="voting-panel-instruction" style="font-size: 0.85rem; color: #fbbf24; text-align: center; margin-bottom: 10px; font-weight: 600;"></div>
 
       <div id="online-vote-options"></div>
 
@@ -425,32 +469,25 @@
       </p>
     </div>
 
-    <!-- 結算與盲猜面板 -->
+    <!-- 結算面板 -->
     <div class="card" id="in-game-result-card" style="display: none;">
       <h2 style="color: var(--accent); text-align: center; margin-bottom: 10px; font-size: 1.3rem;">📊 投票結果與本局結算</h2>
 
-      <div style="font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 4px;">🗳 1. 玩家投票統計</div>
+      <div class="info-box" id="res-summary-box"></div>
+
+      <div style="font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 4px;">🕵️ 1. 全員身分揭曉</div>
+      <div id="res-roles-details" class="info-box"></div>
+
+      <div style="font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 4px;">🗳 2. 玩家投票明細</div>
       <div id="res-vote-details" class="info-box"></div>
 
-      <div style="font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 4px;">🕵️ 2. 間諜身分揭曉</div>
-      <div id="res-spy-details" class="info-box"></div>
-
-      <div id="res-reverse-guess-box" style="display: none; background: #0f172a; padding: 10px; border-radius: 8px; margin: 10px 0; border: 1px dashed var(--accent);">
-        <div id="res-guess-title" style="font-weight: 700; color: #fbbf24; margin-bottom: 4px;">🎯 3. 間諜逆轉猜題機會</div>
-        <p id="res-guess-desc" style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;"></p>
-
-        <div id="res-hint-box" style="display: none; background: rgba(56, 189, 248, 0.1); border-left: 3px solid var(--accent); padding: 6px 10px; border-radius: 4px; margin-bottom: 8px;">
-          <span style="font-size: 0.82rem; color: var(--text-muted);">類別提示：</span>
-          <div class="tag-word-wrap" id="res-hint-category" style="margin: 2px 0 0 0;"></div>
-        </div>
-
-        <div id="res-guess-btns" style="display: flex; gap: 8px;"></div>
-      </div>
-
-      <div style="font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 4px;" id="res-title-topic">💡 3. 本局題目與類別</div>
+      <div style="font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 4px;">💡 3. 題目公布</div>
       <div id="res-topic-details" class="info-box"></div>
 
-      <div style="font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-top: 8px; margin-bottom: 4px;">🏆 累積分數榜</div>
+      <div style="font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 4px;">⭐ 4. 本局得分明細</div>
+      <div id="res-round-scores" class="info-box"></div>
+
+      <div style="font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-top: 8px; margin-bottom: 4px;">🏆 5. 累積分數總榜</div>
       <div id="res-scoreboard" style="display: flex; flex-direction: column; gap: 4px;"></div>
 
       <div id="host-next-round-ctrl" style="display: none; margin-top: 12px;">
@@ -464,6 +501,17 @@
 
   </section>
 
+</div>
+
+<!-- PK 提示彈窗 -->
+<div class="modal-overlay" id="online-pk-modal">
+  <div class="modal-card">
+    <p style="font-size: 0.85rem; color: #fbbf24; font-weight: bold;">⚖️ 出現平票，進入 PK 投票</p>
+    <h2 style="font-size: 1.35rem; margin: 8px 0; color: var(--accent);">爭奪淘汰名額</h2>
+    <p id="online-pk-desc" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;"></p>
+    <button id="btn-online-start-pk" class="btn btn-success" style="margin-top: 0; display: none;">房主啟動 PK 投票</button>
+    <p id="guest-pk-wait" style="font-size: 0.82rem; color: var(--text-muted); display: none;">等待房主啟動 PK 投票中...</p>
+  </div>
 </div>
 
 <script>
@@ -491,7 +539,8 @@
   let isHost = false;
   let myColor = '#f43f5e';
   let roomData = null;
-  let selectedVoteTarget = null;
+
+  let currentSelectedTargets = [];
   let canvas, ctx;
   let isDrawing = false;
   let currentStroke = [];
@@ -558,13 +607,89 @@
     return Math.floor(10000 + Math.random() * 90000).toString();
   }
 
+  function getMaxTotalRoles(playerCount) {
+    if (playerCount <= 5) return 1;
+    return 2;
+  }
+
+  function getMaxSpyCount(playerCount) {
+    if (playerCount <= 5) return 1;
+    return 2;
+  }
+
+  function updateLobbyRoleOptions(pCount) {
+    const maxTotal = getMaxTotalRoles(pCount);
+    const maxSpy = getMaxSpyCount(pCount);
+
+    const spySelect = document.getElementById('select-spy-count');
+    const blankSelect = document.getElementById('select-blank-count');
+    if (!spySelect || !blankSelect) return;
+
+    let curSpy = parseInt(spySelect.value, 10);
+    let curBlank = parseInt(blankSelect.value, 10);
+    if (isNaN(curSpy)) curSpy = 1;
+    if (isNaN(curBlank)) curBlank = 0;
+
+    spySelect.innerHTML = '';
+    for (let i = 0; i <= maxSpy; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${i} 位間諜`;
+      if (i === curSpy) opt.selected = true;
+      spySelect.appendChild(opt);
+    }
+
+    blankSelect.innerHTML = '';
+    for (let i = 0; i <= 1; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${i} 位白板`;
+      if (i === curBlank) opt.selected = true;
+      blankSelect.appendChild(opt);
+    }
+
+    validateLobbyRoles(pCount);
+  }
+
+  function validateLobbyRoles(pCount, trigger) {
+    const maxTotal = getMaxTotalRoles(pCount);
+    const spySelect = document.getElementById('select-spy-count');
+    const blankSelect = document.getElementById('select-blank-count');
+    if (!spySelect || !blankSelect) return;
+
+    let s = parseInt(spySelect.value, 10) || 0;
+    let b = parseInt(blankSelect.value, 10) || 0;
+
+    if (s === 0 && b === 0) {
+      if (trigger === 'spy') { blankSelect.value = '1'; b = 1; }
+      else { spySelect.value = '1'; s = 1; }
+    }
+
+    if (s + b > maxTotal) {
+      if (trigger === 'spy') {
+        blankSelect.value = '0';
+      } else {
+        spySelect.value = Math.max(0, maxTotal - b);
+      }
+    }
+  }
+
+  document.getElementById('select-spy-count').addEventListener('change', () => {
+    const pCount = Object.keys((roomData && roomData.players) || {}).length || 4;
+    validateLobbyRoles(pCount, 'spy');
+  });
+
+  document.getElementById('select-blank-count').addEventListener('change', () => {
+    const pCount = Object.keys((roomData && roomData.players) || {}).length || 4;
+    validateLobbyRoles(pCount, 'blank');
+  });
+
   // ================= 開房與加入 =================
   document.getElementById('btn-create-room').onclick = async () => {
     const btn = document.getElementById('btn-create-room');
     btn.disabled = true;
     btn.textContent = '🏠 正在建立房間...';
 
-    // 房主未輸入時，名稱固定為「房主」
     const rawNick = document.getElementById('input-nickname').value.trim();
     const nick = rawNick || '房主';
 
@@ -616,8 +741,7 @@
       const existingCount = Object.keys(data.players || {}).length;
       if (existingCount >= 8) return alert('房間人數已滿 (上限 8 人)！');
 
-      // 訪客未輸入時，依加入順序預設為「玩家 1」、「玩家 2」...
-      const nick = rawNick || `玩家 ${existingCount}`;
+      const nick = rawNick || `玩家 ${existingCount + 1}`;
       myColor = COLOR_PALETTE[existingCount % COLOR_PALETTE.length];
       isHost = false;
 
@@ -659,9 +783,7 @@
 
   document.getElementById('btn-host-lobby-end').onclick = () => {
     if (confirm('確定要結束房間並返回首頁嗎？已加入的玩家將會一併被導回首頁。')) {
-      db.ref('rooms/' + currentRoomId).update({
-        status: 'closed'
-      }).then(() => {
+      db.ref('rooms/' + currentRoomId).update({ status: 'closed' }).then(() => {
         window.location.href = 'index.html';
       });
     }
@@ -671,33 +793,53 @@
 
   function launchGameRound() {
     const playerIds = Object.keys(roomData.players || {});
-    if (playerIds.length < 2) return alert('至少需要 2 位玩家才能開始遊戲！');
+    if (playerIds.length < 3) return alert('至少需要 3 位玩家才能開始遊戲！');
 
-    const spyId = playerIds[Math.floor(Math.random() * playerIds.length)];
     const difficulty = document.getElementById('select-difficulty') ? document.getElementById('select-difficulty').value : (roomData.difficulty || 'normal');
-    const spyType = document.getElementById('select-spy-type') ? document.getElementById('select-spy-type').value : (roomData.spyType || 'blank');
+    let spyCount = document.getElementById('select-spy-count') ? parseInt(document.getElementById('select-spy-count').value, 10) : (roomData.spyCount !== undefined ? roomData.spyCount : 1);
+    let blankCount = document.getElementById('select-blank-count') ? parseInt(document.getElementById('select-blank-count').value, 10) : (roomData.blankCount !== undefined ? roomData.blankCount : 0);
+
+    const maxTotal = getMaxTotalRoles(playerIds.length);
+    if (spyCount + blankCount > maxTotal) {
+      blankCount = Math.max(0, maxTotal - spyCount);
+    }
+    if (spyCount === 0 && blankCount === 0) spyCount = 1;
+
+    // 分配身分
+    const shuffledPids = [...playerIds].sort(() => Math.random() - 0.5);
+    const spyIds = shuffledPids.slice(0, spyCount);
+    const blankIds = shuffledPids.slice(spyCount, spyCount + blankCount);
+
+    const roles = {};
+    playerIds.forEach(pid => {
+      if (spyIds.includes(pid)) roles[pid] = 'spy';
+      else if (blankIds.includes(pid)) roles[pid] = 'blank';
+      else roles[pid] = 'civilian';
+    });
 
     const bank = (difficulty === 'hard' && typeof HARD_WORD_BANK !== 'undefined') ? HARD_WORD_BANK : NORMAL_WORD_BANK;
     const categoryDict = (difficulty === 'hard' && typeof HARD_CATEGORY_RUBY !== 'undefined') ? HARD_CATEGORY_RUBY : NORMAL_CATEGORY_RUBY;
     const pair = bank[Math.floor(Math.random() * bank.length)];
 
-    const shuffledOrder = [...playerIds].sort(() => Math.random() - 0.5);
+    const shuffledTurnOrder = [...playerIds].sort(() => Math.random() - 0.5);
 
     db.ref('rooms/' + currentRoomId).update({
       status: 'playing',
       difficulty: difficulty,
-      spyType: spyType,
-      spyId: spyId,
+      spyCount: spyCount,
+      blankCount: blankCount,
+      roles: roles,
       commonWord: pair[0],
       categoryName: pair[1],
       categoryRuby: categoryDict[pair[1]] || pair[1],
-      turnOrder: shuffledOrder,
+      turnOrder: shuffledTurnOrder,
       currentTurnIndex: 0,
       round: 1,
       strokes: null,
       votes: null,
-      guessPhase: null,
-      topicRevealed: false
+      firstRoundVotes: null,
+      pkState: null,
+      resultData: null
     });
   }
 
@@ -707,13 +849,14 @@
       roomData = snapshot.val();
       
       if (!roomData || roomData.status === 'closed') {
-        alert('房主已離開遊戲，即將返回首頁！');
+        alert('房間已關閉，即將返回首頁！');
         window.location.href = 'index.html';
         return;
       }
 
       if (roomData.status === 'waiting') {
         renderLobbyPlayers(roomData.players || {});
+        if (isHost) updateLobbyRoleOptions(Object.keys(roomData.players || {}).length);
       } else {
         showSection('view-game');
         initCanvas();
@@ -763,20 +906,18 @@
       colorBar.appendChild(tag);
     });
 
-    const isSpy = (roomData.spyId === myPlayerId);
+    const myRole = (roomData.roles && roomData.roles[myPlayerId]) || 'civilian';
     const badge = document.getElementById('game-identity-badge');
     const wordDisplay = document.getElementById('game-word-display');
 
-    if (isSpy) {
-      if (roomData.spyType === 'blank') {
-        badge.textContent = '【你是白板】';
-        badge.style.color = 'var(--danger)';
-        wordDisplay.innerHTML = formatBopomofo('<ruby>無<rt>ㄨˊ</rt>題<rt>ㄊㄧˊ</rt>目<rt>ㄇㄨˋ</rt></ruby>');
-      } else {
-        badge.textContent = '【你是間諜】';
-        badge.style.color = 'var(--danger)';
-        wordDisplay.innerHTML = formatBopomofo(roomData.categoryRuby);
-      }
+    if (myRole === 'blank') {
+      badge.textContent = '【你是白板】';
+      badge.style.color = '#fbbf24';
+      wordDisplay.innerHTML = formatBopomofo('<ruby>無<rt>ㄨˊ</rt>題<rt>ㄊㄧˊ</rt>目<rt>ㄇㄨˋ</rt></ruby>');
+    } else if (myRole === 'spy') {
+      badge.textContent = '【你是間諜】';
+      badge.style.color = 'var(--danger)';
+      wordDisplay.innerHTML = formatBopomofo(roomData.categoryRuby);
     } else {
       badge.textContent = '【你是平民】';
       badge.style.color = 'var(--accent)';
@@ -812,28 +953,55 @@
 
     const votingCard = document.getElementById('in-game-voting-card');
     const resultCard = document.getElementById('in-game-result-card');
+    const pkModal = document.getElementById('online-pk-modal');
 
     if (roomData.status === 'playing') {
       votingCard.style.display = 'none';
       resultCard.style.display = 'none';
-    } else if (roomData.status === 'voting') {
+      pkModal.classList.remove('active');
+    } else if (roomData.status === 'voting' || roomData.status === 'pk_voting') {
       votingCard.style.display = 'block';
       resultCard.style.display = 'none';
+      pkModal.classList.remove('active');
       updateInGameVotingUI();
+    } else if (roomData.status === 'pk_notice') {
+      votingCard.style.display = 'none';
+      resultCard.style.display = 'none';
+      showPkNoticeModal();
     } else if (roomData.status === 'result') {
       votingCard.style.display = 'none';
       resultCard.style.display = 'block';
+      pkModal.classList.remove('active');
       updateInGameResultUI();
     }
   }
 
-  // ================= 投票邏輯 =================
+  // ================= 多票制與 PK 投票面板 =================
   function updateInGameVotingUI() {
+    const isPk = (roomData.status === 'pk_voting');
+    const playerIds = Object.keys(roomData.players || {});
+    const totalEnemies = Math.max(1, (roomData.spyCount || 1) + (roomData.blankCount || 0));
+    const targetVotesNeeded = isPk ? (roomData.pkState.neededSlots || 1) : totalEnemies;
+
+    const titleEl = document.getElementById('voting-panel-title');
+    const subTitleEl = document.getElementById('voting-panel-subtitle');
+    const instructionEl = document.getElementById('voting-panel-instruction');
     const optionsContainer = document.getElementById('online-vote-options');
     const submitBtn = document.getElementById('btn-submit-online-vote');
-    const playerIds = Object.keys(roomData.players || {});
-    const votes = roomData.votes || {};
 
+    if (isPk) {
+      titleEl.textContent = '⚖️ 平票 PK 投票';
+      titleEl.style.color = '#fbbf24';
+      subTitleEl.textContent = '請從平票候選人中投出淘汰者（若再次平票則無人淘汰）';
+      instructionEl.textContent = `請選取 ${targetVotesNeeded} 位玩家（已選取 ${currentSelectedTargets.length}/${targetVotesNeeded}）`;
+    } else {
+      titleEl.textContent = '🗳 輪流作畫結束！請投票';
+      titleEl.style.color = 'var(--accent)';
+      subTitleEl.textContent = '僅此一輪多票制投票，開票後即刻決定勝負';
+      instructionEl.textContent = `場上共有 ${targetVotesNeeded} 位臥底，請選取 ${targetVotesNeeded} 位玩家（已選取 ${currentSelectedTargets.length}/${targetVotesNeeded}）`;
+    }
+
+    const votes = roomData.votes || {};
     const votedCount = Object.keys(votes).length;
     document.getElementById('voted-count').textContent = votedCount;
     document.getElementById('total-voter-count').textContent = playerIds.length;
@@ -849,185 +1017,386 @@
       submitBtn.style.display = 'none';
     } else {
       submitBtn.style.display = 'block';
-      submitBtn.disabled = (selectedVoteTarget === null);
+      submitBtn.disabled = (currentSelectedTargets.length !== targetVotesNeeded);
 
       optionsContainer.innerHTML = '';
-      playerIds.forEach(pid => {
+      const candidatePool = isPk ? roomData.pkState.candidates : playerIds;
+
+      candidatePool.forEach(pid => {
         if (pid === myPlayerId) return;
         const p = roomData.players[pid];
+        if (!p) return;
+
+        const isSelected = currentSelectedTargets.includes(pid);
         const opt = document.createElement('div');
-        opt.className = 'vote-item' + (selectedVoteTarget === pid ? ' selected' : '');
+        opt.className = 'vote-item' + (isSelected ? ' selected' : '');
         opt.innerHTML = `
-          <span class="color-dot" style="background-color: ${p.color}"></span>
-          <span style="font-weight: 600;">${p.name}</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="color-dot" style="background-color: ${p.color}"></span>
+            <span style="font-weight: 600;">${p.name}</span>
+          </div>
+          <span style="color:var(--accent); font-weight:bold; ${isSelected ? '' : 'display:none;'}">✓ 已選</span>
         `;
+
         opt.onclick = () => {
-          selectedVoteTarget = pid;
-          document.querySelectorAll('.vote-item').forEach(el => el.classList.remove('selected'));
-          opt.classList.add('selected');
-          submitBtn.disabled = false;
+          const idx = currentSelectedTargets.indexOf(pid);
+          if (idx > -1) {
+            currentSelectedTargets.splice(idx, 1);
+          } else {
+            if (currentSelectedTargets.length < targetVotesNeeded) {
+              currentSelectedTargets.push(pid);
+            }
+          }
+          updateInGameVotingUI();
         };
+
         optionsContainer.appendChild(opt);
       });
     }
 
-    if (isHost && votedCount >= playerIds.length && roomData.status === 'voting') {
-      tallyOnlineVotes();
+    if (isHost && votedCount >= playerIds.length) {
+      if (roomData.status === 'voting') {
+        checkFirstRoundVotesHost();
+      } else if (roomData.status === 'pk_voting') {
+        tallyPkVotesHost();
+      }
     }
   }
 
   document.getElementById('btn-submit-online-vote').onclick = () => {
-    if (!selectedVoteTarget) return;
-    db.ref(`rooms/${currentRoomId}/votes/${myPlayerId}`).set(selectedVoteTarget).then(() => {
-      selectedVoteTarget = null;
+    const isPk = (roomData.status === 'pk_voting');
+    const totalEnemies = Math.max(1, (roomData.spyCount || 1) + (roomData.blankCount || 0));
+    const targetVotesNeeded = isPk ? (roomData.pkState.neededSlots || 1) : totalEnemies;
+
+    if (currentSelectedTargets.length !== targetVotesNeeded) return;
+
+    db.ref(`rooms/${currentRoomId}/votes/${myPlayerId}`).set(currentSelectedTargets).then(() => {
+      currentSelectedTargets = [];
     });
   };
 
-  function tallyOnlineVotes() {
+  // 房主開票第 1 輪投票：判斷平票或直接結算
+  function checkFirstRoundVotesHost() {
     const votes = roomData.votes || {};
     const players = roomData.players || {};
     const playerIds = Object.keys(players);
-    const spyId = roomData.spyId;
-    const spyType = roomData.spyType || 'blank';
+    const totalEnemies = Math.max(1, (roomData.spyCount || 1) + (roomData.blankCount || 0));
 
     const voteCounts = {};
     playerIds.forEach(id => { voteCounts[id] = 0; });
-    Object.values(votes).forEach(targetId => {
-      voteCounts[targetId] = (voteCounts[targetId] || 0) + 1;
+    Object.values(votes).forEach(tList => {
+      (tList || []).forEach(tid => { voteCounts[tid] = (voteCounts[tid] || 0) + 1; });
     });
 
-    let maxVotes = -1;
-    let mostVoted = [];
-    Object.entries(voteCounts).forEach(([pid, count]) => {
-      if (count > maxVotes) {
-        maxVotes = count;
-        mostVoted = [pid];
-      } else if (count === maxVotes) {
-        mostVoted.push(pid);
+    const groups = {};
+    Object.entries(voteCounts).forEach(([id, cnt]) => {
+      if (!groups[cnt]) groups[cnt] = [];
+      groups[cnt].push(id);
+    });
+
+    const sortedCounts = Object.keys(groups).map(Number).sort((a, b) => b - a);
+
+    let confirmedEliminated = [];
+    let slotsNeeded = totalEnemies;
+    let tieFound = false;
+    let tieCandidates = [];
+
+    for (let cnt of sortedCounts) {
+      const candidates = groups[cnt];
+      if (candidates.length <= slotsNeeded) {
+        confirmedEliminated.push(...candidates);
+        slotsNeeded -= candidates.length;
+        if (slotsNeeded === 0) break;
+      } else {
+        tieFound = true;
+        tieCandidates = [...candidates];
+        break;
       }
-    });
-
-    const isSpyCaught = mostVoted.includes(spyId);
-    const escapeScore = (spyType === 'blank') ? 3 : 2;
-
-    const roundScoreChanges = {};
-    playerIds.forEach(id => { roundScoreChanges[id] = 0; });
-
-    Object.entries(votes).forEach(([voterId, targetId]) => {
-      if (voterId !== spyId && targetId === spyId) {
-        roundScoreChanges[voterId] += 1;
-      }
-    });
-
-    if (!isSpyCaught) {
-      roundScoreChanges[spyId] += escapeScore;
     }
 
-    const updatedPlayers = { ...players };
+    if (tieFound) {
+      db.ref('rooms/' + currentRoomId).update({
+        status: 'pk_notice',
+        firstRoundVotes: votes,
+        votes: null,
+        pkState: {
+          candidates: tieCandidates,
+          neededSlots: slotsNeeded,
+          confirmedEliminated: confirmedEliminated
+        }
+      });
+    } else {
+      finalizeGameHost(confirmedEliminated, false, [], votes, null);
+    }
+  }
+
+  function showPkNoticeModal() {
+    const modal = document.getElementById('online-pk-modal');
+    const desc = document.getElementById('online-pk-desc');
+    const startBtn = document.getElementById('btn-online-start-pk');
+    const waitMsg = document.getElementById('guest-pk-wait');
+
+    const pk = roomData.pkState || {};
+    const candNames = (pk.candidates || []).map(id => (roomData.players[id] || {}).name).join(' 與 ');
+
+    let text = `玩家 <b>${candNames}</b> 票數相同並列！<br>需進行 PK 投票選出最後 <b>${pk.neededSlots || 1}</b> 位淘汰者。`;
+    if (pk.confirmedEliminated && pk.confirmedEliminated.length > 0) {
+      const confNames = pk.confirmedEliminated.map(id => (roomData.players[id] || {}).name).join('、');
+      text += `<br>（${confNames} 已因絕對高票確定淘汰）`;
+    }
+    text += `<br><br><span style="color:#fbbf24;">⚠️ 若 PK 投票再次平票，該名額判定無人淘汰（平安夜）！</span>`;
+    desc.innerHTML = text;
+
+    modal.classList.add('active');
+
+    if (isHost) {
+      startBtn.style.display = 'block';
+      waitMsg.style.display = 'none';
+      startBtn.onclick = () => {
+        db.ref('rooms/' + currentRoomId).update({ status: 'pk_voting' });
+      };
+    } else {
+      startBtn.style.display = 'none';
+      waitMsg.style.display = 'block';
+    }
+  }
+
+  // 房主開票 PK 輪
+  function tallyPkVotesHost() {
+    const votes = roomData.votes || {};
+    const pkState = roomData.pkState || {};
+    const candidateIds = pkState.candidates || [];
+    const neededSlots = pkState.neededSlots || 1;
+
+    const pkVoteCounts = {};
+    candidateIds.forEach(id => { pkVoteCounts[id] = 0; });
+    Object.values(votes).forEach(tList => {
+      (tList || []).forEach(tid => {
+        if (pkVoteCounts[tid] !== undefined) pkVoteCounts[tid]++;
+      });
+    });
+
+    const pkGroups = {};
+    Object.entries(pkVoteCounts).forEach(([id, cnt]) => {
+      if (!pkGroups[cnt]) pkGroups[cnt] = [];
+      pkGroups[cnt].push(id);
+    });
+
+    const sortedCounts = Object.keys(pkGroups).map(Number).sort((a, b) => b - a);
+
+    let finalEliminated = [...(pkState.confirmedEliminated || [])];
+    let slotsNeeded = neededSlots;
+    let pkTieHappened = false;
+    let tiedCandidates = [];
+
+    for (let cnt of sortedCounts) {
+      const candidates = pkGroups[cnt];
+      if (candidates.length <= slotsNeeded) {
+        finalEliminated.push(...candidates);
+        slotsNeeded -= candidates.length;
+        if (slotsNeeded === 0) break;
+      } else {
+        pkTieHappened = true;
+        tiedCandidates = [...candidates];
+        break;
+      }
+    }
+
+    finalizeGameHost(finalEliminated, pkTieHappened, tiedCandidates, roomData.firstRoundVotes || {}, votes);
+  }
+
+  // 房主最終計分結算
+  function finalizeGameHost(eliminatedIds, pkTieHappened, tiedCandidates, round1Votes, pkVotes) {
+    const players = { ...roomData.players };
+    const roles = roomData.roles || {};
+    const playerIds = Object.keys(players);
+
+    const isAlive = {};
+    playerIds.forEach(id => { isAlive[id] = !eliminatedIds.includes(id); });
+
+    const roundScoreChanges = {};
+    const scoreReasons = {};
     playerIds.forEach(id => {
-      updatedPlayers[id].score = (updatedPlayers[id].score || 0) + roundScoreChanges[id];
+      roundScoreChanges[id] = 0;
+      scoreReasons[id] = [];
+    });
+
+    // 1. 平民投中死亡臥底加分（只有平民且目標確實淘汰死亡才 +1）
+    const allVoteMaps = [round1Votes, pkVotes || {}];
+    allVoteMaps.forEach((voteMap, idx) => {
+      Object.entries(voteMap).forEach(([voterId, tList]) => {
+        if (roles[voterId] === 'civilian') {
+          let deadHits = 0;
+          (tList || []).forEach(tid => {
+            if ((roles[tid] === 'spy' || roles[tid] === 'blank') && eliminatedIds.includes(tid)) {
+              deadHits++;
+            }
+          });
+          if (deadHits > 0) {
+            roundScoreChanges[voterId] += deadHits;
+            const prefix = (idx === 1) ? '（PK輪）' : '';
+            scoreReasons[voterId].push(`平民成功投死臥底${prefix} (+1分 × ${deadHits})`);
+          }
+        }
+      });
+    });
+
+    // 2. 評判勝負：間諜與白板全數被淘汰處決
+    const allEnemiesEliminated = playerIds.every(pid => {
+      if (roles[pid] === 'spy' || roles[pid] === 'blank') {
+        return !isAlive[pid];
+      }
+      return true;
+    });
+
+    const isCivilianWin = allEnemiesEliminated;
+
+    // 3. 陣營勝利與存活加分
+    if (isCivilianWin) {
+      playerIds.forEach(pid => {
+        if (roles[pid] === 'civilian' && isAlive[pid]) {
+          roundScoreChanges[pid] += 1;
+          scoreReasons[pid].push('平民獲勝且最終存活 (+1分)');
+        }
+      });
+    } else {
+      playerIds.forEach(pid => {
+        if (roles[pid] === 'spy' && isAlive[pid]) {
+          roundScoreChanges[pid] += 2;
+          scoreReasons[pid].push('臥底獲勝且間諜存活 (+2分)');
+        } else if (roles[pid] === 'blank' && isAlive[pid]) {
+          roundScoreChanges[pid] += 3;
+          scoreReasons[pid].push('臥底獲勝且白板存活 (+3分)');
+        }
+      });
+    }
+
+    playerIds.forEach(pid => {
+      players[pid].score = (players[pid].score || 0) + roundScoreChanges[pid];
     });
 
     db.ref('rooms/' + currentRoomId).update({
       status: 'result',
-      spyCaught: isSpyCaught,
-      roundScoreChanges: roundScoreChanges,
-      players: updatedPlayers,
-      mostVoted: mostVoted,
-      maxVotes: maxVotes,
-      guessPhase: isSpyCaught ? 'phase1' : 'none',
-      topicRevealed: !isSpyCaught
+      players: players,
+      resultData: {
+        isCivilianWin: isCivilianWin,
+        eliminatedIds: eliminatedIds,
+        pkTieHappened: pkTieHappened,
+        tiedCandidates: tiedCandidates,
+        round1Votes: round1Votes,
+        pkVotes: pkVotes || null,
+        scoreReasons: scoreReasons,
+        roundScoreChanges: roundScoreChanges
+      }
     });
   }
 
-  // ================= 結算與盲猜 =================
+  // ================= 結算 UI 渲染 =================
   function updateInGameResultUI() {
+    const res = roomData.resultData || {};
     const players = roomData.players || {};
-    const spyId = roomData.spyId;
-    const spyPlayer = players[spyId] || { name: '間諜' };
-    const votes = roomData.votes || {};
+    const roles = roomData.roles || {};
+    const eliminatedIds = res.eliminatedIds || [];
 
-    let voteHtml = '<ul style="list-style: none; padding-left: 0;">';
-    Object.entries(votes).forEach(([voterId, targetId]) => {
-      const v = players[voterId] || { name: '玩家' };
-      const t = players[targetId] || { name: '玩家' };
-      voteHtml += `<li style="margin-bottom: 3px;"><b>${v.name}</b> 投給了 👉 <span style="color: ${t.color}; font-weight: bold;">${t.name}</span></li>`;
-    });
-    voteHtml += '</ul>';
-    const mostVotedNames = (roomData.mostVoted || []).map(id => (players[id] || {}).name).join('、');
-    voteHtml += `<p style="color: var(--accent); font-weight: bold; margin-top: 4px;">最高票：${mostVotedNames}（得 ${roomData.maxVotes || 0} 票）</p>`;
-    document.getElementById('res-vote-details').innerHTML = voteHtml;
-
-    let spyHtml = `<p>本局間諜為：<span style="color: var(--danger); font-size: 1.15rem; font-weight: bold;">${spyPlayer.name}</span></p>`;
-    if (roomData.spyCaught) {
-      spyHtml += `<p style="color: var(--success); font-weight: bold; margin-top: 4px;">📢 平民成功揪出間諜！請間諜看著上方畫板進行逆轉猜題！</p>`;
-    } else {
-      const escapeScore = (roomData.spyType === 'blank') ? 3 : 2;
-      spyHtml += `<p style="color: var(--danger); font-weight: bold; margin-top: 4px;">📢 間諜成功隱匿逃脫！（得 +${escapeScore} 分）</p>`;
-    }
-    document.getElementById('res-spy-details').innerHTML = spyHtml;
-
-    const guessBox = document.getElementById('res-reverse-guess-box');
-    const guessTitle = document.getElementById('res-guess-title');
-    const guessDesc = document.getElementById('res-guess-desc');
-    const hintBox = document.getElementById('res-hint-box');
-    const btnContainer = document.getElementById('res-guess-btns');
-
-    if (roomData.spyCaught && roomData.guessPhase !== 'done') {
-      guessBox.style.display = 'block';
-      document.getElementById('res-title-topic').textContent = '💡 4. 本局題目與類別';
-
-      if (roomData.spyType === 'blank') {
-        if (roomData.guessPhase === 'phase1') {
-          guessTitle.textContent = '🎯 3. 間諜逆轉猜題機會 (白板模式：第一階段)';
-          guessDesc.innerHTML = '請看著上方畫作直接口頭盲猜題目。猜中獲 <b>+2 分</b>；未猜中可查看類別提示：';
-          hintBox.style.display = 'none';
-
-          btnContainer.innerHTML = isHost ? `
-            <button class="btn btn-secondary" style="flex: 1;" onclick="setGuessPhase('phase2')">未猜中 (查看類別提示)</button>
-            <button class="btn btn-success" style="flex: 1;" onclick="applySpyGuessScore(2, '白板盲猜猜中')">盲猜猜中 (+2分)</button>
-          ` : `<p style="color: var(--text-muted); font-size: 0.85rem; width: 100%; text-align: center;">間諜觀察上方畫板盲猜中...</p>`;
-        } else if (roomData.guessPhase === 'phase2') {
-          guessTitle.textContent = '🎯 3. 間諜逆轉猜題機會 (白板模式：第二階段)';
-          guessDesc.innerHTML = '已公布類別提示！請看著上方畫板猜題，猜中得 <b>+1 分</b>：';
-          document.getElementById('res-hint-category').innerHTML = formatBopomofo(roomData.categoryRuby);
-          hintBox.style.display = 'block';
-
-          btnContainer.innerHTML = isHost ? `
-            <button class="btn btn-secondary" style="flex: 1;" onclick="applySpyGuessScore(0, '仍未猜中')">仍未猜中 (0分)</button>
-            <button class="btn btn-success" style="flex: 1;" onclick="applySpyGuessScore(1, '提示後猜中')">提示後猜中 (+1分)</button>
-          ` : `<p style="color: var(--text-muted); font-size: 0.85rem; width: 100%; text-align: center;">間諜看著提示與畫板最後猜題中...</p>`;
-        }
-      } else {
-        guessTitle.textContent = '🎯 3. 間諜逆轉猜題機會 (標準間諜模式)';
-        guessDesc.innerHTML = '請看著上方畫作口頭猜出題目。若猜中可獲得 <b>+1 分</b>：';
-        hintBox.style.display = 'none';
-
-        btnContainer.innerHTML = isHost ? `
-          <button class="btn btn-secondary" style="flex: 1;" onclick="applySpyGuessScore(0, '未猜中')">未猜中 (0分)</button>
-          <button class="btn btn-success" style="flex: 1;" onclick="applySpyGuessScore(1, '猜中題目')">猜中了 (+1分)</button>
-        ` : `<p style="color: var(--text-muted); font-size: 0.85rem; width: 100%; text-align: center;">間諜觀察上方畫板猜題中...</p>`;
-      }
-    } else {
-      guessBox.style.display = 'none';
-      document.getElementById('res-title-topic').textContent = '💡 3. 本局題目與類別';
-    }
-
-    if (roomData.topicRevealed) {
-      document.getElementById('res-topic-details').innerHTML = `
-        <div style="display: flex; align-items: center; gap: 12px; margin: 2px 0;">
-          <span style="color: var(--text-muted); font-size: 0.95rem;">題目：</span>
-          <div class="tag-word-wrap">${formatBopomofo(roomData.commonWord)}</div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 12px; margin: 2px 0;">
-          <span style="color: var(--text-muted); font-size: 0.95rem;">類別：</span>
-          <div class="tag-word-wrap">${formatBopomofo(roomData.categoryRuby)}</div>
-        </div>
+    // Banner
+    const summaryBox = document.getElementById('res-summary-box');
+    if (res.isCivilianWin) {
+      summaryBox.innerHTML = `
+        <h3 style="color:var(--success); margin-bottom:4px;">🎉 平民陣營獲勝！</h3>
+        <p style="font-size:0.88rem;">所有間諜與白板全數被投出處決！投死臥底的平民各獲 <b>+1 分</b>，存活平民再獲 <b>+1 分</b>！</p>
       `;
     } else {
-      document.getElementById('res-topic-details').innerHTML = `<p style="color: var(--text-muted); font-style: italic;">🔒 間諜看著畫作猜題中，題目隱藏中...</p>`;
+      summaryBox.innerHTML = `
+        <h3 style="color:var(--danger); margin-bottom:4px;">😈 間諜與白板獲勝！</h3>
+        <p style="font-size:0.88rem;">臥底成功隱匿或存活！存活間諜獲 <b>+2 分</b>，存活白板獲 <b>+3 分</b>！</p>
+      `;
     }
 
+    // 1. 全員身分揭曉（置頂）
+    let rolesHtml = '<ul style="list-style:none; padding-left:0; margin-top:2px;">';
+    Object.keys(players).forEach(pid => {
+      const p = players[pid];
+      let roleLabel = '';
+      if (roles[pid] === 'civilian') roleLabel = '<span style="color:var(--accent);">平民</span>';
+      else if (roles[pid] === 'spy') roleLabel = '<span style="color:var(--danger); font-weight:bold;">間諜</span>';
+      else roleLabel = '<span style="color:#fbbf24; font-weight:bold;">白板</span>';
+
+      const isDead = eliminatedIds.includes(pid);
+      const statusTag = isDead 
+        ? '<span class="status-badge badge-eliminated">已淘汰</span>' 
+        : '<span class="status-badge badge-alive">存活</span>';
+
+      rolesHtml += `<li style="display:flex; justify-content:space-between; margin-bottom:3px;"><span>${p.name}</span><span>${roleLabel} ${statusTag}</span></li>`;
+    });
+    rolesHtml += '</ul>';
+    document.getElementById('res-roles-details').innerHTML = rolesHtml;
+
+    // 2. 玩家投票明細
+    let voteDetails = '<b>【正式投票紀錄】</b><br>';
+    Object.entries(res.round1Votes || {}).forEach(([voterId, tList]) => {
+      const v = players[voterId] || { name: '玩家' };
+      const targetNames = (tList || []).map(t => `<span style="color:${(players[t]||{}).color}; font-weight:bold;">${(players[t]||{}).name}</span>`).join('、');
+      voteDetails += `${v.name} 投給了 👉 ${targetNames}<br>`;
+    });
+
+    if (res.pkVotes) {
+      voteDetails += '<br><b>【PK 投票紀錄】</b><br>';
+      Object.entries(res.pkVotes).forEach(([voterId, tList]) => {
+        const v = players[voterId] || { name: '玩家' };
+        const targetNames = (tList || []).map(t => `<span style="color:${(players[t]||{}).color}; font-weight:bold;">${(players[t]||{}).name}</span>`).join('、');
+        voteDetails += `${v.name} 投給了 👉 ${targetNames}<br>`;
+      });
+    }
+
+    if (res.pkTieHappened) {
+      const tiedNames = (res.tiedCandidates || []).map(id => (players[id] || {}).name).join(' 與 ');
+      voteDetails += `<div style="margin-top:6px; color:#38bdf8; font-weight:bold;">➔ PK 再次平票（${tiedNames}）：該名額判定無人淘汰（平安夜）！</div>`;
+    }
+
+    if (eliminatedIds.length > 0) {
+      const elimNames = eliminatedIds.map(id => (players[id] || {}).name).join('、');
+      voteDetails += `<div style="margin-top:6px; color:var(--danger); font-weight:bold;">➔ 最終處決淘汰玩家：${elimNames}</div>`;
+    } else {
+      voteDetails += `<div style="margin-top:6px; color:#38bdf8; font-weight:bold;">➔ 最終處決結果：全員皆存活</div>`;
+    }
+    document.getElementById('res-vote-details').innerHTML = voteDetails;
+
+    // 3. 題目公布
+    document.getElementById('res-topic-details').innerHTML = `
+      <div style="display: flex; align-items: center; gap: 12px; margin: 2px 0;">
+        <span style="color: var(--text-muted); font-size: 0.95rem;">本局題目：</span>
+        <div class="tag-word-wrap">${formatBopomofo(roomData.commonWord)}</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; margin: 2px 0;">
+        <span style="color: var(--text-muted); font-size: 0.95rem;">題目類別：</span>
+        <div class="tag-word-wrap">${formatBopomofo(roomData.categoryRuby)}</div>
+      </div>
+    `;
+
+    // 4. 得分明細
+    let roundHtml = '<ul style="list-style:none; padding-left:0;">';
+    Object.keys(players).forEach(pid => {
+      const p = players[pid];
+      const earned = (res.roundScoreChanges && res.roundScoreChanges[pid]) || 0;
+      const reasons = (res.scoreReasons && res.scoreReasons[pid]) || [];
+      const reasonText = reasons.length > 0 
+        ? `<div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">• ${reasons.join('<br>• ')}</div>` 
+        : `<div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">• 本局未獲得分數 (+0分)</div>`;
+
+      roundHtml += `
+        <li style="margin-bottom:8px; padding-bottom:6px; border-bottom:1px dashed rgba(255,255,255,0.08);">
+          <div style="display:flex; justify-content:space-between;">
+            <b>${p.name}：</b>
+            <b style="color:${earned > 0 ? 'var(--success)' : 'var(--text-muted)'};">+${earned} 分</b>
+          </div>
+          ${reasonText}
+        </li>
+      `;
+    });
+    roundHtml += '</ul>';
+    document.getElementById('res-round-scores').innerHTML = roundHtml;
+
+    // 5. 總積分榜
     const scoreContainer = document.getElementById('res-scoreboard');
     scoreContainer.innerHTML = '';
     const sorted = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
@@ -1184,22 +1553,6 @@
     window.addEventListener('mousemove', drawMove);
     window.addEventListener('mouseup', endDrawing);
   }
-
-  window.setGuessPhase = function(phase) {
-    db.ref('rooms/' + currentRoomId).update({ guessPhase: phase });
-  };
-
-  window.applySpyGuessScore = function(addScore, reason) {
-    const spyId = roomData.spyId;
-    const players = { ...roomData.players };
-    players[spyId].score = (players[spyId].score || 0) + addScore;
-
-    db.ref('rooms/' + currentRoomId).update({
-      players: players,
-      guessPhase: 'done',
-      topicRevealed: true
-    });
-  };
 
   document.getElementById('btn-online-next-round').onclick = () => launchGameRound();
 
