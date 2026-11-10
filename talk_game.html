@@ -138,18 +138,23 @@
       
       <div class="info-box" id="result-summary-box"></div>
       
+      <!-- 1. 玩家投票明細 -->
       <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">🗳 1. 玩家投票明細</div>
       <div class="info-box" id="result-votes-details"></div>
 
+      <!-- 2. 全員身分揭曉 -->
       <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">🕵️ 2. 全員身分揭曉</div>
       <div class="info-box" id="result-roles-details"></div>
 
+      <!-- 3. 詞彙題目對照（不顯示類別） -->
       <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">💡 3. 詞彙題目對照</div>
       <div class="info-box" id="result-topic-details"></div>
       
+      <!-- 4. 本局得分明細 -->
       <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">⭐ 4. 本局得分明細</div>
       <div class="info-box" id="result-round-scores"></div>
 
+      <!-- 5. 累積分數總榜 -->
       <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">🏆 累積分數總榜</div>
       <div id="result-scoreboard" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;"></div>
 
@@ -190,7 +195,6 @@
 
   let civilianWord = '';
   let spyWord = '';
-  let categoryName = '';
 
   let talkRound = 1;
   let currentViewingPlayer = 0;
@@ -217,11 +221,8 @@
     const spyIndices = indices.slice(0, spyTargetCount);
     const blankIndices = indices.slice(spyTargetCount, spyTargetCount + blankTargetCount);
 
-    // 嚴格難度篩選：normal 只選 normal，hard 只選 hard
     const chosenDifficulty = rawConfig.difficulty === 'hard' ? 'hard' : 'normal';
     const filteredBank = TALK_WORD_BANK.filter(item => item[3] === chosenDifficulty);
-
-    // 若該難度池無題目，回退全題庫避免卡死
     const activeBank = filteredBank.length > 0 ? filteredBank : TALK_WORD_BANK;
     const pair = activeBank[Math.floor(Math.random() * activeBank.length)];
 
@@ -232,7 +233,6 @@
       civilianWord = pair[1];
       spyWord = pair[0];
     }
-    categoryName = pair[2];
 
     players.forEach((_, idx) => {
       if (blankIndices.includes(idx)) {
@@ -401,6 +401,7 @@
     const isSuccess = (caughtTarget !== undefined);
 
     if (isSuccess) {
+      // 成功抓出臥底
       Object.entries(votes).forEach(([vStr, tIdx]) => {
         const v = parseInt(vStr, 10);
         if (playerRoles[v] === 'civilian' && (playerRoles[tIdx] === 'spy' || playerRoles[tIdx] === 'blank')) {
@@ -415,9 +416,16 @@
         }
       });
 
-      mostVoted.forEach(id => { isAlive[id] = false; });
+      // 修正：平民陣營獲勝時，僅將被揪出的臥底標記為淘汰；若有平民同為最高票，平民依然維持存活
+      mostVoted.forEach(id => {
+        if (playerRoles[id] === 'spy' || playerRoles[id] === 'blank') {
+          isAlive[id] = false;
+        }
+      });
+
       finishGame(true, mostVoted, maxVotes);
     } else {
+      // 未猜中，投出的為平民
       const eliminatedCivilian = mostVoted[0];
       isAlive[eliminatedCivilian] = false;
 
@@ -460,6 +468,7 @@
       `;
     }
 
+    // 1. 玩家投票明細
     let voteDetailsHtml = '<ul style="list-style: none; padding-left: 0; margin-bottom: 6px;">';
     Object.entries(votes).forEach(([voterId, targetId]) => {
       const v = players[voterId];
@@ -475,6 +484,7 @@
     voteDetailsHtml += `<p style="color: var(--accent); font-weight: bold; margin-top: 4px;">本輪最高票：${mostVotedNames}（得 ${maxVotes} 票）</p>`;
     document.getElementById('result-votes-details').innerHTML = voteDetailsHtml;
 
+    // 2. 身分揭曉（修正：同高票平民維持存活）
     let rolesHtml = '<ul style="list-style:none; padding-left:0; margin-top:2px;">';
     players.forEach((p, idx) => {
       let roleLabel = '';
@@ -490,11 +500,12 @@
     rolesHtml += '</ul>';
     document.getElementById('result-roles-details').innerHTML = rolesHtml;
 
-    let topicHtml = `<div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">題目類別：<span style="color:#fbbf24; font-weight:bold;">${categoryName}</span></div>`;
-    topicHtml += `<div style="display:flex; align-items:center; gap:8px; margin-top:4px;">平民詞：<div class="tag-word-wrap">${formatBopomofo(civilianWord)}</div></div>`;
-    topicHtml += `<div style="display:flex; align-items:center; gap:8px; margin-top:4px;">間諜詞：<div class="tag-word-wrap">${formatBopomofo(spyWord)}</div></div>`;
+    // 3. 題目對照（已移除題目類別）
+    let topicHtml = `<div style="display:flex; align-items:center; gap:8px;">平民詞：<div class="tag-word-wrap" style="margin:4px 0;">${formatBopomofo(civilianWord)}</div></div>`;
+    topicHtml += `<div style="display:flex; align-items:center; gap:8px;">間諜詞：<div class="tag-word-wrap" style="margin:4px 0;">${formatBopomofo(spyWord)}</div></div>`;
     document.getElementById('result-topic-details').innerHTML = topicHtml;
 
+    // 4. 分數統計
     let roundHtml = '<ul style="list-style:none; padding-left:0;">';
     players.forEach((p, idx) => {
       const earned = earnedScores[idx] || 0;
@@ -503,6 +514,7 @@
     roundHtml += '</ul>';
     document.getElementById('result-round-scores').innerHTML = roundHtml;
 
+    // 5. 總積分榜
     const board = document.getElementById('result-scoreboard');
     board.innerHTML = '';
     const sorted = [...players.map((p, idx) => ({ ...p, score: totalScores[idx] }))].sort((a, b) => b.score - a.score);
