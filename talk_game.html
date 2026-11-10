@@ -42,7 +42,7 @@
 
     .color-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
     .flow-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #0f172a; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 6px; }
-    .vote-item { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid var(--border); cursor: pointer; margin-bottom: 6px; text-align: left; }
+    .vote-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid var(--border); cursor: pointer; margin-bottom: 6px; text-align: left; transition: all 0.15s ease; }
     .vote-item.selected { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); }
     .info-box { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 0.9rem; line-height: 1.6; margin-bottom: 8px; text-align: left; }
     .score-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #0f172a; border-radius: 8px; margin-bottom: 6px; border: 1px solid var(--border); }
@@ -384,13 +384,13 @@
       badge.style.borderColor = '#fbbf24';
       badge.style.color = '#fbbf24';
       title.textContent = '⚖️ 平票 PK 密室投票';
-      desc.textContent = '請從進入 PK 的平票候選人中選擇一位投票處決：';
+      desc.textContent = '點選你要投的對象（再次點擊可取消或切換選擇）：';
     } else {
       badge.textContent = `第 ${talkRound} 輪投票`;
       badge.style.borderColor = 'var(--accent)';
       badge.style.color = 'var(--accent)';
       title.textContent = '🗳 輪流密室投票';
-      desc.textContent = '請點選你懷疑的間諜或白板對象：';
+      desc.textContent = '點選你要投的對象（再次點擊可取消或切換選擇）：';
     }
 
     const nameEl = document.getElementById('voting-current-voter-name');
@@ -413,18 +413,43 @@
       const p = players[idx];
       const opt = document.createElement('div');
       opt.className = 'vote-item';
-      opt.innerHTML = `<span class="color-dot" style="background-color: ${p.color}"></span><b>${p.name}</b>`;
+      opt.id = `talk-vote-opt-${idx}`;
+      opt.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="color-dot" style="background-color: ${p.color}"></span>
+          <b>${p.name}</b>
+        </div>
+        <span class="vote-tag" style="color:var(--accent); font-weight:bold; display:none;">✓ 已選</span>
+      `;
+
+      // 支援點選、反選、換選
       opt.onclick = () => {
-        document.querySelectorAll('.vote-item').forEach(el => el.classList.remove('selected'));
-        opt.classList.add('selected');
-        selectedVoteTarget = idx;
-        submitBtn.disabled = false;
+        if (selectedVoteTarget === idx) {
+          // 再次點擊已選目標 -> 取消選取
+          selectedVoteTarget = null;
+          opt.classList.remove('selected');
+          opt.querySelector('.vote-tag').style.display = 'none';
+          submitBtn.disabled = true;
+        } else {
+          // 點擊其他目標 -> 替換選取
+          selectedVoteTarget = idx;
+          document.querySelectorAll('.vote-item').forEach(el => {
+            el.classList.remove('selected');
+            const tag = el.querySelector('.vote-tag');
+            if (tag) tag.style.display = 'none';
+          });
+          opt.classList.add('selected');
+          opt.querySelector('.vote-tag').style.display = 'inline';
+          submitBtn.disabled = false;
+        }
       };
       container.appendChild(opt);
     });
   }
 
   document.getElementById('btn-submit-vote').onclick = () => {
+    if (selectedVoteTarget === null) return;
+
     const aliveIndices = players.map((_, i) => i).filter(i => isAlive[i]);
     const voterRealIdx = aliveIndices[currentVoterIndex];
 
@@ -456,31 +481,25 @@
       else if (cnt === maxVotes) { mostVoted.push(idx); }
     });
 
-    // 出現平票
     if (mostVoted.length > 1) {
       if (!isPkVoting) {
-        // 第一輪平票 ➔ 進入 PK 階段，第一輪作廢不計分
         pkCandidateIndices = [...mostVoted];
         document.getElementById('pk-candidates-names').textContent = mostVoted.map(id => players[id].name).join(' 與 ');
         showScreen('step-pk-notice');
         return;
       } else {
-        // PK 輪再次同票 ➔ 無人淘汰（平安夜）
         handleNoOneEliminated(mostVoted, maxVotes);
         return;
       }
     }
 
-    // 決出唯一最高票
     const eliminatedPlayer = mostVoted[0];
     isAlive[eliminatedPlayer] = false;
 
-    // 【核心規則】：僅在「最終決定生死的那次投票」中投對被處決間諜的平民得 1 分
     const eliminatedRole = playerRoles[eliminatedPlayer];
     if (eliminatedRole === 'spy' || eliminatedRole === 'blank') {
       players.forEach((p, v) => {
         if (playerRoles[v] === 'civilian') {
-          // 只審查當前這輪最終投票 (votes)
           if (votes[v] === eliminatedPlayer) {
             earnedScores[v] = (earnedScores[v] || 0) + 1;
             totalScores[v] += 1;
@@ -695,7 +714,7 @@
     });
     document.getElementById('result-votes-details').innerHTML = voteDetailsHtml;
 
-    // 3. 題目對照（若純白板局無間諜，不顯示間諜詞）
+    // 3. 題目對照
     let topicHtml = `<div style="display:flex; align-items:center; gap:8px;">平民詞：<div class="tag-word-wrap" style="margin:4px 0;">${formatBopomofo(civilianWord)}</div></div>`;
     if (initialSpies > 0) {
       topicHtml += `<div style="display:flex; align-items:center; gap:8px;">間諜詞：<div class="tag-word-wrap" style="margin:4px 0;">${formatBopomofo(spyWord)}</div></div>`;
