@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>誰是間諜助手 - 單機同機畫板模式</title>
+  <title>誰是間諜 - 畫畫模式</title>
   <style>
     :root {
       --bg: #121826;
@@ -224,7 +224,7 @@
     players: []
   };
 
-  // 優先採用首頁已組裝好的暱稱陣列，若沒有才退回預設命名
+  // 優先採用首頁組裝的暱稱陣列
   if (rawConfig.players && Array.isArray(rawConfig.players) && rawConfig.players.length > 0) {
     config.players = rawConfig.players;
   } else {
@@ -342,7 +342,6 @@
     elRevealContent.style.display = 'none';
     elBtnNextReveal.disabled = true;
 
-    // 預設重置按鈕文字
     const isLastPlayer = (currentViewingPlayer === players.length - 1);
     elBtnNextReveal.textContent = isLastPlayer ? '我看完了，開始作畫' : '我看完了，交給下一位';
 
@@ -376,7 +375,6 @@
     elRevealContent.style.display = 'block';
     elRevealBox.classList.add('unlocked');
 
-    // 解鎖卡片後，依據是否為最後一位玩家設定按鈕文字
     const isLastPlayer = (currentViewingPlayer === players.length - 1);
     elBtnNextReveal.textContent = isLastPlayer ? '我看完了，開始作畫' : '我看完了，交給下一位';
     elBtnNextReveal.disabled = false;
@@ -510,7 +508,6 @@
     }
   }
 
-  // --- 畫布初始化與繪製 ---
   function initCanvas() {
     if (canvas) {
       resizeCanvas();
@@ -611,7 +608,7 @@
     });
   }
 
-  // ================= 階段 3：投票階段（畫板持續置頂） =================
+  // ================= 階段 3：投票階段 =================
   function startVotingStage() {
     currentVoterIndex = 0;
     votes = {};
@@ -681,7 +678,6 @@
     const isSpyCaught = mostVoted.some(idx => spyIndices.includes(idx));
     const spyNames = spyIndices.map(i => players[i].name).join('、');
 
-    // 平民投對 +1
     Object.entries(votes).forEach(([v, t]) => {
       const voterIdx = parseInt(v, 10);
       if (!spyIndices.includes(voterIdx) && spyIndices.includes(t)) {
@@ -690,7 +686,6 @@
       }
     });
 
-    // 間諜逃脫計分
     const escapeScore = (config.spyType === 'blank') ? 3 : 2;
     if (!isSpyCaught) {
       spyIndices.forEach(sIdx => {
@@ -776,7 +771,6 @@
   };
 
   function renderScoreBoards() {
-    // 1. 本回合得分
     let roundHtml = '<ul style="list-style: none; padding-left: 0;">';
     players.forEach((p, idx) => {
       const earned = earnedScores[idx] || 0;
@@ -792,7 +786,6 @@
     roundHtml += '</ul>';
     document.getElementById('result-round-scores').innerHTML = roundHtml;
 
-    // 2. 總積分榜
     const scoreContainer = document.getElementById('result-scoreboard');
     scoreContainer.innerHTML = '';
     const sorted = [...players.map((p, idx) => ({ ...p, score: totalScores[idx] }))];
