@@ -152,7 +152,7 @@
       <span id="round-indicator" style="font-weight: bold; color: var(--accent);">第 1 / 2 輪</span>
     </div>
 
-    <!-- 密室投票面板（常規與 PK 通用） -->
+    <!-- 密室投票面板（支援多票制與 PK） -->
     <div class="card" id="voting-panel" style="display: none;">
       <h3 id="voting-panel-title" style="color: var(--accent); margin-bottom: 4px;">🗳 輪流密室投票</h3>
       <p id="voting-panel-subtitle" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">（開票後即刻決定本局勝負）</p>
@@ -180,7 +180,7 @@
       <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">🗳 2. 玩家投票明細</div>
       <div class="info-box" id="result-votes-details"></div>
 
-      <!-- 3. 題目對照 -->
+      <!-- 3. 題目公布 -->
       <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">💡 3. 題目公布</div>
       <div class="info-box" id="result-topic-details"></div>
 
@@ -284,9 +284,9 @@
   // PK 專用狀態
   let isPkVoting = false;
   let pkCandidateIndices = [];
-  let pkNeededSlots = 1; // 需透過 PK 決出的淘汰人數
-  let confirmedEliminated = []; // PK 前已因絕對高票直接淘汰的玩家
-  let firstRoundVotes = {};     // 儲存第一輪投票結果以供展示
+  let pkNeededSlots = 1;
+  let confirmedEliminated = [];
+  let firstRoundVotes = {};
 
   function formatBopomofo(htmlStr) {
     if (!htmlStr) return '';
@@ -781,7 +781,6 @@
       tList.forEach(t => { voteCounts[t] = (voteCounts[t] || 0) + 1; });
     });
 
-    // 票數由高到低分組
     const groups = {};
     Object.entries(voteCounts).forEach(([id, cnt]) => {
       if (!groups[cnt]) groups[cnt] = [];
@@ -801,7 +800,6 @@
         slotsNeeded -= candidates.length;
         if (slotsNeeded === 0) break;
       } else {
-        // 在分界線上出現平票！需要 PK 決出剩餘的 slotsNeeded 個名額
         pkCandidateIndices = [...candidates];
         pkNeededSlots = slotsNeeded;
         tieFound = true;
@@ -830,7 +828,6 @@
         startPkVotingStage();
       };
     } else {
-      // 無平票，直接結算
       finalizeDrawGame(confirmedEliminated, false, []);
     }
   }
@@ -846,7 +843,6 @@
       });
     });
 
-    // 依 PK 得票分組
     const pkGroups = {};
     Object.entries(pkVoteCounts).forEach(([id, cnt]) => {
       if (!pkGroups[cnt]) pkGroups[cnt] = [];
@@ -867,7 +863,6 @@
         slotsNeeded -= candidates.length;
         if (slotsNeeded === 0) break;
       } else {
-        // 【PK 再次平票】➔ 無人淘汰！名額放棄
         pkTieHappened = true;
         tiedCandidates = [...candidates];
         break;
@@ -882,11 +877,9 @@
     document.getElementById('voting-panel').style.display = 'none';
     document.getElementById('result-panel').style.display = 'block';
 
-    // 標記淘汰
     eliminatedIndices.forEach(id => { isAlive[id] = false; });
 
-    // 3. 【核心計分】：只有平民投票給「確實在本輪死亡淘汰」的間諜或白板，每投死 1 位 +1 分
-    // 合併正式投票與 PK 投票的命中判斷
+    // 只有平民投票給「確實在本輪死亡淘汰」的間諜或白板，每投死 1 位 +1 分
     const allVotesToCheck = [firstRoundVotes, isPkVoting ? votes : {}];
 
     allVotesToCheck.forEach((voteMap, vRoundIdx) => {
@@ -910,7 +903,7 @@
       });
     });
 
-    // 4. 勝負評判：間諜與白板是否全數在最高票淘汰名單中
+    // 勝負評判：間諜與白板是否全數在最高票淘汰名單中
     const allEnemiesEliminated = players.every((_, idx) => {
       if (playerRoles[idx] === 'spy' || playerRoles[idx] === 'blank') {
         return !isAlive[idx];
@@ -920,7 +913,7 @@
 
     const isCivilianWin = allEnemiesEliminated;
 
-    // 5. 陣營勝利加分
+    // 陣營勝利加分
     if (isCivilianWin) {
       players.forEach((_, idx) => {
         if (playerRoles[idx] === 'civilian' && isAlive[idx]) {
@@ -943,7 +936,7 @@
       });
     }
 
-    // --- UI 渲染 ---
+    // --- UI 渲染（統一為「間諜陣營獲勝！」） ---
     const summaryBox = document.getElementById('result-summary-box');
     if (isCivilianWin) {
       summaryBox.innerHTML = `
@@ -952,7 +945,7 @@
       `;
     } else {
       summaryBox.innerHTML = `
-        <h3 style="color:var(--danger); margin-bottom:4px;">😈 間諜與白板獲勝！</h3>
+        <h3 style="color:var(--danger); margin-bottom:4px;">😈 間諜陣營獲勝！</h3>
         <p style="font-size:0.88rem;">臥底成功隱匿或存活！存活間諜獲 <b>+2 分</b>，存活白板獲 <b>+3 分</b>！</p>
       `;
     }
