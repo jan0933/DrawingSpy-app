@@ -124,8 +124,8 @@
         <p style="color: #f8fafc; font-weight: bold; font-size: 0.95rem;">PK 規則說明：</p>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; line-height: 1.5;">
           1. 平票候選人可各自進行最後 30 秒申辯說明。<br>
-          2. 申辯完畢後，全體存活玩家將<b>重新投票</b>，且僅能投給平票候選人之一。<br>
-          3. ⚠️ <b>若 PK 投票依然同票，本輪判定為無人淘汰（平安夜）</b>，直接進入下一輪！
+          2. 申辯完畢後，全體存活玩家將<b>重新投票</b>，第一輪投票作廢不計分。<br>
+          3. ⚠️ <b>只有在 PK 投票中投對被處死間諜的平民才可得 1 分；若 PK 依然同票則判定無人淘汰（平安夜）</b>！
         </p>
       </div>
 
@@ -456,31 +456,38 @@
       else if (cnt === maxVotes) { mostVoted.push(idx); }
     });
 
+    // 出現平票
     if (mostVoted.length > 1) {
       if (!isPkVoting) {
+        // 第一輪平票 ➔ 進入 PK 階段，第一輪作廢不計分
         pkCandidateIndices = [...mostVoted];
         document.getElementById('pk-candidates-names').textContent = mostVoted.map(id => players[id].name).join(' 與 ');
         showScreen('step-pk-notice');
         return;
       } else {
+        // PK 輪再次同票 ➔ 無人淘汰（平安夜）
         handleNoOneEliminated(mostVoted, maxVotes);
         return;
       }
     }
 
+    // 決出唯一最高票
     const eliminatedPlayer = mostVoted[0];
     isAlive[eliminatedPlayer] = false;
 
+    // 【核心規則】：僅在「最終決定生死的那次投票」中投對被處決間諜的平民得 1 分
     const eliminatedRole = playerRoles[eliminatedPlayer];
     if (eliminatedRole === 'spy' || eliminatedRole === 'blank') {
-      Object.entries(votes).forEach(([vStr, tIdx]) => {
-        const v = parseInt(vStr, 10);
-        if (playerRoles[v] === 'civilian' && tIdx === eliminatedPlayer) {
-          earnedScores[v] = (earnedScores[v] || 0) + 1;
-          totalScores[v] += 1;
-          const pkPrefix = isPkVoting ? '（PK投票）' : '';
-          const roleTitle = (eliminatedRole === 'blank') ? '白板' : '間諜';
-          scoreReasons[v].push(`第 ${talkRound} 輪${pkPrefix}成功投死${roleTitle}【${players[eliminatedPlayer].name}】 (+1分)`);
+      players.forEach((p, v) => {
+        if (playerRoles[v] === 'civilian') {
+          // 只審查當前這輪最終投票 (votes)
+          if (votes[v] === eliminatedPlayer) {
+            earnedScores[v] = (earnedScores[v] || 0) + 1;
+            totalScores[v] += 1;
+            const pkPrefix = isPkVoting ? '（PK投票）' : '';
+            const roleTitle = (eliminatedRole === 'blank') ? '白板' : '間諜';
+            scoreReasons[v].push(`第 ${talkRound} 輪${pkPrefix}成功投死${roleTitle}【${players[eliminatedPlayer].name}】 (+1分)`);
+          }
         }
       });
     }
@@ -688,7 +695,7 @@
     });
     document.getElementById('result-votes-details').innerHTML = voteDetailsHtml;
 
-    // 3. 題目對照（若無間諜純白板局，不顯示間諜詞）
+    // 3. 題目對照（若純白板局無間諜，不顯示間諜詞）
     let topicHtml = `<div style="display:flex; align-items:center; gap:8px;">平民詞：<div class="tag-word-wrap" style="margin:4px 0;">${formatBopomofo(civilianWord)}</div></div>`;
     if (initialSpies > 0) {
       topicHtml += `<div style="display:flex; align-items:center; gap:8px;">間諜詞：<div class="tag-word-wrap" style="margin:4px 0;">${formatBopomofo(spyWord)}</div></div>`;
