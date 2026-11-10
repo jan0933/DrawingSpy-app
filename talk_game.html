@@ -99,28 +99,49 @@
     </div>
   </section>
 
-  <!-- ================= 階段 3：密室投票 ================= -->
+  <!-- ================= 階段 3：密室投票（常規與 PK 通用） ================= -->
   <section id="step-voting" class="screen">
     <div class="card">
       <span class="round-badge" id="badge-round-voting">第 1 輪投票</span>
-      <h3 style="color: var(--accent); margin-bottom: 6px;">🗳 輪流密室投票</h3>
+      <h3 id="voting-stage-title" style="color: var(--accent); margin-bottom: 4px;">🗳 輪流密室投票</h3>
+      <p id="voting-stage-desc" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;"></p>
       <p style="font-size: 0.95rem; margin-bottom: 10px;">
-        請<span id="voting-current-voter-name" style="font-weight: bold;">【玩家 1】</span>點選你懷疑是間諜的對象：
+        請<span id="voting-current-voter-name" style="font-weight: bold;">【玩家 1】</span>點選投票對象：
       </p>
       <div id="vote-options"></div>
       <button id="btn-submit-vote" class="btn" disabled>確認投票並傳給下一位</button>
     </div>
   </section>
 
-  <!-- ================= 中場過渡：回合淘汰公告 ================= -->
+  <!-- ================= 中場過渡：PK 申辯公告 ================= -->
+  <section id="step-pk-notice" class="screen">
+    <div class="card">
+      <span class="round-badge" style="border-color: #fbbf24; color: #fbbf24;">平票公告</span>
+      <h2 style="color: #fbbf24; margin: 10px 0 6px 0;">⚖️ 出現平票，進入 PK 階段</h2>
+      <p style="font-size: 0.95rem; margin-bottom: 12px;">本輪出現相同最高票：<span id="pk-candidates-names" style="font-size: 1.15rem; font-weight: bold; color: var(--accent);"></span></p>
+
+      <div class="info-box" style="text-align: left; border-left: 3px solid #fbbf24;">
+        <p style="color: #f8fafc; font-weight: bold; font-size: 0.95rem;">PK 規則說明：</p>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; line-height: 1.5;">
+          1. 平票候選人可各自進行最後 30 秒申辯說明。<br>
+          2. 申辯完畢後，全體存活玩家將<b>重新投票</b>，且僅能投給平票候選人之一。<br>
+          3. ⚠️ <b>若 PK 投票依然同票，本輪判定為無人淘汰（平安夜）</b>，直接進入下一輪！
+        </p>
+      </div>
+
+      <button id="btn-start-pk-vote" class="btn btn-success" style="margin-top: 10px;">申辯完畢，開始 PK 投票</button>
+    </div>
+  </section>
+
+  <!-- ================= 中場過渡：回合淘汰 / 平安夜公告 ================= -->
   <section id="step-eliminated" class="screen">
     <div class="card">
       <span class="round-badge" id="badge-eliminated-title" style="border-color: var(--danger); color: var(--danger);">本輪投票結果</span>
-      <h2 style="color: var(--danger); margin: 10px 0 6px 0;">淘汰公告</h2>
-      <p style="font-size: 1rem; margin-bottom: 12px;">本輪最高票淘汰玩家為：<span id="eliminated-player-name" style="font-size: 1.25rem; font-weight: bold;"></span></p>
+      <h2 id="eliminated-main-title" style="color: var(--danger); margin: 10px 0 6px 0;">淘汰公告</h2>
+      <p id="eliminated-player-line" style="font-size: 1rem; margin-bottom: 12px;">本輪最高票淘汰玩家為：<span id="eliminated-player-name" style="font-size: 1.25rem; font-weight: bold;"></span></p>
 
-      <div class="info-box" style="text-align: center; border-left: 3px solid var(--danger);">
-        <p style="color: #fbbf24; font-weight: bold; font-size: 1rem;">⚠️ 尚未分出勝負！</p>
+      <div class="info-box" style="text-align: center; border-left: 3px solid var(--danger);" id="eliminated-box-border">
+        <p style="color: #fbbf24; font-weight: bold; font-size: 1rem;" id="eliminated-status-text">⚠️ 尚未分出勝負！</p>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;" id="eliminated-desc-text">
           該名玩家已即刻出局。<br>
           目前不公布身分與題目，存活玩家進入<b>下一輪發言</b>！
@@ -138,23 +159,18 @@
       
       <div class="info-box" id="result-summary-box"></div>
       
-      <!-- 1. 全員身分揭曉 -->
       <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">🕵️ 1. 全員身分揭曉</div>
       <div class="info-box" id="result-roles-details"></div>
 
-      <!-- 2. 玩家投票明細 -->
       <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">🗳 2. 玩家投票明細</div>
       <div class="info-box" id="result-votes-details"></div>
 
-      <!-- 3. 詞彙題目對照 -->
       <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">💡 3. 詞彙題目對照</div>
       <div class="info-box" id="result-topic-details"></div>
       
-      <!-- 4. 本局得分明細 -->
       <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">⭐ 4. 本局得分明細</div>
       <div class="info-box" id="result-round-scores"></div>
 
-      <!-- 5. 累積分數總榜 -->
       <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">🏆 累積分數總榜</div>
       <div id="result-scoreboard" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;"></div>
 
@@ -207,6 +223,10 @@
   let scoreReasons = {};
   let roundVoteRecords = [];
 
+  // PK 狀態管理
+  let isPkVoting = false;
+  let pkCandidateIndices = [];
+
   function initGame() {
     talkRound = 1;
     votes = {};
@@ -214,6 +234,9 @@
     scoreReasons = {};
     isAlive = {};
     roundVoteRecords = [];
+    isPkVoting = false;
+    pkCandidateIndices = [];
+
     players.forEach((_, idx) => {
       isAlive[idx] = true;
       earnedScores[idx] = 0;
@@ -333,6 +356,15 @@
   }
 
   document.getElementById('btn-start-vote').onclick = () => {
+    isPkVoting = false;
+    currentVoterIndex = 0;
+    votes = {};
+    setupVotingStep();
+    showScreen('step-voting');
+  };
+
+  document.getElementById('btn-start-pk-vote').onclick = () => {
+    isPkVoting = true;
     currentVoterIndex = 0;
     votes = {};
     setupVotingStep();
@@ -340,11 +372,27 @@
   };
 
   function setupVotingStep() {
-    document.getElementById('badge-round-voting').textContent = `第 ${talkRound} 輪投票`;
-    
     const aliveIndices = players.map((_, i) => i).filter(i => isAlive[i]);
     const voterRealIdx = aliveIndices[currentVoterIndex];
     const voter = players[voterRealIdx];
+
+    const badge = document.getElementById('badge-round-voting');
+    const title = document.getElementById('voting-stage-title');
+    const desc = document.getElementById('voting-stage-desc');
+
+    if (isPkVoting) {
+      badge.textContent = `第 ${talkRound} 輪 PK 投票`;
+      badge.style.borderColor = '#fbbf24';
+      badge.style.color = '#fbbf24';
+      title.textContent = '⚖️ 平票 PK 密室投票';
+      desc.textContent = '請從進入 PK 的平票候選人中選擇一位投票處決：';
+    } else {
+      badge.textContent = `第 ${talkRound} 輪投票`;
+      badge.style.borderColor = 'var(--accent)';
+      badge.style.color = 'var(--accent)';
+      title.textContent = '🗳 輪流密室投票';
+      desc.textContent = '請點選你懷疑的間諜或白板對象：';
+    }
 
     const nameEl = document.getElementById('voting-current-voter-name');
     nameEl.textContent = `【${voter.name}】`;
@@ -359,8 +407,11 @@
     container.innerHTML = '';
     selectedVoteTarget = null;
 
-    aliveIndices.forEach(idx => {
-      if (idx === voterRealIdx) return;
+    // 若是 PK，候選人限定為 pkCandidateIndices；若是常規投票，則是所有其他存活者
+    const targetPool = isPkVoting ? pkCandidateIndices : aliveIndices;
+
+    targetPool.forEach(idx => {
+      if (idx === voterRealIdx) return; // 不能投自己
       const p = players[idx];
       const opt = document.createElement('div');
       opt.className = 'vote-item';
@@ -392,9 +443,11 @@
   function tallyRoundVotes() {
     const aliveIndices = players.map((_, i) => i).filter(i => isAlive[i]);
     const voteCounts = {};
-    aliveIndices.forEach(i => voteCounts[i] = 0);
+    const candidatePool = isPkVoting ? pkCandidateIndices : aliveIndices;
+    candidatePool.forEach(i => voteCounts[i] = 0);
+
     Object.values(votes).forEach(t => {
-      if (voteCounts[t] !== undefined) voteCounts[t]++;
+      if (t !== null && voteCounts[t] !== undefined) voteCounts[t]++;
     });
 
     let maxVotes = -1;
@@ -405,32 +458,68 @@
       else if (cnt === maxVotes) { mostVoted.push(idx); }
     });
 
-    // 淘汰本輪最高票玩家（若平票淘汰第一位）
+    // 判斷是否平票
+    if (mostVoted.length > 1) {
+      if (!isPkVoting) {
+        // 【初次平票】➔ 進入 PK 階段
+        pkCandidateIndices = [...mostVoted];
+        document.getElementById('pk-candidates-names').textContent = mostVoted.map(id => players[id].name).join(' 與 ');
+        showScreen('step-pk-notice');
+        return;
+      } else {
+        // 【PK 再次平票】➔ 無人淘汰（平安夜）
+        handleNoOneEliminated(mostVoted, maxVotes);
+        return;
+      }
+    }
+
+    // 單一最高票處決
     const eliminatedPlayer = mostVoted[0];
     isAlive[eliminatedPlayer] = false;
 
-    // 【核心修正】：必須該回合被淘汰處決的玩家確實是間諜或白板，投給他的平民才能 +1 分
+    // 只有平民投中「被淘汰處決」的臥底，才各獲得 +1 分
     const eliminatedRole = playerRoles[eliminatedPlayer];
     if (eliminatedRole === 'spy' || eliminatedRole === 'blank') {
       Object.entries(votes).forEach(([vStr, tIdx]) => {
         const v = parseInt(vStr, 10);
-        // 投給當前被處決的這一位臥底，且身分是平民
         if (playerRoles[v] === 'civilian' && tIdx === eliminatedPlayer) {
           earnedScores[v] = (earnedScores[v] || 0) + 1;
           totalScores[v] += 1;
-          scoreReasons[v].push(`第 ${talkRound} 輪成功投死臥底【${players[eliminatedPlayer].name}】 (+1分)`);
+          const pkPrefix = isPkVoting ? '（PK投票）' : '';
+          scoreReasons[v].push(`第 ${talkRound} 輪${pkPrefix}成功投死臥底【${players[eliminatedPlayer].name}】 (+1分)`);
         }
       });
     }
 
     roundVoteRecords.push({
       round: talkRound,
+      isPk: isPkVoting,
       votes: { ...votes },
       eliminated: eliminatedPlayer,
-      mostVoted: [...mostVoted],
-      maxVotes: maxVotes
+      mostVoted: [eliminatedPlayer],
+      maxVotes: maxVotes,
+      isTiePeace: false
     });
 
+    checkGameOverOrNextRound(eliminatedPlayer);
+  }
+
+  // PK 再次同票時的平安夜邏輯
+  function handleNoOneEliminated(tiedList, maxVotes) {
+    roundVoteRecords.push({
+      round: talkRound,
+      isPk: true,
+      votes: { ...votes },
+      eliminated: null,
+      mostVoted: tiedList,
+      maxVotes: maxVotes,
+      isTiePeace: true
+    });
+
+    checkGameOverOrNextRound(null);
+  }
+
+  function checkGameOverOrNextRound(eliminatedPlayer) {
     const remainingSpies = players.filter((_, i) => isAlive[i] && playerRoles[i] === 'spy').length;
     const initialSpies = players.filter((_, i) => playerRoles[i] === 'spy').length;
     const initialBlanks = players.filter((_, i) => playerRoles[i] === 'blank').length;
@@ -468,13 +557,32 @@
       calculateFinalScores(isCivilianWin, initialSpies, initialBlanks);
       finishGame(isCivilianWin);
     } else {
+      // 顯示過渡畫面
       document.getElementById('badge-eliminated-title').textContent = `第 ${talkRound} 輪投票結果`;
-      document.getElementById('eliminated-player-name').textContent = players[eliminatedPlayer].name;
-      document.getElementById('eliminated-player-name').style.color = players[eliminatedPlayer].color;
-      document.getElementById('eliminated-desc-text').innerHTML = `
-        該名玩家已即刻出局。<br>
-        目前不公布身分與題目，存活玩家進入<b>第 ${talkRound + 1} 輪發言</b>！
-      `;
+      const mainTitle = document.getElementById('eliminated-main-title');
+      const playerLine = document.getElementById('eliminated-player-line');
+      const boxBorder = document.getElementById('eliminated-box-border');
+      const statusText = document.getElementById('eliminated-status-text');
+      const descText = document.getElementById('eliminated-desc-text');
+
+      if (eliminatedPlayer === null) {
+        // 平安夜公告
+        mainTitle.textContent = '🕊️ 平安夜公告';
+        mainTitle.style.color = '#38bdf8';
+        playerLine.innerHTML = 'PK 投票再次平票：<b style="color:#fbbf24;">本輪無人淘汰！</b>';
+        boxBorder.style.borderColor = '#38bdf8';
+        statusText.textContent = '⚠️ 雙方均未出局！';
+        descText.innerHTML = `全員安全度過此輪。<br>存活玩家立即進入<b>第 ${talkRound + 1} 輪發言</b>！`;
+      } else {
+        // 有人出局公告
+        mainTitle.textContent = '淘汰公告';
+        mainTitle.style.color = 'var(--danger)';
+        playerLine.innerHTML = `本輪最高票淘汰玩家為：<span style="font-size:1.25rem; font-weight:bold; color:${players[eliminatedPlayer].color};">${players[eliminatedPlayer].name}</span>`;
+        boxBorder.style.borderColor = 'var(--danger)';
+        statusText.textContent = '⚠️ 尚未分出勝負！';
+        descText.innerHTML = `該名玩家已即刻出局。<br>存活玩家進入<b>第 ${talkRound + 1} 輪發言</b>！`;
+      }
+
       showScreen('step-eliminated');
     }
   }
@@ -521,7 +629,7 @@
       }
     }
 
-    // 白板獨立計分：存活即 +3 分
+    // 白板獨立計分
     players.forEach((_, idx) => {
       if (playerRoles[idx] === 'blank' && isAlive[idx]) {
         earnedScores[idx] = (earnedScores[idx] || 0) + 3;
@@ -571,13 +679,21 @@
     // 2. 玩家投票明細
     let voteDetailsHtml = '';
     roundVoteRecords.forEach(rec => {
-      voteDetailsHtml += `<div style="font-weight:bold; color:var(--accent); margin-bottom:2px;">【第 ${rec.round} 輪投票】</div><ul style="list-style:none; padding-left:0; margin-bottom:8px;">`;
+      const typeLabel = rec.isPk ? '【PK 投票】' : '【正式投票】';
+      voteDetailsHtml += `<div style="font-weight:bold; color:var(--accent); margin-bottom:2px;">第 ${rec.round} 輪 ${typeLabel}</div><ul style="list-style:none; padding-left:0; margin-bottom:6px;">`;
       Object.entries(rec.votes).forEach(([voterId, targetId]) => {
         const v = players[voterId];
-        const t = players[targetId];
-        voteDetailsHtml += `<li style="margin-bottom:2px;"><b>${v.name}</b> 投給 👉 <span style="color:${t.color}; font-weight:bold;">${t.name}</span></li>`;
+        const t = (targetId !== null && players[targetId]) ? players[targetId] : null;
+        const tName = t ? `<span style="color:${t.color}; font-weight:bold;">${t.name}</span>` : '無';
+        voteDetailsHtml += `<li style="margin-bottom:2px;"><b>${v.name}</b> 投給 👉 ${tName}</li>`;
       });
-      voteDetailsHtml += `</ul><div style="font-size:0.85rem; color:var(--danger); margin-bottom:10px;">➔ 淘汰玩家：<b>${players[rec.eliminated].name}</b> (${rec.maxVotes} 票)</div>`;
+      voteDetailsHtml += '</ul>';
+
+      if (rec.isTiePeace) {
+        voteDetailsHtml += `<div style="font-size:0.85rem; color:#38bdf8; margin-bottom:10px;">➔ PK 再次平票：<b>本輪無人淘汰（平安夜）</b></div>`;
+      } else {
+        voteDetailsHtml += `<div style="font-size:0.85rem; color:var(--danger); margin-bottom:10px;">➔ 處決淘汰玩家：<b>${players[rec.eliminated].name}</b> (${rec.maxVotes} 票)</div>`;
+      }
     });
     document.getElementById('result-votes-details').innerHTML = voteDetailsHtml;
 
