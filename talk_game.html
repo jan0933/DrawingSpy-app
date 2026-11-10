@@ -57,7 +57,7 @@
 
 <div class="container">
 
-  <!-- ================= 階段 1：查看詞彙（盲身分：不顯示平民/間諜） ================= -->
+  <!-- ================= 階段 1：查看詞彙（盲身分） ================= -->
   <section id="step-reveal" class="screen active">
     <div class="card">
       <span class="round-badge" id="badge-round-reveal">身分確認</span>
@@ -89,7 +89,7 @@
       <h3 style="font-size: 1.15rem; margin-bottom: 4px;">🗣️ 輪流發言階段</h3>
       <div style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 4px; margin: 8px 0 12px 0; text-align: left; font-size: 0.85rem; line-height: 1.5;">
         • 存活玩家依序用<b>一句話</b>描述自己手中的詞，嚴禁提及關鍵字！<br>
-        • 發言完畢後全員進行投票猜出隱藏在其中的間諜或白板。
+        • 發言完畢後全員進行投票，指認你懷疑的間諜或白板。
       </div>
 
       <p style="font-size: 0.85rem; font-weight: bold; color: var(--text-muted); text-align: left; margin-bottom: 6px;">發言順序：</p>
@@ -112,22 +112,22 @@
     </div>
   </section>
 
-  <!-- ================= 中場過渡：第一輪淘汰公告（僅顯示最高票玩家） ================= -->
+  <!-- ================= 中場過渡：回合淘汰公告 ================= -->
   <section id="step-eliminated" class="screen">
     <div class="card">
-      <span class="round-badge" style="border-color: var(--danger); color: var(--danger);">第一輪投票結果</span>
+      <span class="round-badge" id="badge-eliminated-title" style="border-color: var(--danger); color: var(--danger);">本輪投票結果</span>
       <h2 style="color: var(--danger); margin: 10px 0 6px 0;">淘汰公告</h2>
       <p style="font-size: 1rem; margin-bottom: 12px;">本輪最高票淘汰玩家為：<span id="eliminated-player-name" style="font-size: 1.25rem; font-weight: bold;"></span></p>
 
       <div class="info-box" style="text-align: center; border-left: 3px solid var(--danger);">
-        <p style="color: #fbbf24; font-weight: bold; font-size: 1rem;">⚠️ 未能成功揪出臥底！</p>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">
+        <p style="color: #fbbf24; font-weight: bold; font-size: 1rem;">⚠️ 尚未分出勝負！</p>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;" id="eliminated-desc-text">
           該名玩家已即刻出局。<br>
-          目前不公布身分與詞彙答案，存活玩家立即進入<b>第二輪發言</b>！
+          目前不公布身分與題目，存活玩家立即進入下一輪發言！
         </p>
       </div>
 
-      <button id="btn-go-round2" class="btn btn-success" style="margin-top: 10px;">進入第二輪發言</button>
+      <button id="btn-go-next-round" class="btn btn-success" style="margin-top: 10px;">進入下一輪發言</button>
     </div>
   </section>
 
@@ -146,7 +146,7 @@
       <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">🕵️ 2. 全員身分揭曉</div>
       <div class="info-box" id="result-roles-details"></div>
 
-      <!-- 3. 詞彙題目對照（不顯示類別） -->
+      <!-- 3. 詞彙題目對照（無類別） -->
       <div style="text-align: left; font-size: 0.9rem; font-weight: bold; color: var(--accent); margin: 10px 0 4px 0;">💡 3. 詞彙題目對照</div>
       <div class="info-box" id="result-topic-details"></div>
       
@@ -189,33 +189,39 @@
   let totalScores = {};
   players.forEach((_, idx) => { totalScores[idx] = 0; });
 
-  let playerRoles = {};
+  let playerRoles = {}; // { 0: 'civilian', 1: 'spy', 2: 'blank' }
   let playerWords = {};
-  let isAlive = {};
+  let isAlive = {};     // 記錄是否存活
 
   let civilianWord = '';
   let spyWord = '';
 
   let talkRound = 1;
+  let maxTalkRounds = 2; // 2間諜局為3輪，其餘為2輪
   let currentViewingPlayer = 0;
   let turnOrder = [];
   let currentVoterIndex = 0;
   let votes = {};
   let selectedVoteTarget = null;
   let earnedScores = {};
+  let roundVoteRecords = []; // 紀錄每輪的投票與淘汰情況
 
   function initGame() {
     talkRound = 1;
     votes = {};
     earnedScores = {};
     isAlive = {};
+    roundVoteRecords = [];
     players.forEach((_, idx) => {
       isAlive[idx] = true;
       earnedScores[idx] = 0;
     });
 
-    const spyTargetCount = rawConfig.spyCount !== undefined ? rawConfig.spyCount : 1;
-    const blankTargetCount = rawConfig.blankCount !== undefined ? rawConfig.blankCount : 0;
+    const spyTargetCount = rawConfig.spyCount !== undefined ? parseInt(rawConfig.spyCount, 10) : 1;
+    const blankTargetCount = rawConfig.blankCount !== undefined ? parseInt(rawConfig.blankCount, 10) : 0;
+
+    // 規則設定：2間諜(不含白板)局進行 3 輪，其餘進行 2 輪
+    maxTalkRounds = (spyTargetCount === 2) ? 3 : 2;
 
     const indices = Array.from({ length: players.length }, (_, i) => i).sort(() => Math.random() - 0.5);
     const spyIndices = indices.slice(0, spyTargetCount);
@@ -276,7 +282,7 @@
 
     const isLast = (currentViewingPlayer === players.length - 1);
     const btn = document.getElementById('btn-next-reveal');
-    btn.textContent = isLast ? '我看完了，開始作答' : '我看完了，交給下一位';
+    btn.textContent = isLast ? '我看完了，開始發言' : '我看完了，交給下一位';
     btn.disabled = true;
   }
 
@@ -304,7 +310,7 @@
   };
 
   function setupTalkOrder() {
-    document.getElementById('badge-round-talk').textContent = `第 ${talkRound} 輪發言`;
+    document.getElementById('badge-round-talk').textContent = `第 ${talkRound} 輪發言 (共 ${maxTalkRounds} 輪)`;
     const list = document.getElementById('flow-order-list');
     list.innerHTML = '';
     
@@ -344,7 +350,7 @@
 
     const isLast = (currentVoterIndex === aliveIndices.length - 1);
     const submitBtn = document.getElementById('btn-submit-vote');
-    submitBtn.textContent = isLast ? '確認投票並觀看投票結果' : '確認投票並傳給下一位';
+    submitBtn.textContent = isLast ? '確認投票並觀看結果' : '確認投票並傳給下一位';
     submitBtn.disabled = true;
 
     const container = document.getElementById('vote-options');
@@ -397,94 +403,169 @@
       else if (cnt === maxVotes) { mostVoted.push(idx); }
     });
 
-    const caughtTarget = mostVoted.find(idx => playerRoles[idx] === 'spy' || playerRoles[idx] === 'blank');
-    const isSuccess = (caughtTarget !== undefined);
+    // 淘汰本輪最高票玩家（若平票淘汰第一位）
+    const eliminatedPlayer = mostVoted[0];
+    isAlive[eliminatedPlayer] = false;
 
-    if (isSuccess) {
-      // 成功抓出臥底
-      Object.entries(votes).forEach(([vStr, tIdx]) => {
-        const v = parseInt(vStr, 10);
-        if (playerRoles[v] === 'civilian' && (playerRoles[tIdx] === 'spy' || playerRoles[tIdx] === 'blank')) {
-          earnedScores[v] = (earnedScores[v] || 0) + 1;
-          totalScores[v] += 1;
-        }
-      });
-      aliveIndices.forEach(idx => {
-        if (playerRoles[idx] === 'civilian') {
+    // 平民投中臥底（間諜/白板）累加投票分（每次投對+1）
+    Object.entries(votes).forEach(([vStr, tIdx]) => {
+      const v = parseInt(vStr, 10);
+      if (playerRoles[v] === 'civilian' && (playerRoles[tIdx] === 'spy' || playerRoles[tIdx] === 'blank')) {
+        earnedScores[v] = (earnedScores[v] || 0) + 1;
+        totalScores[v] += 1;
+      }
+    });
+
+    // 保存當輪投票紀錄
+    roundVoteRecords.push({
+      round: talkRound,
+      votes: { ...votes },
+      eliminated: eliminatedPlayer,
+      mostVoted: [...mostVoted],
+      maxVotes: maxVotes
+    });
+
+    // 檢查剩餘存活身分
+    const remainingSpies = players.filter((_, i) => isAlive[i] && playerRoles[i] === 'spy').length;
+    const initialSpies = players.filter((_, i) => playerRoles[i] === 'spy').length;
+    const initialBlanks = players.filter((_, i) => playerRoles[i] === 'blank').length;
+
+    let isCivilianWin = false;
+    let isGameOver = false;
+
+    // 勝負判定規則：
+    if (initialSpies === 2) {
+      // 2間諜局：必須抓出全部間諜才算平民獲勝
+      if (remainingSpies === 0) {
+        isCivilianWin = true;
+        isGameOver = true;
+      } else if (talkRound >= maxTalkRounds) {
+        isCivilianWin = false;
+        isGameOver = true;
+      }
+    } else if (initialSpies === 1 && initialBlanks === 1) {
+      // 1間諜 1白板局：必須抓到間諜才算平民獲勝
+      if (remainingSpies === 0) {
+        isCivilianWin = true;
+        isGameOver = true;
+      } else if (talkRound >= maxTalkRounds) {
+        isCivilianWin = false;
+        isGameOver = true;
+      }
+    } else {
+      // 其餘情況（如1間諜0白板、或純白板局）
+      if (remainingSpies === 0 && (initialBlanks === 0 || !players.some((_, i) => isAlive[i] && playerRoles[i] === 'blank'))) {
+        isCivilianWin = true;
+        isGameOver = true;
+      } else if (talkRound >= maxTalkRounds) {
+        isCivilianWin = false;
+        isGameOver = true;
+      }
+    }
+
+    if (isGameOver) {
+      calculateFinalScores(isCivilianWin, initialSpies, initialBlanks);
+      finishGame(isCivilianWin);
+    } else {
+      // 尚未結束，進入下一輪
+      document.getElementById('badge-eliminated-title').textContent = `第 ${talkRound} 輪投票結果`;
+      document.getElementById('eliminated-player-name').textContent = players[eliminatedPlayer].name;
+      document.getElementById('eliminated-player-name').style.color = players[eliminatedPlayer].color;
+      document.getElementById('eliminated-desc-text').innerHTML = `
+        該名玩家已即刻出局。<br>
+        目前不公布身分與題目，存活玩家進入<b>第 ${talkRound + 1} 輪發言</b>！
+      `;
+      showScreen('step-eliminated');
+    }
+  }
+
+  // 結算計分處理
+  function calculateFinalScores(isCivilianWin, initialSpies, initialBlanks) {
+    if (isCivilianWin) {
+      // 平民獲勝：存活平民各再 +1 分
+      players.forEach((_, idx) => {
+        if (playerRoles[idx] === 'civilian' && isAlive[idx]) {
           earnedScores[idx] = (earnedScores[idx] || 0) + 1;
           totalScores[idx] += 1;
         }
       });
-
-      // 修正：平民陣營獲勝時，僅將被揪出的臥底標記為淘汰；若有平民同為最高票，平民依然維持存活
-      mostVoted.forEach(id => {
-        if (playerRoles[id] === 'spy' || playerRoles[id] === 'blank') {
-          isAlive[id] = false;
-        }
-      });
-
-      finishGame(true, mostVoted, maxVotes);
     } else {
-      // 未猜中，投出的為平民
-      const eliminatedCivilian = mostVoted[0];
-      isAlive[eliminatedCivilian] = false;
-
-      if (talkRound === 1) {
-        document.getElementById('eliminated-player-name').textContent = players[eliminatedCivilian].name;
-        document.getElementById('eliminated-player-name').style.color = players[eliminatedCivilian].color;
-        showScreen('step-eliminated');
-      } else {
+      // 平民未獲勝（間諜陣營獲勝）
+      if (initialSpies === 2) {
+        // 2間諜局：全體間諜+1分，存活的間諜額外+1分
         players.forEach((_, idx) => {
           if (playerRoles[idx] === 'spy') {
-            earnedScores[idx] = (earnedScores[idx] || 0) + 2;
-            totalScores[idx] += 2;
-          } else if (playerRoles[idx] === 'blank') {
-            earnedScores[idx] = (earnedScores[idx] || 0) + 3;
-            totalScores[idx] += 3;
+            earnedScores[idx] = (earnedScores[idx] || 0) + 1; // 全體間諜 +1
+            totalScores[idx] += 1;
+            if (isAlive[idx]) {
+              earnedScores[idx] += 1; // 存活額外 +1 (共+2)
+              totalScores[idx] += 1;
+            }
           }
         });
-        finishGame(false, mostVoted, maxVotes);
+      } else if (initialSpies === 1 && initialBlanks === 1) {
+        // 1間諜 1白板局：間諜只有存活才能+2分
+        players.forEach((_, idx) => {
+          if (playerRoles[idx] === 'spy' && isAlive[idx]) {
+            earnedScores[idx] = (earnedScores[idx] || 0) + 2;
+            totalScores[idx] += 2;
+          }
+        });
+      } else {
+        // 其餘一般逃脫
+        players.forEach((_, idx) => {
+          if (playerRoles[idx] === 'spy' && isAlive[idx]) {
+            earnedScores[idx] = (earnedScores[idx] || 0) + 2;
+            totalScores[idx] += 2;
+          }
+        });
       }
     }
+
+    // 白板獨立計分：無論哪個陣營獲勝，白板存活都是 +3 分
+    players.forEach((_, idx) => {
+      if (playerRoles[idx] === 'blank' && isAlive[idx]) {
+        earnedScores[idx] = (earnedScores[idx] || 0) + 3;
+        totalScores[idx] += 3;
+      }
+    });
   }
 
-  document.getElementById('btn-go-round2').onclick = () => {
-    talkRound = 2;
+  document.getElementById('btn-go-next-round').onclick = () => {
+    talkRound++;
     setupTalkOrder();
     showScreen('step-talk');
   };
 
-  function finishGame(isCivilianWin, mostVoted, maxVotes) {
+  // ================= 階段 4：結算揭曉 =================
+  function finishGame(isCivilianWin) {
     const summaryBox = document.getElementById('result-summary-box');
     if (isCivilianWin) {
       summaryBox.innerHTML = `
         <h3 style="color:var(--success); margin-bottom:4px;">🎉 平民陣營獲勝！</h3>
-        <p style="font-size:0.88rem;">在第 <b>${talkRound}</b> 輪成功揪出臥底！投對間諜的平民獲 <b>+1 分</b>，此時存活平民再獲 <b>+1 分</b>！</p>
+        <p style="font-size:0.88rem;">平民成功揪出間諜！猜對臥底的平民各獲 <b>+1 分</b>，存活平民再獲 <b>+1 分</b>！</p>
       `;
     } else {
       summaryBox.innerHTML = `
         <h3 style="color:var(--danger); margin-bottom:4px;">😈 間諜陣營獲勝！</h3>
-        <p style="font-size:0.88rem;">平民兩輪皆未抓出臥底！間諜獲得 <b>+2 分</b>，白板獲得 <b>+3 分</b>！</p>
+        <p style="font-size:0.88rem;">平民未能在規定輪數內抓出全部指定間諜！</p>
       `;
     }
 
     // 1. 玩家投票明細
-    let voteDetailsHtml = '<ul style="list-style: none; padding-left: 0; margin-bottom: 6px;">';
-    Object.entries(votes).forEach(([voterId, targetId]) => {
-      const v = players[voterId];
-      const t = players[targetId];
-      voteDetailsHtml += `
-        <li style="margin-bottom: 3px;">
-          <b>${v.name}</b> 投給了 👉 <span style="color: ${t.color}; font-weight: bold;">${t.name}</span>
-        </li>
-      `;
+    let voteDetailsHtml = '';
+    roundVoteRecords.forEach(rec => {
+      voteDetailsHtml += `<div style="font-weight:bold; color:var(--accent); margin-bottom:2px;">【第 ${rec.round} 輪投票】</div><ul style="list-style:none; padding-left:0; margin-bottom:8px;">`;
+      Object.entries(rec.votes).forEach(([voterId, targetId]) => {
+        const v = players[voterId];
+        const t = players[targetId];
+        voteDetailsHtml += `<li style="margin-bottom:2px;"><b>${v.name}</b> 投給 👉 <span style="color:${t.color}; font-weight:bold;">${t.name}</span></li>`;
+      });
+      voteDetailsHtml += `</ul><div style="font-size:0.85rem; color:var(--danger); margin-bottom:10px;">➔ 淘汰玩家：<b>${players[rec.eliminated].name}</b> (${rec.maxVotes} 票)</div>`;
     });
-    voteDetailsHtml += '</ul>';
-    const mostVotedNames = mostVoted.map(id => players[id].name).join('、');
-    voteDetailsHtml += `<p style="color: var(--accent); font-weight: bold; margin-top: 4px;">本輪最高票：${mostVotedNames}（得 ${maxVotes} 票）</p>`;
     document.getElementById('result-votes-details').innerHTML = voteDetailsHtml;
 
-    // 2. 身分揭曉（修正：同高票平民維持存活）
+    // 2. 身分揭曉（平民若存活標記存活，被淘汰才標記已淘汰）
     let rolesHtml = '<ul style="list-style:none; padding-left:0; margin-top:2px;">';
     players.forEach((p, idx) => {
       let roleLabel = '';
@@ -500,7 +581,7 @@
     rolesHtml += '</ul>';
     document.getElementById('result-roles-details').innerHTML = rolesHtml;
 
-    // 3. 題目對照（已移除題目類別）
+    // 3. 題目對照（無類別）
     let topicHtml = `<div style="display:flex; align-items:center; gap:8px;">平民詞：<div class="tag-word-wrap" style="margin:4px 0;">${formatBopomofo(civilianWord)}</div></div>`;
     topicHtml += `<div style="display:flex; align-items:center; gap:8px;">間諜詞：<div class="tag-word-wrap" style="margin:4px 0;">${formatBopomofo(spyWord)}</div></div>`;
     document.getElementById('result-topic-details').innerHTML = topicHtml;
