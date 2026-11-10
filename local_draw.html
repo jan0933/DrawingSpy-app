@@ -63,7 +63,7 @@
     .player-tag { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.05); font-size: 0.78rem; }
     .player-tag.active-turn { background: rgba(56, 189, 248, 0.2); border: 1px solid var(--accent); font-weight: bold; }
     
-    .vote-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; background: #0f172a; border: 1px solid var(--border); cursor: pointer; margin-bottom: 6px; text-align: left; }
+    .vote-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; background: #0f172a; border: 1px solid var(--border); cursor: pointer; margin-bottom: 6px; text-align: left; transition: all 0.15s ease; }
     .vote-item.selected { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); }
     .info-box { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 0.88rem; line-height: 1.6; margin-bottom: 8px; text-align: left; }
     
@@ -684,7 +684,7 @@
     });
   }
 
-  // ================= 階段 3：投票階段（支援常規與 PK 投票） =================
+  // ================= 階段 3：投票階段（支援常規與 PK 投票，按鈕前可自由切換更換） =================
   function startVotingStage() {
     isPkVoting = false;
     currentVoterIndex = 0;
@@ -752,19 +752,29 @@
         <span class="vote-check" style="color:var(--accent); font-weight:bold; display:none;">✓ 已選</span>
       `;
 
+      // 點擊事件：支援反選與直接換選
       item.onclick = () => {
         const existIdx = currentSelectedTargets.indexOf(idx);
         if (existIdx > -1) {
+          // 再次點擊取消選取
           currentSelectedTargets.splice(existIdx, 1);
-          item.classList.remove('selected');
-          item.querySelector('.vote-check').style.display = 'none';
         } else {
-          if (currentSelectedTargets.length < targetVotesNeeded) {
-            currentSelectedTargets.push(idx);
-            item.classList.add('selected');
-            item.querySelector('.vote-check').style.display = 'inline';
+          // 若已選滿指定票數，自動剔除最早的一票（換選）
+          if (currentSelectedTargets.length >= targetVotesNeeded) {
+            currentSelectedTargets.shift();
           }
+          currentSelectedTargets.push(idx);
         }
+
+        // 重新同步整份選項 UI
+        document.querySelectorAll('.vote-item').forEach(el => {
+          const optId = parseInt(el.id.replace('vote-opt-', ''), 10);
+          const isSelected = currentSelectedTargets.includes(optId);
+          el.classList.toggle('selected', isSelected);
+          const checkEl = el.querySelector('.vote-check');
+          if (checkEl) checkEl.style.display = isSelected ? 'inline' : 'none';
+        });
+
         updateInstructionText(targetVotesNeeded);
         submitBtn.disabled = (currentSelectedTargets.length !== targetVotesNeeded);
       };
@@ -911,12 +921,11 @@
 
     eliminatedIndices.forEach(id => { isAlive[id] = false; });
 
-    // 【核心規則】：平民只有在「最終決定生死的那次有效投票」中投對被處決的間諜/白板，每投死 1 位才得 1 分
+    // 【核心計分】：平民只有在「最終決定生死的那次有效投票」中投對被處決的間諜/白板，每投死 1 位才得 1 分
     players.forEach((p, v) => {
       if (playerRoles[v] === 'civilian') {
         let deadEnemyHitCount = 0;
 
-        // 若該輪發生了 PK，則第 1 輪平票進入 PK 的票作廢不計分，以 PK 票結算 PK 處決名額，以第 1 輪結算絕對高票名額
         if (isPkVoting) {
           // 1. 審查在第 1 輪就絕對高票直接處決的名單 (confirmedEliminated)
           if (firstRoundVotes[v]) {
