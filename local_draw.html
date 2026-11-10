@@ -193,7 +193,7 @@
       <div id="result-scoreboard" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;"></div>
 
       <button class="btn btn-success" onclick="startNewGame()">再來一局（保留當前積分）</button>
-      <button class="btn btn-secondary" onclick="window.location.href='index.html'">回單機首頁</button>
+      <button class="btn btn-secondary" onclick="window.location.href='index.html'">結束遊戲回首頁</button>
     </div>
 
   </section>
@@ -411,6 +411,7 @@
     const subtitle = document.getElementById('modal-handover-subtitle');
     const title = document.getElementById('modal-next-player-title');
     const desc = document.getElementById('modal-next-player-desc');
+    const btn = document.getElementById('btn-modal-start-draw');
 
     subtitle.textContent = isFirstTurn ? '由起始玩家開始作畫！' : '本筆作畫已完成！';
     title.textContent = `輪到【${nextP.name}】繪畫`;
@@ -418,14 +419,39 @@
     desc.textContent = isFirstTurn 
       ? `全員已看畢題目！起筆玩家為【${nextP.name}】，點擊開始畫出第一筆。`
       : `請將手機交給【${nextP.name}】，準備完成後點擊按鈕畫一筆。`;
+    btn.textContent = '🎨 開始繪畫';
+
+    btn.onclick = () => {
+      modal.classList.remove('active');
+      startTurnDrawing();
+    };
 
     modal.classList.add('active');
   }
 
-  document.getElementById('btn-modal-start-draw').onclick = () => {
-    document.getElementById('handover-modal').classList.remove('active');
-    startTurnDrawing();
-  };
+  function showAllFinishedModal() {
+    canDrawOnCanvas = false;
+    document.getElementById('canvas-wrapper').classList.remove('drawing-active');
+
+    const modal = document.getElementById('handover-modal');
+    const subtitle = document.getElementById('modal-handover-subtitle');
+    const title = document.getElementById('modal-next-player-title');
+    const desc = document.getElementById('modal-next-player-desc');
+    const btn = document.getElementById('btn-modal-start-draw');
+
+    subtitle.textContent = '本筆作畫已完成！';
+    title.textContent = '🎨 全員作畫完成';
+    title.style.color = 'var(--accent)';
+    desc.textContent = '所有玩家兩輪作畫皆已完成！即將進入輪流密室投票階段。';
+    btn.textContent = '作畫結束，開始投票';
+
+    btn.onclick = () => {
+      modal.classList.remove('active');
+      startVotingStage();
+    };
+
+    modal.classList.add('active');
+  }
 
   function startTurnDrawing() {
     canDrawOnCanvas = true;
@@ -458,6 +484,7 @@
     }
 
     if (currentRound > 2) {
+      // 2 輪作畫完成：更新狀態為「所有玩家作畫完成」，隱藏限制說明與輪次資訊
       document.getElementById('canvas-wrapper').classList.remove('drawing-active');
       document.getElementById('turn-indicator-dot').style.display = 'none';
       document.getElementById('turn-indicator-name').textContent = '所有玩家作畫完成';
@@ -466,7 +493,8 @@
       document.getElementById('turn-rule-tag').style.display = 'none';
       document.getElementById('drawing-progress-info').style.display = 'none';
 
-      startVotingStage();
+      // 彈出「本筆作畫已完成！」提示視窗，按鈕為「作畫結束，開始投票」
+      showAllFinishedModal();
     } else {
       showHandoverModal(turnOrder[currentTurnOrderIndex]);
     }
