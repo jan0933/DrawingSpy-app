@@ -402,8 +402,6 @@
 
       <!-- 房主設定面板：難度單獨一列，間諜與白板左右併排 -->
       <div id="host-controls" style="display: none; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px; text-align: left;">
-        
-        <!-- 難度單獨一列 -->
         <div style="margin-bottom: 10px;">
           <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; display: block;">📚 題目難度</label>
           <select id="select-difficulty" style="margin-bottom: 0;">
@@ -412,7 +410,6 @@
           </select>
         </div>
 
-        <!-- 間諜與白板左右併排 -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
           <div>
             <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; display: block;">🕵️ 間諜人數</label>
@@ -500,7 +497,7 @@
         <div id="online-guess-ctrls" style="display: flex; gap: 8px;"></div>
       </div>
 
-      <!-- 4. 題目公布（猜題結束後呈現） -->
+      <!-- 4. 題目公布 -->
       <div id="online-topic-wrapper" style="display: none;">
         <div style="text-align: left; font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 4px;">💡 4. 本局題目與類別</div>
         <div id="res-topic-details" class="info-box"></div>
@@ -636,7 +633,6 @@
     return Math.floor(10000 + Math.random() * 90000).toString();
   }
 
-  // 2~5 人局最多 1 臥底；6~8 人局最多 2 臥底
   function getMaxTotalRoles(playerCount) {
     if (playerCount <= 5) return 1;
     return 2;
@@ -823,7 +819,6 @@
 
   function launchGameRound() {
     const playerIds = Object.keys(roomData.players || {});
-    // 放寬門檻：2 人即可開始遊戲測試
     if (playerIds.length < 2) return alert('至少需要 2 位玩家才能開始遊戲！');
 
     const difficulty = document.getElementById('select-difficulty') ? document.getElementById('select-difficulty').value : (roomData.difficulty || 'normal');
@@ -1177,7 +1172,7 @@
       const confNames = pk.confirmedEliminated.map(id => (roomData.players[id] || {}).name).join('、');
       text += `<br>（${confNames} 已因絕對高票確定淘汰）`;
     }
-    text += `<br><br><span style="color:#fbbf24;">⚠️ 若 PK 投票再次平票，該名額判定無人淘汰（平安夜）！</span>`;
+    text += `<br><br><span style="color:#fbbf24;">⚠️ 第一輪平票投票作廢！只有在 PK 投票中投對處死臥底的平民才可得 1 分；若 PK 再次平票則該名額無人淘汰！</span>`;
     desc.innerHTML = text;
 
     modal.classList.add('active');
@@ -1252,24 +1247,47 @@
       scoreReasons[id] = [];
     });
 
-    // 只有平民投中死亡間諜或白板才 +1
-    const allVoteMaps = [round1Votes, pkVotes || {}];
-    allVoteMaps.forEach((voteMap, idx) => {
-      Object.entries(voteMap).forEach(([voterId, tList]) => {
-        if (roles[voterId] === 'civilian') {
-          let deadHits = 0;
-          (tList || []).forEach(tid => {
-            if ((roles[tid] === 'spy' || roles[tid] === 'blank') && eliminatedIds.includes(tid)) {
-              deadHits++;
-            }
-          });
-          if (deadHits > 0) {
-            roundScoreChanges[voterId] += deadHits;
-            const prefix = (idx === 1) ? '（PK輪）' : '';
-            scoreReasons[voterId].push(`平民成功投死間諜或白板${prefix} (+1分 × ${deadHits})`);
+    const confirmedElim = (roomData.pkState && roomData.pkState.confirmedEliminated) || [];
+
+    // 【核心規則】：平民只有在最終處決那次有效投票中投對被處決的間諜/白板，每投死 1 位才得 1 分
+    playerIds.forEach(voterId => {
+      if (roles[voterId] === 'civilian') {
+        let deadHits = 0;
+
+        if (pkVotes) {
+          // 進入過 PK 投票：第一輪平票作廢不計分
+          // 1. 審查在第 1 輪就絕對高票直接處決的名額 (confirmedElim)
+          if (round1Votes && round1Votes[voterId]) {
+            round1Votes[voterId].forEach(tid => {
+              if ((roles[tid] === 'spy' || roles[tid] === 'blank') && confirmedElim.includes(tid)) {
+                deadHits++;
+              }
+            });
+          }
+          // 2. 審查在 PK 投票中勝出處決的名額
+          if (pkVotes[voterId]) {
+            pkVotes[voterId].forEach(tid => {
+              if ((roles[tid] === 'spy' || roles[tid] === 'blank') && eliminatedIds.includes(tid) && !confirmedElim.includes(tid)) {
+                deadHits++;
+              }
+            });
+          }
+        } else {
+          // 無 PK，直接審查第 1 輪正式投票
+          if (round1Votes && round1Votes[voterId]) {
+            round1Votes[voterId].forEach(tid => {
+              if ((roles[tid] === 'spy' || roles[tid] === 'blank') && eliminatedIds.includes(tid)) {
+                deadHits++;
+              }
+            });
           }
         }
-      });
+
+        if (deadHits > 0) {
+          roundScoreChanges[voterId] += deadHits;
+          scoreReasons[voterId].push(`平民成功投死間諜或白板 (+1分 × ${deadHits})`);
+        }
+      }
     });
 
     const allEnemiesEliminated = playerIds.every(pid => {
