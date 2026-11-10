@@ -112,7 +112,7 @@
       </select>
     </div>
 
-    <!-- 第一排：玩家人數 (3~10人) ＋ 題目難度 -->
+    <!-- 第一排：玩家人數 (預設 4 人) ＋ 題目難度 -->
     <div class="form-row">
       <div class="form-group">
         <label for="select-player-count">👥 玩家人數</label>
@@ -209,20 +209,12 @@
     }
   }
 
-  // (間諜 + 白板) 總和上限規則：
-  // 3-5 人局: 最多 1 人
-  // 6-8 人局: 最多 2 人
-  // 9-10 人局: 最多 3 人
   function getMaxTotalRoles(playerCount) {
     if (playerCount <= 5) return 1;
     if (playerCount <= 8) return 2;
     return 3;
   }
 
-  // 間諜數量單獨上限規則：
-  // 3-5 人局: 最多 1 人 (因總和上限為 1)
-  // 6-8 人局: 最多 2 人
-  // 9-10 人局: 上限為 2 人
   function getMaxSpyCount(playerCount) {
     if (playerCount <= 5) return 1;
     return 2;
@@ -241,7 +233,6 @@
     if (isNaN(currentSpy)) currentSpy = 1;
     if (isNaN(currentBlank)) currentBlank = 0;
 
-    // 1. 間諜數量可選 0 ~ maxSpy
     spySelect.innerHTML = '';
     for (let i = 0; i <= maxSpy; i++) {
       const opt = document.createElement('option');
@@ -251,7 +242,6 @@
       spySelect.appendChild(opt);
     }
 
-    // 2. 白板數量固定最多 1 人 (0 或 1)
     blankSelect.innerHTML = '';
     for (let i = 0; i <= 1; i++) {
       const opt = document.createElement('option');
@@ -274,7 +264,6 @@
     let spyCount = parseInt(spySelect.value, 10) || 0;
     let blankCount = parseInt(blankSelect.value, 10) || 0;
 
-    // 規則 1：間諜與白板不可同時為 0
     if (spyCount === 0 && blankCount === 0) {
       if (triggerSource === 'spy') {
         blankSelect.value = '1';
@@ -285,7 +274,6 @@
       }
     }
 
-    // 規則 2：總和超出上限時連動調降
     if (spyCount + blankCount > maxTotal) {
       if (triggerSource === 'spy') {
         blankSelect.value = '0';
@@ -308,22 +296,23 @@
     validateRoleCounts('blank');
   });
 
-  // 讀取暫存設定
+  // 頁面重整或初次載入：強制人數維持預設 4 人
+  document.getElementById('select-player-count').value = '4';
+  updateRoleOptions();
+  renderNicknameInputs();
+
+  // 若 sessionStorage 有暫存設定，僅讀取模式、難度與角色數量，人數固定維持預設 4 人
   const savedConfig = JSON.parse(sessionStorage.getItem('spy_game_config'));
   if (savedConfig) {
     if (savedConfig.playMode) document.getElementById('select-play-mode').value = savedConfig.playMode;
-    if (savedConfig.playerCount) document.getElementById('select-player-count').value = savedConfig.playerCount;
     if (savedConfig.difficulty) document.getElementById('select-difficulty').value = savedConfig.difficulty;
-
-    updateRoleOptions();
 
     if (savedConfig.spyCount !== undefined) document.getElementById('select-spy-count').value = savedConfig.spyCount;
     if (savedConfig.blankCount !== undefined) document.getElementById('select-blank-count').value = savedConfig.blankCount;
     validateRoleCounts();
 
-    renderNicknameInputs();
     if (savedConfig.players && Array.isArray(savedConfig.players)) {
-      savedConfig.players.forEach((p, idx) => {
+      savedConfig.players.slice(0, 4).forEach((p, idx) => {
         const inp = document.getElementById(`nickname-input-${idx}`);
         if (inp && p.name) {
           const match = p.name.match(/\((.*?)\)/);
@@ -331,9 +320,6 @@
         }
       });
     }
-  } else {
-    updateRoleOptions();
-    renderNicknameInputs();
   }
 
   // 開始遊戲
