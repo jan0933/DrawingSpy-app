@@ -24,6 +24,41 @@
     h1 { font-size: 1.8rem; font-weight: 800; color: var(--accent); letter-spacing: 1.5px; }
     p.subtitle { font-size: 0.88rem; color: var(--text-muted); margin-top: 4px; }
 
+    .mode-switch-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 2px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 13px 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);
+    }
+
+    .mode-btn.inactive {
+      background: #0f172a;
+      color: var(--text);
+      border-color: var(--border);
+    }
+
     .card { background: var(--card-bg); border-radius: 14px; padding: 20px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
     .form-group { margin-bottom: 14px; text-align: left; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
@@ -59,20 +94,26 @@
 
   <header>
     <h1>誰是間諜</h1>
-    <p class="subtitle">派對必備・支援口說描述與手機畫畫</p>
+    <p class="subtitle">派對必備・支援手機共畫與口說描述</p>
   </header>
 
+  <!-- 頂部保留：單機傳閱模式 / 線上連線模式 -->
+  <div class="mode-switch-group">
+    <button type="button" class="mode-btn active">📱 單機傳閱模式</button>
+    <button type="button" class="mode-btn inactive" onclick="window.location.href='online.html'">🌐 線上連線模式</button>
+  </div>
+
   <div class="card">
-    <!-- 遊玩模式：改為 口說模式 / 畫畫模式 -->
+    <!-- 遊玩模式：預設為畫畫模式 -->
     <div class="form-group">
       <label for="select-play-mode">🎮 遊玩模式</label>
       <select id="select-play-mode">
-        <option value="talk" selected>🗣️ 口說模式（經典誰是臥底・輪流發言）</option>
-        <option value="draw">🎨 畫畫模式（手機共用畫板・輪流畫一筆）</option>
+        <option value="draw" selected>🎨 畫畫模式（手機共用畫板・輪流畫一筆）</option>
+        <option value="talk">🗣️ 口說模式（經典誰是臥底・輪流發言）</option>
       </select>
     </div>
 
-    <!-- 第一排：人數與間諜數 -->
+    <!-- 第一排：玩家人數 ＋ 題目難度 -->
     <div class="form-row">
       <div class="form-group">
         <label for="select-player-count">👥 玩家人數</label>
@@ -87,31 +128,24 @@
       </div>
 
       <div class="form-group">
-        <label for="select-spy-count">🕵️ 間諜數量</label>
-        <select id="select-spy-count">
-          <option value="1" selected>1 位間諜</option>
-          <option value="2">2 位間諜</option>
-          <option value="3">3 位間諜</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- 第二排：難度與身分 -->
-    <div class="form-row">
-      <div class="form-group">
         <label for="select-difficulty">📚 題目難度</label>
         <select id="select-difficulty">
           <option value="normal" selected>普通難度</option>
           <option value="hard">高難度</option>
         </select>
       </div>
+    </div>
+
+    <!-- 第二排：間諜數量 ＋ 白板數量（皆最少可選0位，不可同時為0） -->
+    <div class="form-row">
+      <div class="form-group">
+        <label for="select-spy-count">🕵️ 間諜數量</label>
+        <select id="select-spy-count"></select>
+      </div>
 
       <div class="form-group">
-        <label for="select-spy-type">🎭 間諜身分設定</label>
-        <select id="select-spy-type">
-          <option value="hint" selected>標準間諜（相似詞對決）</option>
-          <option value="blank">白板模式（間諜完全無詞）</option>
-        </select>
+        <label for="select-blank-count">⬜ 白板數量</label>
+        <select id="select-blank-count"></select>
       </div>
     </div>
 
@@ -170,35 +204,87 @@
     }
   }
 
-  function adjustSpyOptions() {
+  // 更新間諜與白板的下拉選單選項（上限總和不能超過或等於玩家人數）
+  function updateRoleOptions() {
     const pCount = parseInt(document.getElementById('select-player-count').value, 10);
     const spySelect = document.getElementById('select-spy-count');
-    const currentVal = parseInt(spySelect.value, 10);
-    const maxSpies = Math.max(1, Math.floor((pCount - 1) / 2));
+    const blankSelect = document.getElementById('select-blank-count');
+
+    let currentSpy = parseInt(spySelect.value, 10);
+    let currentBlank = parseInt(blankSelect.value, 10);
+
+    if (isNaN(currentSpy)) currentSpy = 1;
+    if (isNaN(currentBlank)) currentBlank = 0;
+
+    // 單一角色的上限為 (總人數 - 1)
+    const maxRoles = Math.max(1, Math.min(3, Math.floor((pCount - 1) / 2)));
+
+    // 重新填充間諜選單 (0 ~ maxRoles)
     spySelect.innerHTML = '';
-    for (let i = 1; i <= Math.min(3, maxSpies); i++) {
+    for (let i = 0; i <= maxRoles; i++) {
       const opt = document.createElement('option');
       opt.value = i;
       opt.textContent = `${i} 位間諜`;
-      if (i === currentVal) opt.selected = true;
+      if (i === currentSpy) opt.selected = true;
       spySelect.appendChild(opt);
     }
-    if (!spySelect.value) spySelect.value = '1';
+
+    // 重新填充白板選單 (0 ~ maxRoles)
+    blankSelect.innerHTML = '';
+    for (let i = 0; i <= maxRoles; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${i} 位白板`;
+      if (i === currentBlank) opt.selected = true;
+      blankSelect.appendChild(opt);
+    }
+
+    validateRoleCounts();
+  }
+
+  // 防呆：間諜與白板不可同時為 0 位，且總合需小於總人數
+  function validateRoleCounts(triggerSource) {
+    const spySelect = document.getElementById('select-spy-count');
+    const blankSelect = document.getElementById('select-blank-count');
+    let spyCount = parseInt(spySelect.value, 10) || 0;
+    let blankCount = parseInt(blankSelect.value, 10) || 0;
+
+    // 若同時為 0，將另一方自動提升為 1
+    if (spyCount === 0 && blankCount === 0) {
+      if (triggerSource === 'spy') {
+        blankSelect.value = '1';
+      } else {
+        spySelect.value = '1';
+      }
+    }
   }
 
   document.getElementById('select-player-count').addEventListener('change', () => {
-    adjustSpyOptions();
+    updateRoleOptions();
     renderNicknameInputs();
   });
 
+  document.getElementById('select-spy-count').addEventListener('change', () => {
+    validateRoleCounts('spy');
+  });
+
+  document.getElementById('select-blank-count').addEventListener('change', () => {
+    validateRoleCounts('blank');
+  });
+
+  // 讀取先前暫存設定
   const savedConfig = JSON.parse(sessionStorage.getItem('spy_game_config'));
   if (savedConfig) {
     if (savedConfig.playMode) document.getElementById('select-play-mode').value = savedConfig.playMode;
     if (savedConfig.playerCount) document.getElementById('select-player-count').value = savedConfig.playerCount;
-    adjustSpyOptions();
-    if (savedConfig.spyCount) document.getElementById('select-spy-count').value = savedConfig.spyCount;
     if (savedConfig.difficulty) document.getElementById('select-difficulty').value = savedConfig.difficulty;
-    if (savedConfig.spyType) document.getElementById('select-spy-type').value = savedConfig.spyType;
+    
+    updateRoleOptions();
+
+    if (savedConfig.spyCount !== undefined) document.getElementById('select-spy-count').value = savedConfig.spyCount;
+    if (savedConfig.blankCount !== undefined) document.getElementById('select-blank-count').value = savedConfig.blankCount;
+    validateRoleCounts();
+
     renderNicknameInputs();
     if (savedConfig.players && Array.isArray(savedConfig.players)) {
       savedConfig.players.forEach((p, idx) => {
@@ -210,16 +296,27 @@
       });
     }
   } else {
-    adjustSpyOptions();
+    updateRoleOptions();
     renderNicknameInputs();
   }
 
+  // 開始遊戲
   document.getElementById('btn-start-game').onclick = () => {
     const playMode = document.getElementById('select-play-mode').value;
     const playerCount = parseInt(document.getElementById('select-player-count').value, 10);
-    const spyCount = parseInt(document.getElementById('select-spy-count').value, 10);
+    const spyCount = parseInt(document.getElementById('select-spy-count').value, 10) || 0;
+    const blankCount = parseInt(document.getElementById('select-blank-count').value, 10) || 0;
     const difficulty = document.getElementById('select-difficulty').value;
-    const spyType = document.getElementById('select-spy-type').value;
+
+    if (spyCount === 0 && blankCount === 0) {
+      alert('間諜與白板不能同時為 0 位，請至少選擇 1 位間諜或白板！');
+      return;
+    }
+
+    if (spyCount + blankCount >= playerCount) {
+      alert(`間諜與白板總合 (${spyCount + blankCount}人) 不能大於或等於總人數 (${playerCount}人)！`);
+      return;
+    }
 
     const players = [];
     for (let i = 0; i < playerCount; i++) {
@@ -230,7 +327,12 @@
     }
 
     sessionStorage.setItem('spy_game_config', JSON.stringify({
-      playMode, playerCount, spyCount, difficulty, spyType, players
+      playMode,
+      playerCount,
+      spyCount,
+      blankCount,
+      difficulty,
+      players
     }));
 
     if (playMode === 'talk') {
@@ -240,6 +342,7 @@
     }
   };
 
+  // QR Code 分享彈窗
   let qrGenerated = false;
   const modal = document.getElementById('qr-modal');
   document.getElementById('btn-open-modal').onclick = () => {
