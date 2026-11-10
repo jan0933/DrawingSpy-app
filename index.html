@@ -97,19 +97,18 @@
     <p class="subtitle">派對必備・支援手機共畫與口說描述</p>
   </header>
 
-  <!-- 頂部保留：單機傳閱模式 / 線上連線模式 -->
   <div class="mode-switch-group">
     <button type="button" class="mode-btn active">📱 單機傳閱模式</button>
     <button type="button" class="mode-btn inactive" onclick="window.location.href='online.html'">🌐 線上連線模式</button>
   </div>
 
   <div class="card">
-    <!-- 遊玩模式：預設為畫畫模式 -->
+    <!-- 遊玩模式：僅顯示畫畫模式與口說模式，無多餘文字 -->
     <div class="form-group">
       <label for="select-play-mode">🎮 遊玩模式</label>
       <select id="select-play-mode">
-        <option value="draw" selected>🎨 畫畫模式（手機共用畫板・輪流畫一筆）</option>
-        <option value="talk">🗣️ 口說模式（經典誰是臥底・輪流發言）</option>
+        <option value="draw" selected>🎨 畫畫模式</option>
+        <option value="talk">🗣️ 口說模式</option>
       </select>
     </div>
 
@@ -136,7 +135,7 @@
       </div>
     </div>
 
-    <!-- 第二排：間諜數量 ＋ 白板數量（皆最少可選0位，不可同時為0） -->
+    <!-- 第二排：間諜數量 ＋ 白板數量（總和不超過人數一半） -->
     <div class="form-row">
       <div class="form-group">
         <label for="select-spy-count">🕵️ 間諜數量</label>
@@ -204,9 +203,15 @@
     }
   }
 
-  // 更新間諜與白板的下拉選單選項（上限總和不能超過或等於玩家人數）
-  function updateRoleOptions() {
+  // 計算上限：不能超過玩家人數的一半 Math.floor(人數 / 2)
+  function getMaxTotalRoles() {
     const pCount = parseInt(document.getElementById('select-player-count').value, 10);
+    return Math.max(1, Math.floor(pCount / 2));
+  }
+
+  // 依玩家人數重建下拉選項
+  function updateRoleOptions() {
+    const maxAllowed = getMaxTotalRoles();
     const spySelect = document.getElementById('select-spy-count');
     const blankSelect = document.getElementById('select-blank-count');
 
@@ -216,12 +221,9 @@
     if (isNaN(currentSpy)) currentSpy = 1;
     if (isNaN(currentBlank)) currentBlank = 0;
 
-    // 單一角色的上限為 (總人數 - 1)
-    const maxRoles = Math.max(1, Math.min(3, Math.floor((pCount - 1) / 2)));
-
-    // 重新填充間諜選單 (0 ~ maxRoles)
+    // 重新產生間諜選單 (0 ~ maxAllowed)
     spySelect.innerHTML = '';
-    for (let i = 0; i <= maxRoles; i++) {
+    for (let i = 0; i <= maxAllowed; i++) {
       const opt = document.createElement('option');
       opt.value = i;
       opt.textContent = `${i} 位間諜`;
@@ -229,9 +231,9 @@
       spySelect.appendChild(opt);
     }
 
-    // 重新填充白板選單 (0 ~ maxRoles)
+    // 重新產生白板選單 (0 ~ maxAllowed)
     blankSelect.innerHTML = '';
-    for (let i = 0; i <= maxRoles; i++) {
+    for (let i = 0; i <= maxAllowed; i++) {
       const opt = document.createElement('option');
       opt.value = i;
       opt.textContent = `${i} 位白板`;
@@ -242,19 +244,34 @@
     validateRoleCounts();
   }
 
-  // 防呆：間諜與白板不可同時為 0 位，且總合需小於總人數
+  // 防呆檢查：
+  // 1. 間諜 + 白板不能同時為 0
+  // 2. 間諜 + 白板總和不能超過人數的一半
   function validateRoleCounts(triggerSource) {
+    const maxAllowed = getMaxTotalRoles();
     const spySelect = document.getElementById('select-spy-count');
     const blankSelect = document.getElementById('select-blank-count');
+
     let spyCount = parseInt(spySelect.value, 10) || 0;
     let blankCount = parseInt(blankSelect.value, 10) || 0;
 
-    // 若同時為 0，將另一方自動提升為 1
+    // 規則 1：不可同時為 0
     if (spyCount === 0 && blankCount === 0) {
       if (triggerSource === 'spy') {
         blankSelect.value = '1';
+        blankCount = 1;
       } else {
         spySelect.value = '1';
+        spyCount = 1;
+      }
+    }
+
+    // 規則 2：總合不可超過上限
+    if (spyCount + blankCount > maxAllowed) {
+      if (triggerSource === 'spy') {
+        blankSelect.value = Math.max(0, maxAllowed - spyCount);
+      } else {
+        spySelect.value = Math.max(0, maxAllowed - blankCount);
       }
     }
   }
@@ -272,13 +289,13 @@
     validateRoleCounts('blank');
   });
 
-  // 讀取先前暫存設定
+  // 讀取暫存設定
   const savedConfig = JSON.parse(sessionStorage.getItem('spy_game_config'));
   if (savedConfig) {
     if (savedConfig.playMode) document.getElementById('select-play-mode').value = savedConfig.playMode;
     if (savedConfig.playerCount) document.getElementById('select-player-count').value = savedConfig.playerCount;
     if (savedConfig.difficulty) document.getElementById('select-difficulty').value = savedConfig.difficulty;
-    
+
     updateRoleOptions();
 
     if (savedConfig.spyCount !== undefined) document.getElementById('select-spy-count').value = savedConfig.spyCount;
@@ -308,13 +325,15 @@
     const blankCount = parseInt(document.getElementById('select-blank-count').value, 10) || 0;
     const difficulty = document.getElementById('select-difficulty').value;
 
+    const maxAllowed = Math.floor(playerCount / 2);
+
     if (spyCount === 0 && blankCount === 0) {
-      alert('間諜與白板不能同時為 0 位，請至少選擇 1 位間諜或白板！');
+      alert('間諜與白板不能同時為 0 位，請至少選擇 1 位！');
       return;
     }
 
-    if (spyCount + blankCount >= playerCount) {
-      alert(`間諜與白板總合 (${spyCount + blankCount}人) 不能大於或等於總人數 (${playerCount}人)！`);
+    if (spyCount + blankCount > maxAllowed) {
+      alert(`在 ${playerCount} 位玩家中，間諜與白板總合 (${spyCount + blankCount}人) 不能超過玩家人數的一半 (${maxAllowed}人)！`);
       return;
     }
 
@@ -342,7 +361,7 @@
     }
   };
 
-  // QR Code 分享彈窗
+  // QR Code 分享視窗
   let qrGenerated = false;
   const modal = document.getElementById('qr-modal');
   document.getElementById('btn-open-modal').onclick = () => {
