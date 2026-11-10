@@ -348,7 +348,7 @@
 
   <header id="common-header">
     <h1>誰是間諜助手</h1>
-    <p class="subtitle">連線畫畫模式・多票PK與即時計分</p>
+    <p class="subtitle">連線畫畫模式・逆轉猜題與即時計分</p>
   </header>
 
   <div class="mode-switch-group" id="top-mode-switch">
@@ -475,28 +475,52 @@
 
       <div class="info-box" id="res-summary-box"></div>
 
-      <div style="font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 4px;">🕵️ 1. 全員身分揭曉</div>
+      <div style="text-align: left; font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 4px;">🕵️ 1. 全員身分揭曉</div>
       <div id="res-roles-details" class="info-box"></div>
 
-      <div style="font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 4px;">🗳 2. 玩家投票明細</div>
+      <div style="text-align: left; font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 4px;">🗳 2. 玩家投票明細</div>
       <div id="res-vote-details" class="info-box"></div>
 
-      <div style="font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 4px;">💡 3. 題目公布</div>
-      <div id="res-topic-details" class="info-box"></div>
+      <!-- 3. 淘汰臥底逆轉猜題區塊 -->
+      <div id="online-guess-section" style="display: none; background: #0f172a; padding: 12px; border-radius: 8px; margin: 10px 0; border: 1px dashed #fbbf24;">
+        <div style="font-weight: 700; color: #fbbf24; margin-bottom: 4px;">🎯 3. 淘汰臥底逆轉猜題</div>
+        <p id="online-guess-title" style="font-size: 0.95rem; font-weight: bold; color: var(--accent); margin-bottom: 4px;"></p>
+        <p id="online-guess-desc" style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;"></p>
 
-      <div style="font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 4px;">⭐ 4. 本局得分明細</div>
-      <div id="res-round-scores" class="info-box"></div>
+        <div id="online-guess-hint-box" style="display: none; background: rgba(56, 189, 248, 0.1); border-left: 3px solid var(--accent); padding: 6px 10px; border-radius: 4px; margin-bottom: 8px;">
+          <span style="font-size: 0.82rem; color: var(--text-muted);">類別提示：</span>
+          <div class="tag-word-wrap" id="online-guess-hint-cat" style="margin: 2px 0 0 0;"></div>
+        </div>
 
-      <div style="font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-top: 8px; margin-bottom: 4px;">🏆 5. 累積分數總榜</div>
-      <div id="res-scoreboard" style="display: flex; flex-direction: column; gap: 4px;"></div>
-
-      <div id="host-next-round-ctrl" style="display: none; margin-top: 12px;">
-        <button id="btn-online-next-round" class="btn btn-success">開始下一局（保留房號與計分）</button>
-        <button id="btn-host-end-game" class="btn btn-secondary" style="margin-top: 8px; background: transparent; border: 1px dashed var(--danger); color: var(--danger);">結束遊戲回首頁</button>
+        <div id="online-guess-ctrls" style="display: flex; gap: 8px;"></div>
       </div>
-      <p id="guest-next-round-tip" style="text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 10px; display: none;">
-        等待房主啟動下一局...
-      </p>
+
+      <!-- 4. 題目公布（猜題結束後呈現） -->
+      <div id="online-topic-wrapper" style="display: none;">
+        <div style="text-align: left; font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 4px;">💡 4. 本局題目與類別</div>
+        <div id="res-topic-details" class="info-box"></div>
+      </div>
+
+      <!-- 5. 得分明細 -->
+      <div id="online-scores-wrapper" style="display: none;">
+        <div style="text-align: left; font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 4px;">⭐ 5. 本局得分明細</div>
+        <div id="res-round-scores" class="info-box"></div>
+      </div>
+
+      <!-- 6. 累積分數榜 -->
+      <div id="online-board-wrapper" style="display: none;">
+        <div style="text-align: left; font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-top: 8px; margin-bottom: 4px;">🏆 6. 累積分數總榜</div>
+        <div id="res-scoreboard" style="display: flex; flex-direction: column; gap: 4px;"></div>
+
+        <div id="host-next-round-ctrl" style="display: none; margin-top: 12px;">
+          <button id="btn-online-next-round" class="btn btn-success">開始下一局（保留房號與計分）</button>
+          <button id="btn-host-end-game" class="btn btn-secondary" style="margin-top: 8px; background: transparent; border: 1px dashed var(--danger); color: var(--danger);">結束遊戲回首頁</button>
+        </div>
+        <p id="guest-next-round-tip" style="text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 10px; display: none;">
+          等待房主啟動下一局...
+        </p>
+      </div>
+
     </div>
 
   </section>
@@ -838,6 +862,7 @@
       votes: null,
       firstRoundVotes: null,
       pkState: null,
+      guessState: null,
       resultData: null
     });
   }
@@ -997,7 +1022,10 @@
       titleEl.textContent = '🗳 輪流作畫結束！請投票';
       titleEl.style.color = 'var(--accent)';
       subTitleEl.textContent = '僅此一輪多票制投票，開票後即刻決定勝負';
-      instructionEl.textContent = `場上共有 ${targetVotesNeeded} 位臥底，請選取 ${targetVotesNeeded} 位玩家（已選取 ${currentSelectedTargets.length}/${targetVotesNeeded}）`;
+      const roleName = roomData.blankCount > 0 && roomData.spyCount > 0 
+        ? '間諜或白板' 
+        : (roomData.blankCount > 0 ? '白板' : '間諜');
+      instructionEl.textContent = `場上共有 ${targetVotesNeeded} 位${roleName}，請選取 ${targetVotesNeeded} 位玩家（已選取 ${currentSelectedTargets.length}/${targetVotesNeeded}）`;
     }
 
     const votes = roomData.votes || {};
@@ -1074,7 +1102,6 @@
     });
   };
 
-  // 房主開票第 1 輪投票：判斷平票或直接結算
   function checkFirstRoundVotesHost() {
     const votes = roomData.votes || {};
     const players = roomData.players || {};
@@ -1160,7 +1187,6 @@
     }
   }
 
-  // 房主開票 PK 輪
   function tallyPkVotesHost() {
     const votes = roomData.votes || {};
     const pkState = roomData.pkState || {};
@@ -1204,7 +1230,6 @@
     finalizeGameHost(finalEliminated, pkTieHappened, tiedCandidates, roomData.firstRoundVotes || {}, votes);
   }
 
-  // 房主最終計分結算（統一為「間諜陣營獲勝！」）
   function finalizeGameHost(eliminatedIds, pkTieHappened, tiedCandidates, round1Votes, pkVotes) {
     const players = { ...roomData.players };
     const roles = roomData.roles || {};
@@ -1220,7 +1245,7 @@
       scoreReasons[id] = [];
     });
 
-    // 1. 平民投中死亡臥底加分（只有平民且目標確實淘汰死亡才 +1）
+    // 只有平民投中死亡間諜或白板才 +1
     const allVoteMaps = [round1Votes, pkVotes || {}];
     allVoteMaps.forEach((voteMap, idx) => {
       Object.entries(voteMap).forEach(([voterId, tList]) => {
@@ -1234,13 +1259,12 @@
           if (deadHits > 0) {
             roundScoreChanges[voterId] += deadHits;
             const prefix = (idx === 1) ? '（PK輪）' : '';
-            scoreReasons[voterId].push(`平民成功投死臥底${prefix} (+1分 × ${deadHits})`);
+            scoreReasons[voterId].push(`平民成功投死間諜或白板${prefix} (+1分 × ${deadHits})`);
           }
         }
       });
     });
 
-    // 2. 評判勝負：間諜與白板全數被淘汰處決
     const allEnemiesEliminated = playerIds.every(pid => {
       if (roles[pid] === 'spy' || roles[pid] === 'blank') {
         return !isAlive[pid];
@@ -1250,7 +1274,6 @@
 
     const isCivilianWin = allEnemiesEliminated;
 
-    // 3. 陣營勝利與存活加分
     if (isCivilianWin) {
       playerIds.forEach(pid => {
         if (roles[pid] === 'civilian' && isAlive[pid]) {
@@ -1262,10 +1285,10 @@
       playerIds.forEach(pid => {
         if (roles[pid] === 'spy' && isAlive[pid]) {
           roundScoreChanges[pid] += 2;
-          scoreReasons[pid].push('臥底獲勝且間諜存活 (+2分)');
+          scoreReasons[pid].push('間諜獲勝且存活 (+2分)');
         } else if (roles[pid] === 'blank' && isAlive[pid]) {
           roundScoreChanges[pid] += 3;
-          scoreReasons[pid].push('臥底獲勝且白板存活 (+3分)');
+          scoreReasons[pid].push('白板獲勝且存活 (+3分)');
         }
       });
     }
@@ -1274,9 +1297,19 @@
       players[pid].score = (players[pid].score || 0) + roundScoreChanges[pid];
     });
 
+    // 取得需逆轉猜題的淘汰臥底名單
+    const deadEnemies = eliminatedIds.filter(id => roles[id] === 'spy' || roles[id] === 'blank');
+    const hasGuess = deadEnemies.length > 0;
+
     db.ref('rooms/' + currentRoomId).update({
       status: 'result',
       players: players,
+      guessState: hasGuess ? {
+        deadEnemies: deadEnemies,
+        currentIndex: 0,
+        blankPhase: 1,
+        done: false
+      } : { done: true },
       resultData: {
         isCivilianWin: isCivilianWin,
         eliminatedIds: eliminatedIds,
@@ -1296,18 +1329,19 @@
     const players = roomData.players || {};
     const roles = roomData.roles || {};
     const eliminatedIds = res.eliminatedIds || [];
+    const guessState = roomData.guessState || { done: true };
 
-    // Banner（統一顯示為「間諜陣營獲勝！」）
+    // Banner
     const summaryBox = document.getElementById('res-summary-box');
     if (res.isCivilianWin) {
       summaryBox.innerHTML = `
         <h3 style="color:var(--success); margin-bottom:4px;">🎉 平民陣營獲勝！</h3>
-        <p style="font-size:0.88rem;">所有間諜與白板全數被投出處決！投死臥底的平民各獲 <b>+1 分</b>，存活平民再獲 <b>+1 分</b>！</p>
+        <p style="font-size:0.88rem;">所有間諜與白板全數被投出處決！投死間諜或白板的平民各獲 <b>+1 分</b>，存活平民再獲 <b>+1 分</b>！</p>
       `;
     } else {
       summaryBox.innerHTML = `
         <h3 style="color:var(--danger); margin-bottom:4px;">😈 間諜陣營獲勝！</h3>
-        <p style="font-size:0.88rem;">臥底成功隱匿或存活！存活間諜獲 <b>+2 分</b>，存活白板獲 <b>+3 分</b>！</p>
+        <p style="font-size:0.88rem;">間諜或白板成功隱匿或存活！存活間諜獲 <b>+2 分</b>，存活白板獲 <b>+3 分</b>！</p>
       `;
     }
 
@@ -1360,67 +1394,157 @@
     }
     document.getElementById('res-vote-details').innerHTML = voteDetails;
 
-    // 3. 題目公布
-    document.getElementById('res-topic-details').innerHTML = `
-      <div style="display: flex; align-items: center; gap: 12px; margin: 2px 0;">
-        <span style="color: var(--text-muted); font-size: 0.95rem;">本局題目：</span>
-        <div class="tag-word-wrap">${formatBopomofo(roomData.commonWord)}</div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 12px; margin: 2px 0;">
-        <span style="color: var(--text-muted); font-size: 0.95rem;">題目類別：</span>
-        <div class="tag-word-wrap">${formatBopomofo(roomData.categoryRuby)}</div>
-      </div>
-    `;
+    // 3. 淘汰臥底逆轉猜題區塊控制
+    const guessSection = document.getElementById('online-guess-section');
+    const topicWrapper = document.getElementById('online-topic-wrapper');
+    const scoresWrapper = document.getElementById('online-scores-wrapper');
+    const boardWrapper = document.getElementById('online-board-wrapper');
 
-    // 4. 得分明細
-    let roundHtml = '<ul style="list-style:none; padding-left:0;">';
-    Object.keys(players).forEach(pid => {
-      const p = players[pid];
-      const earned = (res.roundScoreChanges && res.roundScoreChanges[pid]) || 0;
-      const reasons = (res.scoreReasons && res.scoreReasons[pid]) || [];
-      const reasonText = reasons.length > 0 
-        ? `<div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">• ${reasons.join('<br>• ')}</div>` 
-        : `<div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">• 本局未獲得分數 (+0分)</div>`;
+    if (!guessState.done && guessState.deadEnemies && guessState.deadEnemies.length > 0) {
+      guessSection.style.display = 'block';
+      topicWrapper.style.display = 'none';
+      scoresWrapper.style.display = 'none';
+      boardWrapper.style.display = 'none';
 
-      roundHtml += `
-        <li style="margin-bottom:8px; padding-bottom:6px; border-bottom:1px dashed rgba(255,255,255,0.08);">
-          <div style="display:flex; justify-content:space-between;">
-            <b>${p.name}：</b>
-            <b style="color:${earned > 0 ? 'var(--success)' : 'var(--text-muted)'};">+${earned} 分</b>
-          </div>
-          ${reasonText}
-        </li>
-      `;
-    });
-    roundHtml += '</ul>';
-    document.getElementById('res-round-scores').innerHTML = roundHtml;
+      const curPid = guessState.deadEnemies[guessState.currentIndex];
+      const curPlayer = players[curPid] || { name: '臥底' };
+      const curRole = roles[curPid];
 
-    // 5. 總積分榜
-    const scoreContainer = document.getElementById('res-scoreboard');
-    scoreContainer.innerHTML = '';
-    const sorted = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
-    sorted.forEach((p, idx) => {
-      const row = document.createElement('div');
-      row.className = 'score-row';
-      row.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="color: var(--text-muted); width: 18px;">${idx + 1}.</span>
-          <span class="color-dot" style="background-color: ${p.color}"></span>
-          <span style="font-weight: 600;">${p.name}</span>
-        </div>
-        <span class="score-badge">${p.score || 0} 分</span>
-      `;
-      scoreContainer.appendChild(row);
-    });
+      const titleEl = document.getElementById('online-guess-title');
+      const descEl = document.getElementById('online-guess-desc');
+      const hintBox = document.getElementById('online-guess-hint-box');
+      const ctrls = document.getElementById('online-guess-ctrls');
 
-    if (isHost) {
-      document.getElementById('host-next-round-ctrl').style.display = 'block';
-      document.getElementById('guest-next-round-tip').style.display = 'none';
+      titleEl.textContent = `【${curPlayer.name}】逆轉猜題（身分：${curRole === 'blank' ? '白板' : '間諜'}）`;
+      titleEl.style.color = curPlayer.color;
+
+      if (curRole === 'spy') {
+        descEl.innerHTML = '請看著上方畫作口頭猜出題目。若猜中可獲得 <b>+1 分</b>：';
+        hintBox.style.display = 'none';
+        ctrls.innerHTML = isHost ? `
+          <button class="btn btn-secondary" style="flex:1;" onclick="submitOnlineGuess(${curPid}, 0, '未猜中')">未猜中 (0分)</button>
+          <button class="btn btn-success" style="flex:1;" onclick="submitOnlineGuess(${curPid}, 1, '間諜猜中題目 (+1分)')">猜中了 (+1分)</button>
+        ` : `<p style="font-size:0.85rem; color:var(--text-muted); width:100%; text-align:center;">間諜觀察畫板口頭猜題中...</p>`;
+      } else {
+        if (guessState.blankPhase === 1) {
+          descEl.innerHTML = '【第一階段盲猜】請看著上方畫作直接盲猜題目。猜中獲 <b>+2 分</b>；未猜中可查看類別提示：';
+          hintBox.style.display = 'none';
+          ctrls.innerHTML = isHost ? `
+            <button class="btn btn-secondary" style="flex:1;" onclick="setOnlineBlankPhase2()">未猜中 (查看類別提示)</button>
+            <button class="btn btn-success" style="flex:1;" onclick="submitOnlineGuess(${curPid}, 2, '白板盲猜猜中 (+2分)')">盲猜猜中 (+2分)</button>
+          ` : `<p style="font-size:0.85rem; color:var(--text-muted); width:100%; text-align:center;">白板觀察畫板盲猜中...</p>`;
+        } else {
+          descEl.innerHTML = '【第二階段提示猜】已公布類別提示！請看著上方畫作再猜一次，猜中獲 <b>+1 分</b>：';
+          document.getElementById('online-guess-hint-cat').innerHTML = formatBopomofo(roomData.categoryRuby);
+          hintBox.style.display = 'block';
+          ctrls.innerHTML = isHost ? `
+            <button class="btn btn-secondary" style="flex:1;" onclick="submitOnlineGuess(${curPid}, 0, '仍未猜中')">仍未猜中 (0分)</button>
+            <button class="btn btn-success" style="flex:1;" onclick="submitOnlineGuess(${curPid}, 1, '白板提示後猜中 (+1分)')">提示後猜中 (+1分)</button>
+          ` : `<p style="font-size:0.85rem; color:var(--text-muted); width:100%; text-align:center;">白板看著類別提示最後猜題中...</p>`;
+        }
+      }
     } else {
-      document.getElementById('host-next-round-ctrl').style.display = 'none';
-      document.getElementById('guest-next-round-tip').style.display = 'block';
+      guessSection.style.display = 'none';
+      topicWrapper.style.display = 'block';
+      scoresWrapper.style.display = 'block';
+      boardWrapper.style.display = 'block';
+
+      // 4. 題目公布（猜題完畢後必定公開題目與類別）
+      document.getElementById('res-topic-details').innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px; margin: 2px 0;">
+          <span style="color: var(--text-muted); font-size: 0.95rem;">本局題目：</span>
+          <div class="tag-word-wrap">${formatBopomofo(roomData.commonWord)}</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; margin: 2px 0;">
+          <span style="color: var(--text-muted); font-size: 0.95rem;">題目類別：</span>
+          <div class="tag-word-wrap">${formatBopomofo(roomData.categoryRuby)}</div>
+        </div>
+      `;
+
+      // 5. 得分明細
+      let roundHtml = '<ul style="list-style:none; padding-left:0;">';
+      Object.keys(players).forEach(pid => {
+        const p = players[pid];
+        const earned = (res.roundScoreChanges && res.roundScoreChanges[pid]) || 0;
+        const reasons = (res.scoreReasons && res.scoreReasons[pid]) || [];
+        const reasonText = reasons.length > 0 
+          ? `<div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">• ${reasons.join('<br>• ')}</div>` 
+          : `<div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">• 本局未獲得分數 (+0分)</div>`;
+
+        roundHtml += `
+          <li style="margin-bottom:8px; padding-bottom:6px; border-bottom:1px dashed rgba(255,255,255,0.08);">
+            <div style="display:flex; justify-content:space-between;">
+              <b>${p.name}：</b>
+              <b style="color:${earned > 0 ? 'var(--success)' : 'var(--text-muted)'};">+${earned} 分</b>
+            </div>
+            ${reasonText}
+          </li>
+        `;
+      });
+      roundHtml += '</ul>';
+      document.getElementById('res-round-scores').innerHTML = roundHtml;
+
+      // 6. 總積分榜
+      const scoreContainer = document.getElementById('res-scoreboard');
+      scoreContainer.innerHTML = '';
+      const sorted = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
+      sorted.forEach((p, idx) => {
+        const row = document.createElement('div');
+        row.className = 'score-row';
+        row.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="color: var(--text-muted); width: 18px;">${idx + 1}.</span>
+            <span class="color-dot" style="background-color: ${p.color}"></span>
+            <span style="font-weight: 600;">${p.name}</span>
+          </div>
+          <span class="score-badge">${p.score || 0} 分</span>
+        `;
+        scoreContainer.appendChild(row);
+      });
+
+      if (isHost) {
+        document.getElementById('host-next-round-ctrl').style.display = 'block';
+        document.getElementById('guest-next-round-tip').style.display = 'none';
+      } else {
+        document.getElementById('host-next-round-ctrl').style.display = 'none';
+        document.getElementById('guest-next-round-tip').style.display = 'block';
+      }
     }
   }
+
+  window.setOnlineBlankPhase2 = function() {
+    db.ref(`rooms/${currentRoomId}/guessState/blankPhase`).set(2);
+  };
+
+  window.submitOnlineGuess = function(pid, addScore, reason) {
+    const res = roomData.resultData || {};
+    const players = { ...roomData.players };
+    const scoreReasons = { ...(res.scoreReasons || {}) };
+    const roundScoreChanges = { ...(res.roundScoreChanges || {}) };
+
+    if (addScore > 0) {
+      players[pid].score = (players[pid].score || 0) + addScore;
+      roundScoreChanges[pid] = (roundScoreChanges[pid] || 0) + addScore;
+      if (!scoreReasons[pid]) scoreReasons[pid] = [];
+      scoreReasons[pid].push(reason);
+    }
+
+    const gState = roomData.guessState || {};
+    const nextIdx = (gState.currentIndex || 0) + 1;
+    const isDone = nextIdx >= (gState.deadEnemies || []).length;
+
+    db.ref('rooms/' + currentRoomId).update({
+      players: players,
+      'resultData/scoreReasons': scoreReasons,
+      'resultData/roundScoreChanges': roundScoreChanges,
+      guessState: {
+        deadEnemies: gState.deadEnemies || [],
+        currentIndex: nextIdx,
+        blankPhase: 1,
+        done: isDone
+      }
+    });
+  };
 
   // ================= 畫布渲染：相對比例座標系 (0.0 ~ 1.0) =================
   let cachedStrokes = {};
