@@ -259,6 +259,7 @@
       cursor: pointer;
       margin-bottom: 6px;
       text-align: left;
+      transition: all 0.15s ease;
     }
 
     .vote-item.selected {
@@ -1002,7 +1003,7 @@
     }
   }
 
-  // ================= 多票制與 PK 投票面板 =================
+  // ================= 多票制與 PK 投票面板（支援反選與直接換選） =================
   function updateInGameVotingUI() {
     const isPk = (roomData.status === 'pk_voting');
     const playerIds = Object.keys(roomData.players || {});
@@ -1070,11 +1071,14 @@
         opt.onclick = () => {
           const idx = currentSelectedTargets.indexOf(pid);
           if (idx > -1) {
+            // 再次點擊取消選取
             currentSelectedTargets.splice(idx, 1);
           } else {
-            if (currentSelectedTargets.length < targetVotesNeeded) {
-              currentSelectedTargets.push(pid);
+            // 若已選滿指定票數，自動替換掉最舊的一票（換選）
+            if (currentSelectedTargets.length >= targetVotesNeeded) {
+              currentSelectedTargets.shift();
             }
+            currentSelectedTargets.push(pid);
           }
           updateInGameVotingUI();
         };
@@ -1249,7 +1253,7 @@
 
     const confirmedElim = (roomData.pkState && roomData.pkState.confirmedEliminated) || [];
 
-    // 【核心規則】：平民只有在最終處決那次有效投票中投對被處決的間諜/白板，每投死 1 位才得 1 分
+    // 【核心計分】：平民只有在最終處決那次有效投票中投對被處決的間諜/白板，每投死 1 位才得 1 分
     playerIds.forEach(voterId => {
       if (roles[voterId] === 'civilian') {
         let deadHits = 0;
