@@ -137,7 +137,7 @@
       </div>
     </div>
 
-    <!-- 第二排：間諜數量 ＋ 白板數量（白板最多1人，總和受人數限制） -->
+    <!-- 第二排：間諜數量 ＋ 白板數量 -->
     <div class="form-row">
       <div class="form-group">
         <label for="select-spy-count">🕵️ 間諜數量</label>
@@ -181,7 +181,6 @@
 
 <script>
   const GAME_URL = 'https://jan0933.github.io/DrawingSpy-app/';
-  // 支援最多 10 人色彩配置
   const COLOR_PALETTE = [
     '#f43f5e', '#3b82f6', '#10b981', '#f59e0b',
     '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16',
@@ -210,7 +209,7 @@
     }
   }
 
-  // 根據人數規則計算 (間諜+白板) 總和上限：
+  // (間諜 + 白板) 總和上限規則：
   // 3-5 人局: 最多 1 人
   // 6-8 人局: 最多 2 人
   // 9-10 人局: 最多 3 人
@@ -220,10 +219,18 @@
     return 3;
   }
 
-  // 重新建立間諜與白板選單選項
+  // 間諜數量單獨上限規則：
+  // 3-5 人局: 最多 1 人 (因總和上限為 1)
+  // 6-8 人局: 最多 2 人
+  // 9-10 人局: 上限為 2 人
+  function getMaxSpyCount(playerCount) {
+    if (playerCount <= 5) return 1;
+    return 2;
+  }
+
   function updateRoleOptions() {
     const pCount = parseInt(document.getElementById('select-player-count').value, 10);
-    const maxTotal = getMaxTotalRoles(pCount);
+    const maxSpy = getMaxSpyCount(pCount);
 
     const spySelect = document.getElementById('select-spy-count');
     const blankSelect = document.getElementById('select-blank-count');
@@ -234,9 +241,9 @@
     if (isNaN(currentSpy)) currentSpy = 1;
     if (isNaN(currentBlank)) currentBlank = 0;
 
-    // 1. 間諜數量可選 0 ~ maxTotal
+    // 1. 間諜數量可選 0 ~ maxSpy
     spySelect.innerHTML = '';
-    for (let i = 0; i <= maxTotal; i++) {
+    for (let i = 0; i <= maxSpy; i++) {
       const opt = document.createElement('option');
       opt.value = i;
       opt.textContent = `${i} 位間諜`;
@@ -244,7 +251,7 @@
       spySelect.appendChild(opt);
     }
 
-    // 2. 白板數量限制最多 1 人 (只能選 0 或 1)
+    // 2. 白板數量固定最多 1 人 (0 或 1)
     blankSelect.innerHTML = '';
     for (let i = 0; i <= 1; i++) {
       const opt = document.createElement('option');
@@ -257,10 +264,6 @@
     validateRoleCounts();
   }
 
-  // 防呆校驗：
-  // 1. 間諜與白板不可同時為 0
-  // 2. 白板最多 1 人 (已由選單硬限制)
-  // 3. (間諜 + 白板) 總和不得超過 maxTotal
   function validateRoleCounts(triggerSource) {
     const pCount = parseInt(document.getElementById('select-player-count').value, 10);
     const maxTotal = getMaxTotalRoles(pCount);
@@ -271,7 +274,7 @@
     let spyCount = parseInt(spySelect.value, 10) || 0;
     let blankCount = parseInt(blankSelect.value, 10) || 0;
 
-    // 規則 1：不可同時為 0
+    // 規則 1：間諜與白板不可同時為 0
     if (spyCount === 0 && blankCount === 0) {
       if (triggerSource === 'spy') {
         blankSelect.value = '1';
@@ -285,10 +288,8 @@
     // 規則 2：總和超出上限時連動調降
     if (spyCount + blankCount > maxTotal) {
       if (triggerSource === 'spy') {
-        // 如果是調整間諜觸發超出，白板歸 0
         blankSelect.value = '0';
       } else {
-        // 如果是調整白板觸發超出，間諜壓低至 (maxTotal - 1)
         spySelect.value = Math.max(0, maxTotal - blankCount);
       }
     }
@@ -343,10 +344,16 @@
     const blankCount = parseInt(document.getElementById('select-blank-count').value, 10) || 0;
     const difficulty = document.getElementById('select-difficulty').value;
 
-    const maxAllowed = getMaxTotalRoles(playerCount);
+    const maxTotal = getMaxTotalRoles(playerCount);
+    const maxSpy = getMaxSpyCount(playerCount);
 
     if (spyCount === 0 && blankCount === 0) {
       alert('間諜與白板不能同時為 0 位，請至少選擇 1 位！');
+      return;
+    }
+
+    if (spyCount > maxSpy) {
+      alert(`在 ${playerCount} 人局中，間諜數量最多只能為 ${maxSpy} 位！`);
       return;
     }
 
@@ -355,8 +362,8 @@
       return;
     }
 
-    if (spyCount + blankCount > maxAllowed) {
-      alert(`在 ${playerCount} 人局中，(間諜 + 白板) 總數最多只能為 ${maxAllowed} 人！`);
+    if (spyCount + blankCount > maxTotal) {
+      alert(`在 ${playerCount} 人局中，(間諜 + 白板) 總數最多只能為 ${maxTotal} 人！`);
       return;
     }
 
