@@ -27,7 +27,6 @@
     
     .round-badge { display: inline-block; align-self: center; background: #0f172a; border: 1px solid var(--accent); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; }
 
-    /* 紙筆模式同款看題點擊卡 */
     .reveal-box {
       min-height: 240px;
       display: flex;
@@ -46,7 +45,6 @@
       background: rgba(56, 189, 248, 0.1);
     }
 
-    /* 注音排版 */
     .tag-word-wrap { display: inline-flex; flex-direction: row; justify-content: center; align-items: center; flex-wrap: wrap; margin: 14px 0 8px 0; gap: 8px; }
     ruby { display: inline-flex; flex-direction: row; align-items: center; font-size: 2rem; font-weight: 800; color: #fbbf24; line-height: 1; }
     rt { display: inline-flex !important; flex-direction: row !important; align-items: center !important; font-size: 0.42em; color: #93c5fd; font-weight: 600; margin-left: 2px; }
@@ -56,12 +54,10 @@
     .zhuyin-tone-side { font-size: 0.85em; line-height: 1; align-self: flex-end; padding-bottom: 2px; margin-left: 1px; }
     .tag-identity { font-size: 0.95rem; font-weight: 700; color: var(--text-muted); }
 
-    /* 畫板容器 */
     .canvas-container { position: relative; width: 100%; background: #ffffff; border-radius: 12px; overflow: hidden; border: 3px solid var(--border); touch-action: none; }
     .canvas-container.drawing-active { border-color: #f59e0b; box-shadow: 0 0 16px rgba(245, 158, 11, 0.75); }
     #local-canvas { display: block; width: 100%; height: 320px; cursor: crosshair; }
 
-    /* 顏色標籤與清單 */
     .color-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
     .players-bar { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; background: #0f172a; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); }
     .player-tag { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.05); font-size: 0.78rem; }
@@ -74,7 +70,6 @@
     .score-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #0f172a; border-radius: 8px; margin-bottom: 6px; border: 1px solid var(--border); }
     .score-badge { font-size: 1.1rem; font-weight: bold; color: #fbbf24; }
 
-    /* 換手全螢幕對話框 */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -131,10 +126,9 @@
     </button>
   </section>
 
-  <!-- ================= 階段 2：畫板區（全場保留） ================= -->
+  <!-- ================= 階段 2：畫板區 ================= -->
   <section id="drawing-section" style="display: none; flex-direction: column; gap: 14px;">
     
-    <!-- 頂部即時出筆提示 -->
     <div class="card" style="padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;">
       <div style="display: flex; align-items: center; gap: 8px;">
         <span id="turn-indicator-dot" class="color-dot"></span>
@@ -143,15 +137,12 @@
       <span id="turn-rule-tag" style="font-size: 0.82rem; color: #fbbf24; font-weight: bold;">每人限一筆畫</span>
     </div>
 
-    <!-- 玩家代表色條 -->
     <div class="players-bar" id="game-color-bar"></div>
 
-    <!-- 畫板主體 -->
     <div id="canvas-wrapper" class="canvas-container">
       <canvas id="local-canvas"></canvas>
     </div>
 
-    <!-- 畫板下方進度提示區 -->
     <div id="drawing-progress-info" style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
       <span>全體依序輪流進行 2 輪</span>
       <span id="round-indicator" style="font-weight: bold; color: var(--accent);">第 1 / 2 輪</span>
@@ -161,7 +152,7 @@
     <div class="card" id="voting-panel" style="display: none;">
       <h3 style="color: var(--accent); margin-bottom: 6px;">🗳 輪流密室投票</h3>
       <p id="voting-voter-title" style="font-size: 0.95rem; margin-bottom: 10px; font-weight: 500;">
-        請<span id="voting-current-voter-name" style="font-weight: bold;">【玩家 1】</span>點選你懷疑的間諜：
+        請<span id="voting-current-voter-name" style="font-weight: bold;">【玩家 1】</span>點選你懷疑的間諜或白板：
       </p>
       <div id="vote-options"></div>
       <button id="btn-submit-vote" class="btn" disabled>確認投票並傳給下一位</button>
@@ -173,10 +164,10 @@
       <div class="info-box" id="result-votes-details"></div>
       <div class="info-box" id="result-spy-details"></div>
       
-      <!-- 間諜逆轉猜題區 -->
+      <!-- 逆轉猜題區 -->
       <div id="reverse-guess-box" style="display: none; background: #0f172a; padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px dashed var(--accent);">
-        <div style="color: #fbbf24; font-weight: bold; margin-bottom: 4px;">🎯 間諜看著上方畫板盲猜題目</div>
-        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">間諜若能口頭猜中題目可逆轉獲得分數：</p>
+        <div style="color: #fbbf24; font-weight: bold; margin-bottom: 4px;">🎯 臥底逆轉猜題機會</div>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">被抓出的臥底若能看著上方畫板猜中平民題目，可獲得逆轉加分：</p>
         <div id="hint-category-box" style="display: none; padding: 6px; background: rgba(56, 189, 248, 0.1); border-radius: 6px; margin-bottom: 8px;">
           <span style="font-size: 0.8rem; color: var(--text-muted);">類別提示：</span>
           <div class="tag-word-wrap" id="hint-category-content"></div>
@@ -200,7 +191,7 @@
 
 </div>
 
-<!-- ================= 換手對話彈窗 ================= -->
+<!-- 換手彈窗 -->
 <div class="modal-overlay" id="handover-modal">
   <div class="modal-card">
     <p id="modal-handover-subtitle" style="font-size: 0.85rem; color: var(--text-muted);">本筆作畫已完成！</p>
@@ -215,16 +206,15 @@
 
   const rawConfig = JSON.parse(sessionStorage.getItem('spy_game_config')) 
                  || JSON.parse(sessionStorage.getItem('spyGameConfig'))
-                 || { playerCount: 4, spyCount: 1, difficulty: 'normal', spyType: 'blank' };
+                 || { playerCount: 4, spyCount: 1, blankCount: 0, difficulty: 'normal' };
 
   let config = {
     difficulty: rawConfig.difficulty || 'normal',
-    spyType: rawConfig.spyType || 'blank',
-    spyCount: rawConfig.spyCount ? parseInt(rawConfig.spyCount, 10) : 1,
+    spyCount: rawConfig.spyCount !== undefined ? parseInt(rawConfig.spyCount, 10) : 1,
+    blankCount: rawConfig.blankCount !== undefined ? parseInt(rawConfig.blankCount, 10) : 0,
     players: []
   };
 
-  // 優先採用首頁組裝的暱稱陣列
   if (rawConfig.players && Array.isArray(rawConfig.players) && rawConfig.players.length > 0) {
     config.players = rawConfig.players;
   } else {
@@ -242,7 +232,8 @@
   let totalScores = {};
   players.forEach((_, idx) => { totalScores[idx] = 0; });
 
-  let spyIndices = [];
+  // 角色身分記錄：'civilian' | 'spy' | 'blank'
+  let playerRoles = {};
   let commonWord = '';
   let categoryName = '';
   let categoryRuby = '';
@@ -250,7 +241,6 @@
   let currentRoundGame = 1;
   let currentViewingPlayer = 0;
   
-  // 順序控制：固定順序輪轉
   let turnOrder = [];
   let currentTurnOrderIndex = 0;
   let currentRound = 1;
@@ -282,12 +272,25 @@
   }
 
   function initGame() {
-    // 隨機選間諜
+    // 依據首頁設定各自抽選間諜與白板
+    playerRoles = {};
     const playerIndices = Array.from({ length: players.length }, (_, i) => i);
     playerIndices.sort(() => Math.random() - 0.5);
-    spyIndices = playerIndices.slice(0, config.spyCount);
 
-    // 抽題
+    const spyIndices = playerIndices.slice(0, config.spyCount);
+    const blankIndices = playerIndices.slice(config.spyCount, config.spyCount + config.blankCount);
+
+    players.forEach((_, idx) => {
+      if (spyIndices.includes(idx)) {
+        playerRoles[idx] = 'spy';
+      } else if (blankIndices.includes(idx)) {
+        playerRoles[idx] = 'blank';
+      } else {
+        playerRoles[idx] = 'civilian';
+      }
+    });
+
+    // 抽題庫
     const bank = (config.difficulty === 'hard' && typeof HARD_WORD_BANK !== 'undefined') ? HARD_WORD_BANK : NORMAL_WORD_BANK;
     const catDict = (config.difficulty === 'hard' && typeof HARD_CATEGORY_RUBY !== 'undefined') ? HARD_CATEGORY_RUBY : NORMAL_CATEGORY_RUBY;
     const item = bank[Math.floor(Math.random() * bank.length)];
@@ -295,7 +298,7 @@
     categoryName = item[1];
     categoryRuby = catDict[item[1]] || item[1];
 
-    // 隨機選起筆玩家，但順序固定循環
+    // 隨機起筆
     const startIdx = Math.floor(Math.random() * players.length);
     turnOrder = [];
     for (let i = 0; i < players.length; i++) {
@@ -310,7 +313,6 @@
     earnedScores = {};
     players.forEach((_, idx) => { earnedScores[idx] = 0; });
 
-    // 重設提示列與進度資訊的顯示
     document.getElementById('turn-rule-tag').style.display = 'inline-block';
     document.getElementById('drawing-progress-info').style.display = 'flex';
 
@@ -351,24 +353,22 @@
   elRevealBox.addEventListener('click', () => {
     if (elRevealBox.classList.contains('unlocked')) return;
 
-    const isSpy = spyIndices.includes(currentViewingPlayer);
-    if (isSpy) {
-      if (config.spyType === 'blank') {
-        elRoleText.innerHTML = '【你是白板】';
-        elRoleText.style.color = 'var(--danger)';
-        elWordText.innerHTML = formatBopomofo('<ruby>無<rt>ㄨˊ</rt>題<rt>ㄊㄧˊ</rt>目<rt>ㄇㄨˋ</rt></ruby>');
-        elRuleTip.textContent = '⚠️ 你完全無提示！觀察他人筆畫並伺機偽裝！';
-      } else {
-        elRoleText.innerHTML = '【你是間諜】';
-        elRoleText.style.color = 'var(--danger)';
-        elWordText.innerHTML = formatBopomofo(categoryRuby);
-        elRuleTip.textContent = '⚠️ 你已知此大類別，觀察他人並偽裝自己知情！';
-      }
+    const role = playerRoles[currentViewingPlayer];
+    if (role === 'blank') {
+      elRoleText.innerHTML = '【你是白板】';
+      elRoleText.style.color = '#fbbf24';
+      elWordText.innerHTML = formatBopomofo('<ruby>無<rt>ㄨˊ</rt>題<rt>ㄊㄧˊ</rt>目<rt>ㄇㄨˋ</rt></ruby>');
+      elRuleTip.textContent = '⚠️ 你完全無題目與提示！請觀察他人筆畫並伺機偽裝！';
+    } else if (role === 'spy') {
+      elRoleText.innerHTML = '【你是間諜】';
+      elRoleText.style.color = 'var(--danger)';
+      elWordText.innerHTML = formatBopomofo(categoryRuby);
+      elRuleTip.textContent = '⚠️ 你已知此題目的大類別！請觀察平民筆畫並偽裝自己！';
     } else {
       elRoleText.innerHTML = '【你是平民】';
       elRoleText.style.color = 'var(--accent)';
       elWordText.innerHTML = formatBopomofo(commonWord);
-      elRuleTip.textContent = '💡 隱密表現特徵，別畫太明顯讓間諜猜出！';
+      elRuleTip.textContent = '💡 隱密表現題目特徵，別畫太明顯讓間諜猜出！';
     }
 
     elRevealHint.style.display = 'none';
@@ -675,22 +675,28 @@
       else if (cnt === maxVotes) { mostVoted.push(parseInt(pid, 10)); }
     });
 
-    const isSpyCaught = mostVoted.some(idx => spyIndices.includes(idx));
-    const spyNames = spyIndices.map(i => players[i].name).join('、');
+    // 只要最高票中有任一位非平民（間諜或白板），即算抓到
+    const isEnemyCaught = mostVoted.some(idx => playerRoles[idx] === 'spy' || playerRoles[idx] === 'blank');
 
+    // 平民投對非平民 +1 分
     Object.entries(votes).forEach(([v, t]) => {
       const voterIdx = parseInt(v, 10);
-      if (!spyIndices.includes(voterIdx) && spyIndices.includes(t)) {
+      if (playerRoles[voterIdx] === 'civilian' && (playerRoles[t] === 'spy' || playerRoles[t] === 'blank')) {
         earnedScores[voterIdx] = (earnedScores[voterIdx] || 0) + 1;
         totalScores[voterIdx] += 1;
       }
     });
 
-    const escapeScore = (config.spyType === 'blank') ? 3 : 2;
-    if (!isSpyCaught) {
-      spyIndices.forEach(sIdx => {
-        earnedScores[sIdx] = (earnedScores[sIdx] || 0) + escapeScore;
-        totalScores[sIdx] += escapeScore;
+    // 臥底逃脫計分：間諜 +2 分，白板 +3 分
+    if (!isEnemyCaught) {
+      players.forEach((_, idx) => {
+        if (playerRoles[idx] === 'spy') {
+          earnedScores[idx] = (earnedScores[idx] || 0) + 2;
+          totalScores[idx] += 2;
+        } else if (playerRoles[idx] === 'blank') {
+          earnedScores[idx] = (earnedScores[idx] || 0) + 3;
+          totalScores[idx] += 3;
+        }
       });
     }
 
@@ -701,60 +707,75 @@
     voteDetails += `<b style="color:var(--accent)">最高票：${mostVoted.map(i => players[i].name).join('、')} (${maxVotes} 票)</b>`;
     document.getElementById('result-votes-details').innerHTML = voteDetails;
 
-    let spyDetails = `<b>🕵️ 間諜身分：</b><span style="color:var(--danger); font-size:1.1rem; font-weight:bold;">${spyNames}</span><br>`;
-    if (isSpyCaught) {
-      spyDetails += `<span style="color:var(--success); font-weight:bold;">平民成功揪出間諜！請間諜看著上方畫板進行逆轉猜題！</span>`;
-      setupReverseGuess(true);
-    } else {
-      spyDetails += `<span style="color:var(--danger); font-weight:bold;">間諜隱匿成功逃脫！獲得 +${escapeScore} 分</span>`;
-      setupReverseGuess(false);
+    // 身分揭示字串
+    let spyList = [];
+    let blankList = [];
+    players.forEach((p, idx) => {
+      if (playerRoles[idx] === 'spy') spyList.push(p.name);
+      if (playerRoles[idx] === 'blank') blankList.push(p.name);
+    });
+
+    let identityDetails = '';
+    if (spyList.length > 0) {
+      identityDetails += `🕵️ 間諜身分：<span style="color:var(--danger); font-weight:bold;">${spyList.join('、')}</span><br>`;
     }
-    document.getElementById('result-spy-details').innerHTML = spyDetails;
+    if (blankList.length > 0) {
+      identityDetails += `⬜ 白板身分：<span style="color:#fbbf24; font-weight:bold;">${blankList.join('、')}</span><br>`;
+    }
+
+    if (isEnemyCaught) {
+      identityDetails += `<span style="color:var(--success); font-weight:bold;">平民成功揪出臥底！被抓出者可看著上方畫板進行逆轉猜題！</span>`;
+      setupReverseGuess(mostVoted);
+    } else {
+      identityDetails += `<span style="color:var(--danger); font-weight:bold;">臥底成功隱匿逃脫！獲得逃脫獎勵分數</span>`;
+      document.getElementById('reverse-guess-box').style.display = 'none';
+      revealTopic();
+    }
+    document.getElementById('result-spy-details').innerHTML = identityDetails;
 
     renderScoreBoards();
   }
 
-  function setupReverseGuess(caught) {
+  function setupReverseGuess(caughtIndices) {
     const box = document.getElementById('reverse-guess-box');
     const btns = document.getElementById('guess-buttons');
     const topicDetails = document.getElementById('result-topic-details');
 
-    if (!caught) {
-      box.style.display = 'none';
-      revealTopic();
-      return;
-    }
-
     box.style.display = 'block';
-    topicDetails.innerHTML = '<span style="color:var(--text-muted); font-style:italic;">🔒 間諜猜題中，題目隱藏中...</span>';
+    topicDetails.innerHTML = '<span style="color:var(--text-muted); font-style:italic;">🔒 臥底猜題中，題目隱藏中...</span>';
 
-    if (config.spyType === 'blank') {
+    // 檢查被抓出的人之中是否有白板
+    const hasBlankCaught = caughtIndices.some(idx => playerRoles[idx] === 'blank');
+
+    if (hasBlankCaught) {
       btns.innerHTML = `
-        <button class="btn btn-secondary" style="flex:1" onclick="showCategoryHint()">未猜中 (查看類別提示)</button>
-        <button class="btn btn-success" style="flex:1" onclick="onGuessComplete(2, '盲猜猜中 (+2分)')">盲猜猜中 (+2分)</button>
+        <button class="btn btn-secondary" style="flex:1" onclick="showCategoryHint(${JSON.stringify(caughtIndices)})">未猜中 (查看類別提示)</button>
+        <button class="btn btn-success" style="flex:1" onclick="onGuessComplete(${JSON.stringify(caughtIndices)}, 2, '白板盲猜猜中 (+2分)')">盲猜猜中 (+2分)</button>
       `;
     } else {
       btns.innerHTML = `
-        <button class="btn btn-secondary" style="flex:1" onclick="onGuessComplete(0, '未猜中')">未猜中</button>
-        <button class="btn btn-success" style="flex:1" onclick="onGuessComplete(1, '猜中了 (+1分)')">猜中了 (+1分)</button>
+        <button class="btn btn-secondary" style="flex:1" onclick="onGuessComplete(${JSON.stringify(caughtIndices)}, 0, '未猜中')">未猜中</button>
+        <button class="btn btn-success" style="flex:1" onclick="onGuessComplete(${JSON.stringify(caughtIndices)}, 1, '猜中了 (+1分)')">猜中了 (+1分)</button>
       `;
     }
   }
 
-  window.showCategoryHint = function() {
+  window.showCategoryHint = function(caughtIndices) {
     document.getElementById('hint-category-box').style.display = 'block';
     document.getElementById('hint-category-content').innerHTML = formatBopomofo(categoryRuby);
     document.getElementById('guess-buttons').innerHTML = `
-      <button class="btn btn-secondary" style="flex:1" onclick="onGuessComplete(0, '提示後未猜中')">仍未猜中</button>
-      <button class="btn btn-success" style="flex:1" onclick="onGuessComplete(1, '提示後猜中 (+1分)')">提示後猜中 (+1分)</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="onGuessComplete(${JSON.stringify(caughtIndices)}, 0, '提示後未猜中')">仍未猜中</button>
+      <button class="btn btn-success" style="flex:1" onclick="onGuessComplete(${JSON.stringify(caughtIndices)}, 1, '提示後猜中 (+1分)')">提示後猜中 (+1分)</button>
     `;
   };
 
-  window.onGuessComplete = function(addScore, note) {
-    if (addScore > 0) {
-      spyIndices.forEach(sIdx => {
-        earnedScores[sIdx] = (earnedScores[sIdx] || 0) + addScore;
-        totalScores[sIdx] += addScore;
+  window.onGuessComplete = function(caughtIndices, addScore, note) {
+    if (addScore > 0 && caughtIndices) {
+      caughtIndices.forEach(sIdx => {
+        if (playerRoles[sIdx] === 'spy' || playerRoles[sIdx] === 'blank') {
+          earnedScores[sIdx] = (earnedScores[sIdx] || 0) + addScore;
+          totalScores[sIdx] += addScore;
+        }
       });
     }
     revealTopic(note);
@@ -764,7 +785,7 @@
   window.revealTopic = function(resultNote = '') {
     document.getElementById('reverse-guess-box').style.display = 'none';
     let html = `<b>💡 本局題目與類別：</b><br>`;
-    if (resultNote) html += `<span style="color:#fbbf24;">間諜逆轉結果：${resultNote}</span><br>`;
+    if (resultNote) html += `<span style="color:#fbbf24;">臥底逆轉結果：${resultNote}</span><br>`;
     html += `<div style="display:flex; align-items:center; gap:8px; margin-top:4px;">題目：<div class="tag-word-wrap">${formatBopomofo(commonWord)}</div></div>`;
     html += `<div style="display:flex; align-items:center; gap:8px; margin-top:4px;">類別：<div class="tag-word-wrap">${formatBopomofo(categoryRuby)}</div></div>`;
     document.getElementById('result-topic-details').innerHTML = html;
